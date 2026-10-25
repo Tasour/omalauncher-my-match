@@ -34,8 +34,9 @@ scripts/     protocole de mesure reproductible
 
 ## Statut
 
+- [x] Repo public créé
 - [x] Audit initial ajouté au dépôt
-- [ ] Document cycle en V
+- [x] Document cycle en V
 - [ ] Récupération du source `my-match`
 - [ ] Audit multi-agents
 - [ ] Réécriture iso-fonctionnelle
