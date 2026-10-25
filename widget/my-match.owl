@@ -1,0 +1,1955 @@
+widget"My Matches – Football"{
+size:6x4
+minSize:3x3
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.7";license:"MIT";category:"sport";owl:11}
+requires{pacman:["curl","jq"]}
+let favStr=join(myTeams.map(t=>t.abbr??"").filter(a=>a!=""),",")
+let favTid=join(myTeams.map(t=>t.tid??"").filter(a=>a!=""),",")
+let favNoTid=join(myTeams.map(t=>(t.tid??"")==""?(t.abbr??""):"").filter(a=>a!=""),",")
+let gamesScript="""    tmp=$(mktemp -d)
+    WANT='"""+favStr+"""'
+    WANTID='"""+favTid+"""'
+    WANTNOTID='"""+favNoTid+"""'
+    if [ -z "$WANT" ] && [ -z "$WANTID" ]; then printf '[]'; rm -rf "$tmp"; exit 0; fi
+    CLUBS="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    NATS="uefa.nations fifa.worldq.uefa fifa.friendly"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" > "$tmp/$1-$2.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
+    }
+    MONTHS=$(for off in -4 0 30 60 90; do date -d "$off day" +%Y%m; done | sort -u)
+    for lg in $CLUBS $NATS; do
+      for m in $MONTHS; do
+        run "$lg" "$m"
+      done
+    done
+    wait
+    # Cache anti-trous : certaines requetes mensuelles peuvent echouer en
+    # silence (timeout), et l'ancien code jetait alors des mois entiers
+    # (ex. tous les matchs d'octobre-janvier d'une equipe). On fusionne le
+    # frais par-dessus le dernier bon resultat : le frais gagne en cas de
+    # doublon, le cache comble les ids absents (purge : passe de +7j, scores
+    # en direct perimes, "a venir" deja commence). Ecriture atomique.
+    n=$(cat "$tmp"/*.jsonl 2>/dev/null | wc -l)
+    cache=~/.cache/espn-games.json
+    now=$(date +%s)
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -sc 'unique_by(.id) | sort_by(.at)' > "$tmp/fresh.json"
+    if [ "$n" -ge 30 ] || [ -s "$cache" ]; then
+      if [ -s "$cache" ]; then
+        jq -sc --argjson now "$now" '.[0] as $f | .[1] as $c | ($f // []) + ([($c // [])[] | select(.at != null and .at > ($now - 604800) and .state != "in" and (.state != "pre" or .at > ($now - 7200)))]) | unique_by(.id) | sort_by(.at)' "$tmp/fresh.json" "$cache" > "$tmp/games.json"
+      else
+        cp "$tmp/fresh.json" "$tmp/games.json"
+      fi
+    else
+      exit 1
+    fi
+    [ "$(jq 'length // 0' "$tmp/games.json")" -gt 0 ] || exit 1
+    cp "$tmp/games.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    e=~/.cache/espn-logos/empty.png
+    [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
+    find "$d" -maxdepth 1 -name '*.png' -mtime +30 -delete
+    rm -f "$d"/[0-9]*.png
+    n=0
+    for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/games.json" | sort -u); do
+      p=$(echo "$f" | tr '-' '/')
+      if [ ! -s "$d/$f" ]; then
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    # Planche-sprite des ecussons : 1 seul fichier image -> les 50 ecussons
+    # apparaissent ensemble au lieu de clignoter en decale. Rebuild seulement
+    # si le set de logos change, ecriture atomique (mv) pour ne jamais exposer
+    # un fichier partiel. Perl + zlib du systeme uniquement, ~1 s.
+    sig=$(find "$d" -maxdepth 1 -name '*.png' -printf '%f %s %T@\n' 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+    if [ "$sig" != "$(cat "$d/.sprite.sig" 2>/dev/null)" ] || [ ! -s ~/.cache/espn-logos/sprite.png ] || [ ! -s ~/.cache/espn-logos/sprite.json ]; then
+      perl - "$d" "$tmp/sprite" <<'PERLEOF'
+use strict;
+use warnings;
+use Compress::Zlib qw(compress);
+use Compress::Raw::Zlib qw(crc32);
+my ($dir, $out) = @ARGV;
+opendir(my $dh, $dir) or die "no dir";
+my @files = sort grep { /\.png$/ && -f ($dir . "/" . $_) } readdir($dh);
+closedir($dh);
+sub chunk {
+  my ($type, $data) = @_;
+  return pack("N", length($data)) . $type . $data . pack("N", crc32($type . $data));
+}
+sub paeth {
+  my ($a, $b, $c) = @_;
+  my $p = $a + $b - $c;
+  my $pa = abs($p - $a); my $pb = abs($p - $b); my $pc = abs($p - $c);
+  return ($pa <= $pb && $pa <= $pc) ? $a : ($pb <= $pc ? $b : $c);
+}
+sub parse_png {
+  my ($path) = @_;
+  open(my $fh, "<", $path) or return undef;
+  binmode($fh);
+  my $magic;
+  return undef unless read($fh, $magic, 8) == 8;
+  return undef unless $magic eq "\x89PNG\r\n\x1a\n";
+  my ($w, $h, $depth, $ctype, $inter);
+  my $idat = "";
+  while (1) {
+    my $hdr;
+    last unless read($fh, $hdr, 8) == 8;
+    my ($len, $type) = unpack("N a4", $hdr);
+    my $data = "";
+    if ($len > 0) {
+      last unless read($fh, $data, $len) == $len;
+    }
+    my $crc;
+    last unless read($fh, $crc, 4) == 4;
+    if ($type eq "IHDR") {
+      ($w, $h, $depth, $ctype, my $comp, my $filt, $inter) = unpack("NNCCCCC", $data);
+    } elsif ($type eq "IDAT") {
+      $idat .= $data;
+    } elsif ($type eq "IEND") {
+      last;
+    }
+  }
+  close($fh);
+  return undef unless defined $w && $w == $h && $w >= 16 && $w <= 256;
+  return undef unless $depth == 8 && $ctype == 6 && $inter == 0;
+  my $raw = Compress::Zlib::uncompress($idat);
+  return undef unless defined $raw;
+  my $stride = $w * 4;
+  return undef unless length($raw) == $h * ($stride + 1);
+  my $rgba = "";
+  my @prev = (0) x $stride;
+  for my $ry (0 .. $h - 1) {
+    my $off = $ry * ($stride + 1);
+    my $f = ord(substr($raw, $off, 1));
+    my @line = unpack("C*", substr($raw, $off + 1, $stride));
+    my @rec = (0) x $stride;
+    for my $i (0 .. $stride - 1) {
+      my $v = $line[$i];
+      my $a = $i >= 4 ? $rec[$i - 4] : 0;
+      my $b = $prev[$i];
+      my $c = $i >= 4 ? $prev[$i - 4] : 0;
+      if ($f == 1) { $v += $a; }
+      elsif ($f == 2) { $v += $b; }
+      elsif ($f == 3) { $v += int(($a + $b) / 2); }
+      elsif ($f == 4) { $v += paeth($a, $b, $c); }
+      $rec[$i] = $v & 255;
+    }
+    $rgba .= pack("C*", @rec);
+    @prev = @rec;
+  }
+  return { w => $w, h => $h, rgba => $rgba };
+}
+my @names;
+my @tiles;
+my $cell = 0;
+for my $f (@files) {
+  my $p = parse_png($dir . "/" . $f);
+  next unless $p;
+  if ($cell == 0) { $cell = $p->{w}; }
+  next unless $p->{w} == $cell;
+  push @names, $f;
+  push @tiles, $p->{rgba};
+}
+if (!@tiles) { print STDERR "sprite: no valid tiles\n"; exit 1; }
+my $cols = 8;
+my $nrows = int((scalar(@tiles) + $cols - 1) / $cols);
+my $W = $cols * $cell;
+my $H = $nrows * $cell;
+my $blank = "\0" x ($cell * 4);
+my $raw = "";
+for my $ry (0 .. $H - 1) {
+  $raw .= "\0";
+  my $gr = int($ry / $cell);
+  my $lr = $ry % $cell;
+  for my $gc (0 .. $cols - 1) {
+    my $gi = $gr * $cols + $gc;
+    if ($gi < scalar(@tiles)) {
+      $raw .= substr($tiles[$gi], $lr * $cell * 4, $cell * 4);
+    } else {
+      $raw .= $blank;
+    }
+  }
+}
+my $idat = compress($raw);
+my $png = "\x89PNG\r\n\x1a\n" . chunk("IHDR", pack("NNCCCCC", $W, $H, 8, 6, 0, 0, 0)) . chunk("IDAT", $idat) . chunk("IEND", "");
+open(my $oh, ">", $out . ".png") or die;
+binmode($oh);
+print $oh $png;
+close($oh);
+open(my $oj, ">", $out . ".json") or die;
+print $oj '{"cell":' . $cell . ',"cols":8,"w":' . $W . ',"h":' . $H . ',"idx":{';
+for my $i (0 .. $#names) {
+  print $oj "," if $i > 0;
+  print $oj '"' . $names[$i] . '":' . $i;
+}
+print $oj "}}";
+close($oj);
+print STDERR "sprite: " . scalar(@tiles) . " tiles -> " . $W . "x" . $H . "\n";
+PERLEOF
+      if [ -s "$tmp/sprite.png" ] && [ -s "$tmp/sprite.json" ]; then
+        mv "$tmp/sprite.png" "$tmp/sprite.json" ~/.cache/espn-logos/
+        printf '%s' "$sig" > "$d/.sprite.sig"
+      fi
+    fi
+    cat "$tmp/games.json" | jq -c --argjson f "$(date +%s)" 'map(. + {fetchedAt: $f})'
+    rm -rf "$tmp"
+  """
+source games=cmd("bash -c ${sh(gamesScript)}")every 15m json timeout 240s status
+let seasonScript="""    tmp=$(mktemp -d)
+    WANT='"""+favStr+"""'
+    WANTID='"""+favTid+"""'
+    WANTNOTID='"""+favNoTid+"""'
+    if [ -z "$WANT" ] && [ -z "$WANTID" ]; then printf '[]'; rm -rf "$tmp"; exit 0; fi
+    CLUBS="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    NATS="uefa.nations fifa.worldq.uefa fifa.friendly"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      r=$(curl --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
+      printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
+      printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+    }
+    n=0
+    : > "$tmp/ok.log"
+    run() {
+      ( if out=$(fetch "$1" "$2"); then
+          printf '%s' "$out" | jq -c --arg m "$2" '. + {month: $m}' > "$tmp/$1-$2.jsonl"
+          printf '%s:%s\n' "$1" "$2" >> "$tmp/ok.log"
+        fi ) &
+      n=$((n + 1))
+      if [ "$n" -ge 10 ]; then wait; n=0; fi
+    }
+    Y=$(date +%Y)
+    M=$(date +%-m)
+    if [ "$M" -ge 8 ]; then S=$Y; else S=$((Y - 1)); fi
+    E=$((S + 1))
+    SEASON=""
+    for m in 07 08 09 10 11 12; do SEASON="$SEASON $S$m"; done
+    for m in 01 02 03 04 05 06 07; do SEASON="$SEASON $E$m"; done
+    CAL="nor.1 swe.1"
+    CALSEASON=$(for m in 01 02 03 04 05 06 07 08 09 10 11 12; do printf '%s ' "$Y$m"; done)
+    # Saison entiere : mois courant toujours rafraichi, mois deja recuperes
+    # (meme sans match pour mes equipes) sautes, echecs retentes au run suivant.
+    # Les mois futurs restent couverts par games (+/-90 j) une fois proches.
+    cache=~/.cache/espn-season.json
+    CUR=$(date +%Y%m)
+    sig=$(printf '%s|%s' "$WANTID" "$WANT" | sha256sum | cut -d' ' -f1)
+    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"sig":"","lms":[],"items":[]}' > "$cache"
+    if ! jq -e --arg sig "$sig" '.sig == $sig' "$cache" >/dev/null 2>&1; then
+      jq -c --arg sig "$sig" '{sig: $sig, lms: [], items: (.items // [])}' "$cache" > "$cache.tmp" 2>/dev/null && mv "$cache.tmp" "$cache" || printf '{"sig":"%s","lms":[],"items":[]}' "$sig" > "$cache"
+    fi
+    for lg in $CLUBS $NATS; do
+      case " $CAL " in *" $lg "*) MS="$CALSEASON";; *) MS="$SEASON";; esac
+      for m in $MS; do
+        if [ "$m" = "$CUR" ] || ! jq -e --arg k "$lg:$m" '.lms | index($k) != null' "$cache" >/dev/null 2>&1; then
+          run "$lg" "$m"
+        fi
+      done
+    done
+    wait
+    OKJ=$(jq -R -s 'split("\n") | map(select(. != ""))' "$tmp/ok.log" 2>/dev/null || printf '[]')
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -cs 'unique_by(.id)' > "$tmp/fresh.json"
+    # Fusion du frais par-dessus le cache mensuel (le frais gagne) : les mois
+    # passes ne sont plus retelecharges, et un echec ressert le cache.
+    jq -c --slurpfile fr "$tmp/fresh.json" --argjson ok "$OKJ" --arg keep "$S"07 --arg calkeep "$Y"01 --arg sig "$sig" '
+      ($fr[0] // []) as $fresh
+      | (.lms // []) as $lms | (.items // []) as $old
+      | ([$fresh[] | select(.id != null)] | unique_by(.id)) as $fu
+      | ([$fu[] | ((.league // "") + ":" + (.month // ""))] | unique) as $flms
+      | ([$old[] | select(.id != null and ((.league // "") + ":" + (.month // "")) as $lm | ($flms | index($lm)) == null)] | unique_by(.id)) as $kept
+      | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep or ((.league == "nor.1" or .league == "swe.1") and (.month // "0") >= $calkeep)))) as $items
+      | {cache: {sig: $sig, lms: (($lms + $ok) | unique), items: $items}, out: ($items | sort_by(.at))}
+    ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
+      jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      jq -c '.out' "$tmp/merged.json" > "$tmp/season.json"
+    elif [ "$(jq '.items | length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      jq -c '.items | sort_by(.at)' "$cache" > "$tmp/season.json" 2>/dev/null || { rm -rf "$tmp"; exit 1; }
+      [ "$(jq 'length // 0' "$tmp/season.json")" -gt 0 ] || { rm -rf "$tmp"; exit 1; }
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    e=~/.cache/espn-logos/empty.png
+    [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
+    find "$d" -maxdepth 1 -name '*.png' -mtime +30 -delete
+    rm -f "$d"/[0-9]*.png
+    n=0
+    for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/season.json" | sort -u); do
+      p=$(echo "$f" | tr '-' '/')
+      if [ ! -s "$d/$f" ]; then
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    cat "$tmp/season.json"
+    rm -rf "$tmp"
+  """
+source seasonAll=cmd("bash -c ${sh(seasonScript)}")every 12h json timeout 300s
+source scheds=cmd("""
+    tmp=$(mktemp -d)
+    sched() {
+      lg=$1
+      id=$2
+      raw=$(curl --retry 2 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams/$id/schedule" 2>/dev/null)
+      printf '%s' "$raw" | jq -c --arg lg "$lg" '[((.events // []) | sort_by(.date)) | to_entries[] | {key: ($lg + ":" + (.value.id | tostring)), value: (if $lg == "fra.coupe_de_france" then "" elif $lg == "uefa.europa" and .key + 1 > 8 then "Finales" else "J\(.key + 1)" end)}] | from_entries | with_entries(select(.value != ""))' > "$tmp/sched-$lg-$id.json"
+      printf '%s' "$raw" | jq -c --arg lg "$lg" '((.events // []) | sort_by(.date)) as $e | {($lg): {jn: ($e | length), at: (if ($e | length) > 0 then ($e[-1].date[0:16] + ":00Z" | fromdateiso8601) else 0 end)}}' > "$tmp/anchor-$lg-$id.json"
+    }
+    sched fra.1 167
+    sched fra.2 6994
+    sched fra.coupe_de_france 167
+    sched fra.coupe_de_france 6994
+    sched uefa.europa 167
+    sched uefa.nations 478
+    sched fifa.worldq.uefa 478
+    jq -s 'add' "$tmp"/sched-*.json > "$tmp/rounds.json"
+    jq -s 'add' "$tmp"/anchor-*.json > "$tmp/anchors.json"
+    [ "$(jq 'length // 0' "$tmp/rounds.json")" -gt 0 ] || exit 1
+    jq -cs '{rounds: .[0], anchors: .[1]}' "$tmp/rounds.json" "$tmp/anchors.json"
+    rm -rf "$tmp"
+  """)every 12h json timeout 60s
+let standingsScript="""    tmp=$(mktemp -d)
+    WANT='"""+favStr+"""'
+    WANTID='"""+favTid+"""'
+    WANTNOTID='"""+favNoTid+"""'
+    TABLES="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    n=0
+    one() {
+      lg=$1
+      tag=$(tagof "$lg")
+      s=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null)
+      e=$(printf '%s' "$s" | jq -r '.season.endDate // "none"')
+      case "$e" in ""|"none") e=9999999999;; *) e=$(date -d "$e" +%s || printf 9999999999);; esac
+      printf '%s' "$s" | jq -c --arg lg "$lg" --arg tag "$tag" --argjson ends "$e" --arg want "$WANT" --arg wantid "$WANTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | [.children[] | {name: (.name | sub("[\r\n]+$"; "")), teams: ([.standings.entries[] | select(.stats != null) | (reduce .stats[] as $s ({}; .[$s.name] = ($s.value // 0 | floor))) as $st | {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), rank: $st.rank, played: $st.gamesPlayed, won: $st.wins, drawn: $st.ties, lost: $st.losses, bp: (($st.pointsFor // null) | if . != null then floor else null end), bc: (($st.pointsAgainst // null) | if . != null then floor else null end), gd: $st.pointDifferential, pts: $st.points, ours: (.team.abbreviation as $a | (.team.id // "" | tostring) as $i | if ($i | IN($wlid[])) then $a elif ($a | IN($wl[])) then $a else null end), zone: ((.note.description // "") | ascii_downcase | if . == "" then null elif test("relegat") and test("playoff") then "orange" elif test("relegat|eliminat") then "red" elif test("champions league$|round of 16|qualifies for world cup$|qualifies for qfs|promotion$") then "green" else "blue" end), zlabel: ((.note.description // "") | ascii_downcase | if test("champions") and test("qualifying") then "prelim. C1" elif test("champions") then "C1" elif test("round") and test("16") then "8es" elif test("conference") then "CONF" elif test("europa") then "C3" elif test("qfs") then "quarts" elif test("promotion") and test("playoff") then "barr. montee" elif test("promotion") then "montee" elif test("world") and test("cup") and test("playoff") then "barr. CDM" elif test("world") and test("cup") then "CDM" elif test("knockout") then "barrages" elif test("relegation") and test("playoff") then "barr. releg." elif test("relegation") then "relegation" elif test("eliminat") then "elimine" else "" end)}] | sort_by(.rank))}] | map(select(((.teams | map(select(.ours != null)) | length) > 0) or ($lg == "eng.1" or $lg == "esp.1" or $lg == "ger.1" or $lg == "ita.1" or $lg == "uefa.champions" or $lg == "uefa.europa" or $lg == "uefa.europa.conf"))) | .[] | {league: $lg, tag: $tag, group: .name, ends: $ends, teams: .teams, squads: ([.teams[].ours] | map(select(. != null)) | unique), legend: ([.teams[] | select(.zone != null) | {c: .zone, t: .zlabel, r: .rank}] | sort_by(.r) | map({c, t}) | reduce .[] as $x ([]; if index($x) then . else . + [$x] end))}' > "$tmp/t-$lg.jsonl"
+    }
+    for lg in $TABLES; do
+      one "$lg" &
+      n=$((n + 1))
+      if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
+    done
+    wait
+    jq -sc '.' "$tmp"/t-*.jsonl > "$tmp/tables.json" 2>/dev/null || echo '[]' > "$tmp/tables.json"
+    # Fusion anti-trous : le frais gagne par (ligue, groupe), le dernier bon
+    # resultat comble les ligues absentes (fetch partiel). Sans cache, echec.
+    cache=~/.cache/espn-standings.json
+    [ -s "$cache" ] || echo '[]' > "$cache"
+    jq -cs '.[1] as $old | (.[0] // []) as $fu | ([($fu[]) | select(.league != null) | {key: ((.league // "") + ":" + (.group // "")), value: .}] | from_entries) as $fm | $fu + ([($old // [])[]] | map(select($fm[((.league // "") + ":" + (.group // ""))] == null)))' "$tmp/tables.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
+      cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      cp "$cache" "$tmp/merged.json"
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    cat "$tmp/merged.json"
+    rm -rf "$tmp"
+  """
+source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 90s
+source teamsDb=cmd("""
+    tmp=$(mktemp -d)
+    LEAGUES="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    n=0
+    for lg in $LEAGUES; do
+      tag=$(tagof "$lg")
+      kind=c
+      case "$lg" in uefa.nations|fifa.worldq.uefa|fifa.friendly) kind=n;; esac
+      curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg kind "$kind" '.sports[0].leagues[0].teams[]? | .team as $t | {key: (($t.abbreviation // $t.id | tostring) + ":" + $kind), name: $t.displayName, short: ($t.shortDisplayName // $t.displayName), abbr: $t.abbreviation, display: $t.displayName, logo: ((($t.logos[0].href // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9.]+[.]png$") then gsub("/"; "-") else "" end), league: $lg, tag: $tag, kind: $kind, tid: ($t.id | tostring)}' > "$tmp/t-$lg.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 6 ]; then wait; n=0; fi
+    done
+    wait
+    cat "$tmp"/t-*.jsonl 2>/dev/null | jq -cs 'map(select(.abbr != null and .name != null)) | group_by(.key) | map(max_by(if .league == "fifa.friendly" then 0 elif .league == "fifa.worldq.uefa" then 1 else 2 end))' > "$tmp/teams.json" 2>/dev/null || echo '[]' > "$tmp/teams.json"
+    cache=~/.cache/espn-teams.json
+    if [ "$(jq 'length // 0' "$tmp/teams.json")" -gt 0 ]; then
+      cp "$tmp/teams.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+    elif [ -s "$cache" ]; then
+      cp "$cache" "$tmp/teams.json"
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    # Ecussons du catalogue (setup + headers) : telecharges une fois dans le
+    # dossier partage (sprite reconstruit par games apres validation).
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    e=~/.cache/espn-logos/empty.png
+    [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
+    n=0
+    for f in $(jq -r '.[].logo | select(. != "")' "$tmp/teams.json" | sort -u); do
+      p=$(echo "$f" | tr '-' '/')
+      if [ ! -s "$d/$f" ]; then
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    cat "$tmp/teams.json"
+    rm -rf "$tmp"
+  """)every 24h json timeout 150s
+let formsScript="""
+    /usr/bin/jq -c '[.[] | select(.state == "post" and .home.abbr != null and .away.abbr != null) | {id, at, home: .home.abbr, away: .away.abbr, hw: .home.winner, aw: .away.winner}]' /root/.cache/espn-extra.json
+  """
+source formsData=cmd("bash -c ${sh(formsScript)}")every 15m json timeout 60s
+source extra=cmd("""
+    tmp=$(mktemp -d)
+    NOW=$(date +%s)
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations eng.1 esp.1 ger.1 ita.1 fifa.worldq.uefa uefa.champions"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      curl --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "post" or $c.status.type.state == "in") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" | jq -c --arg m "$2" '. + {month: $m}' > "$tmp/$1-$2.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
+    }
+    RR="fra.1 fra.2 eng.1 esp.1 ger.1 ita.1"
+    MONTHS5=$(for off in 0 30 60 90 120; do date -d "$off day ago" +%Y%m; done | sort -u)
+    MONTHS2=$(for off in 0 30; do date -d "$off day ago" +%Y%m; done | sort -u)
+    # Mois passes deja en cache : immuables, on ne refetch que le courant.
+    cache=~/.cache/espn-extra-base.json
+    CUR=$(date +%Y%m)
+    KEEPM=$(date -d "120 day ago" +%Y%m)
+    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"lms":[],"items":[]}' > "$cache"
+    for lg in $LEAGUES; do
+      case " $RR " in *" $lg "*) MS="$MONTHS5";; *) MS="$MONTHS2";; esac
+      for m in $MS; do
+        if [ "$m" -ge "$CUR" ] || ! jq -e --arg k "$lg:$m" '.lms | index($k) != null' "$cache" >/dev/null 2>&1; then
+          run "$lg" "$m"
+        fi
+      done
+    done
+    wait
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -cs 'unique_by(.id)' > "$tmp/fresh.json"
+    # Meme cache mensuel que seasonAll : le passe ne se retelemcharge pas,
+    # echec = on ressert le dernier bon resultat.
+    jq -c --slurpfile fr "$tmp/fresh.json" --arg cur "$CUR" --arg keep "$KEEPM" '
+      ($fr[0] // []) as $fresh
+      | (.lms // []) as $lms | (.items // []) as $old
+      | ([$fresh[] | select(.id != null)] | unique_by(.id)) as $fu
+      | ([$fu[] | ((.league // "") + ":" + (.month // ""))] | unique) as $flms
+      | ([$old[] | select(.id != null and ((.league // "") + ":" + (.month // "")) as $lm | ($flms | index($lm)) == null)] | unique_by(.id)) as $kept
+      | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep))) as $items
+      | {cache: {lms: (($lms + ($flms | map(select((split(":")[1] // "0") < $cur)))) | unique | map(select((split(":")[1] // "0") >= $keep))), items: $items}, out: ($items | sort_by(.at))}
+    ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
+      jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      jq -c '.out' "$tmp/merged.json" > "$tmp/baseraw.json"
+    elif [ -s ~/.cache/espn-extra.json ]; then
+      cat ~/.cache/espn-extra.json
+      rm -rf "$tmp"
+      exit 0
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    jq -c 'unique_by(.id) | group_by(.league) | map(sort_by(.at) | reverse | .[0:30]) | add // []' "$tmp/baseraw.json" > "$tmp/base.json"
+    [ "$(jq 'length // 0' "$tmp/base.json")" -gt 0 ] || exit 1
+    # Journees des 6 championnats a poule : K = matchs par journee, n =
+    # journee en cours (mode des matchs joues au classement). Les K plus
+    # recents forment Jn, les K precedents Jn-1, etc. Exact hors reports.
+    n=0
+    rrun() {
+      lg=$1
+      if [ "$lg" = "fra.1" ] || [ "$lg" = "fra.2" ] || [ "$lg" = "ger.1" ]; then k=9; elif [ "$lg" = "uefa.champions" ]; then k=18; else k=10; fi
+      nn=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
+      [ "$nn" = "" ] && nn=0
+      if [ "$nn" -gt 0 ] 2>/dev/null; then
+        jq -c --arg lg "$lg" --argjson k "$k" --argjson n "$nn" '[.[] | select(.league == $lg)] | sort_by(.at) | length as $len | to_entries[] | {id: .value.id, round: ($n - ((($len - 1 - .key) / $k) | floor))} | select(.round > 0)' "$tmp/base.json" > "$tmp/rounds-$lg.json"
+      else
+        : > "$tmp/rounds-$lg.json"
+      fi &
+      n=$((n + 1))
+      if [ "$n" -ge 6 ]; then wait; n=0; fi
+    }
+    for lg in $RR; do
+      rrun "$lg"
+    done
+    wait
+    jq -sc 'map(select(.round != null and .round > 0)) | map({(.id): .round}) | add // {}' "$tmp"/rounds-*.json > "$tmp/roundmap.json"
+    jq -cs '.[1] as $r | .[0] | map(. + {round: ($r[.id] // null)}) | sort_by(.at) | reverse' "$tmp/base.json" "$tmp/roundmap.json" > "$tmp/extra.json"
+    if [ "$(jq 'length // 0' "$tmp/extra.json")" -gt 0 ]; then
+      cp "$tmp/extra.json" ~/.cache/espn-extra.json.tmp && mv ~/.cache/espn-extra.json.tmp ~/.cache/espn-extra.json
+    elif [ -s ~/.cache/espn-extra.json ]; then
+      cat ~/.cache/espn-extra.json
+      rm -rf "$tmp"
+      exit 0
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    n=0
+    for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/extra.json" | sort -u); do
+      p=$(echo "$f" | tr '-' '/')
+      if [ ! -s "$d/$f" ]; then
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    cat "$tmp/extra.json"
+    rm -rf "$tmp"
+  """)every 30m json timeout 150s
+let liveScript="""
+    tmp=$(mktemp -d)
+    now=$(date +%s)
+    WANT='"""+favStr+"""'
+    WANTID='"""+favTid+"""'
+    WANTNOTID='"""+favNoTid+"""'
+    LGD=$(jq -rcs --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" --argjson now "$now" '
+      ($want | split(",") | map(select(. != ""))) as $wl |
+      ($wantid | split(",") | map(select(. != ""))) as $wlid |
+      ($wantnotid | split(",") | map(select(. != ""))) as $wln |
+      map(if type == "object" then (.items // []) else . end) | add // []
+      | map(select((.league // "") != "" and (.at // 0) > 0 and (.state == "in" or (.state == "pre" and (.at // 0) <= $now and (.at // 0) >= $now - 5400))))
+      | map(select((($wlid | length) > 0 and ([(.tids // [])[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([(.squads // [])[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([(.squads // [])[] | IN($wl[])] | any))))
+      | map(.league + "\t" + ((.at // 0) | gmtime | strftime("%Y%m%d")))
+      | unique
+      | .[]' \
+      ~/.cache/espn-games.json ~/.cache/espn-season.json ~/.cache/espn-extra-base.json ~/.cache/espn-nextup.json 2>/dev/null)
+    printf '%s\n' "$LGD" | sort -u > "$tmp/lgd"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      curl --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "in" or $c.status.type.state == "post") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" > "$tmp/$1-$2.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 3 ]; then wait; n=0; sleep 0.5; fi
+    }
+    while IFS=$'\t' read -r lg day; do
+      [ -n "$lg" ] && [ -n "$day" ] && run "$lg" "$day"
+    done < "$tmp/lgd"
+    wait
+    jq -cs --argjson now "$now" '{at: $now, items: unique_by(.id)}' "$tmp"/*.jsonl 2>/dev/null || printf '{"at":%s,"items":[]}' "$now"
+    rm -rf "$tmp"
+  """
+source liveM=cmd("bash -c ${sh(liveScript)}")every 1m json timeout 90s
+source knock=cmd("""
+    tmp=$(mktemp -d)
+    LEAGUES="uefa.champions uefa.europa uefa.europa.conf"
+    tagof() {
+      if [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      if r=$(curl --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
+        printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .season.slug as $round | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: $round, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
+      fi
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" &
+      n=$((n + 1))
+      if [ "$n" -ge 10 ]; then wait; n=0; fi
+    }
+    Y=$(date +%Y)
+    M=$(date +%-m)
+    if [ "$M" -ge 8 ]; then S=$Y; else S=$((Y - 1)); fi
+    E=$((S + 1))
+    for lg in $LEAGUES; do
+      for m in "$E"02 "$E"03 "$E"04 "$E"05; do
+        run "$lg" "$m"
+      done
+    done
+    wait
+    # Au moins une reponse valide exigee (sinon echec) ; zero evenement
+    # est un succes normal hors saison (l'arbre s'affichera plus tard).
+    [ -s "$tmp/ok.log" ] || exit 1
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -cs 'unique_by(.id) | sort_by(.at)' > "$tmp/knock.json" 2>/dev/null || echo '[]' > "$tmp/knock.json"
+    # Fusion anti-trous : le frais gagne par id, le cache comble les tours
+    # absents ; on ne garde que la saison en cours (pas l'arbre precedent).
+    keep=$(date -d "$S-09-01" +%s)
+    cache=~/.cache/espn-knock.json
+    [ -s "$cache" ] || echo '[]' > "$cache"
+    jq -cs --argjson keep "$keep" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) >= $keep and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/knock.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
+      cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+      cp "$tmp/merged.json" "$tmp/knock.json"
+    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      cp "$cache" "$tmp/knock.json"
+    fi
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    n=0
+    for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/knock.json" | sort -u); do
+      if [ ! -s "$d/$f" ]; then
+        p=$(echo "$f" | tr '-' '/')
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    cat "$tmp/knock.json"
+    rm -rf "$tmp"
+  """)every 6h json timeout 120s
+source nextup=cmd("""
+    tmp=$(mktemp -d)
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations eng.1 esp.1 ger.1 ita.1 fifa.worldq.uefa uefa.champions"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      if r=$(curl --retry 2 --retry-delay 2 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
+        printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "pre") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
+      fi
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" > "$tmp/$1-$2.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
+    }
+    # Mois courant inclus (sinon la journee en cours, ex. J3 C1 du mois en
+    # cours, est sautee) + 3 mois suivants.
+    MONTHS=$(for off in 0 30 60 90; do date -d "$off day" +%Y%m; done | sort -u)
+    for lg in $LEAGUES; do
+      for m in $MONTHS; do
+        run "$lg" "$m"
+      done
+    done
+    wait
+    [ -s "$tmp/ok.log" ] || exit 1
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -cs 'unique_by(.id) | group_by(.league) | map(if (.[0].league == "uefa.champions" or .[0].league == "uefa.europa" or .[0].league == "uefa.europa.conf") then (sort_by(.at) | .[0:18]) else (sort_by(.at) | .[0:8]) end) | add // []' > "$tmp/next.json" 2>/dev/null || echo '[]' > "$tmp/next.json"
+    # Fusion anti-trous : le frais gagne par id, le cache comble les ligues
+    # absentes ; on purge les affiches passees de plus d'un jour (jouees).
+    now=$(date +%s)
+    cache=~/.cache/espn-nextup.json
+    [ -s "$cache" ] || echo '[]' > "$cache"
+    jq -cs --argjson cut "$((now - 86400))" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) > $cut and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/next.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
+      cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+      cp "$tmp/merged.json" "$tmp/next.json"
+    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      cp "$cache" "$tmp/next.json"
+    fi
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    n=0
+    for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/next.json" | sort -u); do
+      if [ ! -s "$d/$f" ]; then
+        p=$(echo "$f" | tr '-' '/')
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    cat "$tmp/next.json"
+    rm -rf "$tmp"
+  """)every 6h json timeout 150s
+source histfull=cmd("""
+    tmp=$(mktemp -d)
+    RR="fra.1 fra.2 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
+    tagof() {
+      if [ "$1" = "fra.1" ]; then printf 'L1'
+      elif [ "$1" = "fra.2" ]; then printf 'L2'
+      elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
+      elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
+      elif [ "$1" = "uefa.champions" ]; then printf 'C1'
+      elif [ "$1" = "uefa.nations" ]; then printf 'NAT'
+      elif [ "$1" = "fifa.worldq.uefa" ]; then printf 'QCM'
+      elif [ "$1" = "fifa.friendly" ]; then printf 'AMI'
+      elif [ "$1" = "eng.1" ]; then printf 'ENG'
+      elif [ "$1" = "esp.1" ]; then printf 'ESP'
+      elif [ "$1" = "ger.1" ]; then printf 'GER'
+      elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      else printf '%s' "$1"
+      fi
+    }
+    fetch() {
+      lg=$1
+      d=$2
+      tag=$(tagof "$lg")
+      curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+    }
+    n=0
+    run() {
+      fetch "$1" "$2" | jq -c --arg m "$2" '. + {month: $m}' > "$tmp/$1-$2.jsonl" &
+      n=$((n + 1))
+      if [ "$n" -ge 10 ]; then wait; n=0; fi
+    }
+    Y=$(date +%Y)
+    M=$(date +%-m)
+    if [ "$M" -ge 8 ]; then S=$Y; else S=$((Y - 1)); fi
+    E=$((S + 1))
+    SEASON=""
+    for m in 08 09 10 11 12; do SEASON="$SEASON $S$m"; done
+    for m in 01 02 03 04 05 06 07; do SEASON="$SEASON $E$m"; done
+    # Mois passes deja en cache : immuables, on ne refetch que courant + futur.
+    cache=~/.cache/espn-hist-base.json
+    CUR=$(date +%Y%m)
+    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"lms":[],"items":[]}' > "$cache"
+    for lg in $RR; do
+      for m in $SEASON; do
+        if [ "$m" -ge "$CUR" ] || ! jq -e --arg k "$lg:$m" '.lms | index($k) != null' "$cache" >/dev/null 2>&1; then
+          run "$lg" "$m"
+        fi
+      done
+    done
+    wait
+    cat "$tmp"/*.jsonl 2>/dev/null | jq -cs 'unique_by(.id)' > "$tmp/fresh.json"
+    # Cache mensuel comme seasonAll : passe immuable servi depuis le cache.
+    jq -c --slurpfile fr "$tmp/fresh.json" --arg cur "$CUR" --arg keep "$S"08 '
+      ($fr[0] // []) as $fresh
+      | (.lms // []) as $lms | (.items // []) as $old
+      | ([$fresh[] | select(.id != null)] | unique_by(.id)) as $fu
+      | ([$fu[] | ((.league // "") + ":" + (.month // ""))] | unique) as $flms
+      | ([$old[] | select(.id != null and ((.league // "") + ":" + (.month // "")) as $lm | ($flms | index($lm)) == null)] | unique_by(.id)) as $kept
+      | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep))) as $items
+      | {cache: {lms: (($lms + ($flms | map(select((split(":")[1] // "0") < $cur)))) | unique | map(select((split(":")[1] // "0") >= $keep))), items: $items}, out: ($items | sort_by(.at))}
+    ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
+      jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      jq -c '.out' "$tmp/merged.json" > "$tmp/baseraw.json"
+    elif [ -s ~/.cache/espn-history.json ]; then
+      cat ~/.cache/espn-history.json
+      rm -rf "$tmp"
+      exit 0
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    jq -c 'unique_by(.id)' "$tmp/baseraw.json" > "$tmp/base.json"
+    [ "$(jq 'length // 0' "$tmp/base.json")" -gt 0 ] || exit 1
+    # Journees championnats : passes calibres sur le classement (n =
+    # journee en cours, les K plus recents = Jn, etc.), a venir en Jn+1,
+    # Jn+2... par paquets de K dans l'ordre chronologique. Exact hors reports.
+    # Journees coupes d'Europe (phase de ligue) : une journee = les matchs
+    # d'une meme semaine. Grappes chronologiques (trou > 4 j = nouvelle
+    # journee), sans classement : insensible aux reports et aux trous de
+    # fetch. Seule la phase de ligue est numerotee (le knockout garde son
+    # stage via knock).
+    n=0
+    rrun() {
+      lg=$1
+      if [ "$lg" = "uefa.champions" ] || [ "$lg" = "uefa.europa" ] || [ "$lg" = "uefa.europa.conf" ]; then
+        jq -c --arg lg "$lg" '[(.[] | select(.league == $lg and ((.stage // "league-phase") == "league-phase")))] | sort_by(.at) | reduce .[] as $m ({p: 0, n: 0, r: []}; ($m.at // 0) as $t | if .n == 0 then {p: $t, n: 1, r: [{id: $m.id, round: 1}]} elif ($t - .p) > 345600 then {p: $t, n: (.n + 1), r: (.r + [{id: $m.id, round: (.n + 1)}])} else {p: .p, n: .n, r: (.r + [{id: $m.id, round: .n}])} end) | .r[] | select(.round > 0)' "$tmp/base.json" > "$tmp/rounds-$lg.json" &
+        n=$((n + 1))
+        if [ "$n" -ge 6 ]; then wait; n=0; fi
+        return
+      fi
+      if [ "$lg" = "fra.1" ] || [ "$lg" = "fra.2" ] || [ "$lg" = "ger.1" ]; then k=9; elif [ "$lg" = "uefa.champions" ]; then k=18; else k=10; fi
+      nn=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
+      [ "$nn" = "" ] && nn=0
+      if [ "$nn" -gt 0 ] 2>/dev/null; then
+        jq -c --arg lg "$lg" --argjson k "$k" --argjson n "$nn" '[.[] | select(.league == $lg)] as $all | ([$all[] | select(.state != "pre")] | sort_by(.at)) as $past | ([$all[] | select(.state == "pre")] | sort_by(.at)) as $fut | ($past | length) as $lp | ([$past | to_entries[] | {id: .value.id, round: ($n - ((($lp - 1 - .key) / $k) | floor))}] + [$fut | to_entries[] | {id: .value.id, round: ($n + 1 + ((.key / $k) | floor))}]) | map(select(.round > 0)) | .[]' "$tmp/base.json" > "$tmp/rounds-$lg.json"
+      else
+        : > "$tmp/rounds-$lg.json"
+      fi &
+      n=$((n + 1))
+      if [ "$n" -ge 6 ]; then wait; n=0; fi
+    }
+    for lg in $RR; do
+      rrun "$lg"
+    done
+    wait
+    d=~/.cache/espn-logos/soccer
+    mkdir -p "$d"
+    n=0
+    for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/base.json" | sort -u); do
+      if [ ! -s "$d/$f" ]; then
+        p=$(echo "$f" | tr '-' '/')
+        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        n=$((n + 1))
+        if [ "$n" -ge 8 ]; then wait; n=0; fi
+      fi
+    done
+    wait
+    jq -sc 'map(select(.round != null and .round > 0)) | map({(.id): .round}) | add // {}' "$tmp"/rounds-*.json > "$tmp/roundmap.json"
+    jq -cs '.[1] as $r | .[0] | map(. + {round: ($r[.id] // null)}) | sort_by(.league) | group_by(.league) | map({key: .[0].league, value: (sort_by(.at) | reverse)}) | from_entries' "$tmp/base.json" "$tmp/roundmap.json" > "$tmp/hist.json"
+    if [ "$(jq 'keys | length' "$tmp/hist.json")" -gt 0 ]; then
+      cp "$tmp/hist.json" ~/.cache/espn-history.json.tmp && mv ~/.cache/espn-history.json.tmp ~/.cache/espn-history.json
+    elif [ -s ~/.cache/espn-history.json ]; then
+      cat ~/.cache/espn-history.json
+      rm -rf "$tmp"
+      exit 0
+    else
+      rm -rf "$tmp"
+      exit 1
+    fi
+    cat "$tmp/hist.json"
+    rm -rf "$tmp"
+  """)every 6h json timeout 150s
+source now=clock every 1s
+source slow=clock every 15m
+source spr=file("~/.cache/espn-logos/sprite.json")json
+state lang="en"persist
+let S=lang=="fr"?{tabMine:"Mes matchs",tabRiv:"Rivaux",tabTop5:"Top 5",tabEurope:"Europe",loading:"chargement…",close:"fermer",settings:"réglages",hide:"masquer",refreshing:"actualisation… ",failP:"✗ échec · ",fail:"✗ échec",tapRefresh:"actualiser les données",noMatchTeam:"aucun match pour cette équipe",upLive:"· en direct / à venir ·",upcoming:"· à venir ·",liveWord:"en direct",liveNowB:"en direct maintenant",startingNow:"ça commence maintenant !",kickoffIn:"coup d'envoi dans ",inPrep:"dans ",kickStart:"Ça commence ",finals:"Finales",stgPO:"Barrages",stg16:"8es",stgQF:"Quarts",stgSF:"Demies",stgF:"Finale",team:"equipe",playedHdr:"J",wHdr:"V",dHdr:"N",lHdr:"D",bfHdr:"BP:BC",gdHdr:"+/-",pts:"Pts",rivSuffix:" · concurrents",tapAll:"toucher pour tout voir",seasonOver:"saison terminée",noUpcoming:"aucun match à venir",noResults:"aucun résultat",noRecent:"aucun résultat récent",chooseTeams:"Choisir mes équipes (1-5)",welcome:"Bienvenue — choisis tes équipes",myTeamsT:"Mes équipes",range:"1 minimum, 5 maximum",searchClub:"Rechercher un club ou une sélection…",maxFiveHint:"Maximum 5 — retire une équipe pour en changer",loadingTeams:"chargement des équipes…",noTeams:"aucune équipe trouvée",cancel:"Annuler",validate:"Valider",pickOne:"Choisis au moins 1 équipe",maxBtn:"Maximum 5 équipes",notifT:"Mes équipes",notifX:"Sélectionne entre 1 et 5 équipes",displaySize:"taille d'affichage",myTeams:"mes équipes",nonePick:"aucune — choisis tes équipes",editTeams:"modifier mes équipes",rivMatches:"Concurrents · matchs",fixturesLoading:"affiches à venir en chargement…",upcomingHdr:"À venir",noMatchDay:"aucun match cette journée",standingsLoading:"classements en chargement…",noStandings:"aucun classement",stOn:"classements : oui",stOff:"classements : non",top5Matches:"Top 5 · matchs",euroMatches:"Europe · matchs",bracket:"Arbre du tournoi",bracketLoading:"arbre en chargement…",leaguePhase:"phase de ligue en cours — l'arbre apparaîtra à la fin",noMatchAny:"aucun match"}:{tabMine:"My matches",tabRiv:"Rivals",tabTop5:"Top 5",tabEurope:"Europe",loading:"loading…",close:"close",settings:"settings",hide:"hide",refreshing:"refreshing… ",failP:"✗ failed · ",fail:"✗ failed",tapRefresh:"tap to refresh",noMatchTeam:"no match for this team",upLive:"· live / upcoming ·",upcoming:"· upcoming ·",liveWord:"live",liveNowB:"live now",startingNow:"starting now!",kickoffIn:"kick-off in ",inPrep:"in ",kickStart:"Starts at ",finals:"Finals",stgPO:"PO",stg16:"R16",stgQF:"QF",stgSF:"SF",stgF:"Final",team:"team",playedHdr:"MP",wHdr:"W",dHdr:"D",lHdr:"L",bfHdr:"GF:GA",gdHdr:"GD",pts:"Pts",rivSuffix:" · rivals",tapAll:"tap to see all",seasonOver:"season over",noUpcoming:"no upcoming match",noResults:"no result",noRecent:"no recent result",chooseTeams:"Choose my teams (1-5)",welcome:"Welcome — pick your teams",myTeamsT:"My teams",range:"1 min, 5 max",searchClub:"Search a club or national side…",maxFiveHint:"Max 5 — remove a team to change",loadingTeams:"loading teams…",noTeams:"no team found",cancel:"Cancel",validate:"Done",pickOne:"Pick at least 1 team",maxBtn:"Max 5 teams",notifT:"My teams",notifX:"Select 1 to 5 teams",displaySize:"display size",myTeams:"my teams",nonePick:"none — pick your teams",editTeams:"edit my teams",rivMatches:"Rivals · matches",fixturesLoading:"upcoming fixtures loading…",upcomingHdr:"Upcoming",noMatchDay:"no match this matchday",standingsLoading:"standings loading…",noStandings:"no standings",stOn:"standings: yes",stOff:"standings: no",top5Matches:"Top 5 · matches",euroMatches:"Europe · matches",bracket:"Tournament bracket",bracketLoading:"bracket loading…",leaguePhase:"league phase underway — the bracket appears at the end",noMatchAny:"no match"}
+let JP=lang=="fr"?"J":"MD"
+let agoP=lang=="fr"?"il y a ":""
+let agoS=lang=="fr"?"":" ago"
+let cW=lang=="fr"?"V":"W"
+let cL=lang=="fr"?"D":"L"
+let cN=lang=="fr"?"N":"D"
+let ENZ={"prelim. C1":"UCL prelim.","C1":"UCL","8es":"R16","CONF":"UECL","C3":"UEL","quarts":"QF","barr. montee":"promotion PO","montee":"promotion","barr. CDM":"WC playoff","CDM":"World Cup","barrages":"playoffs","barr. releg.":"relegation PO","relegation":"relegation","elimine":"eliminated"}
+state team="ALL"persist
+state myTeams=[]persist
+state draft=[]
+state query=""
+state showTeams=false
+state secClosed=[]persist
+state spinning=false
+state spinUntil=0
+state elapsed=0
+state lastDur=-1 persist
+state lastOk=null
+state lastAt=0 persist
+state uiSize="M"persist
+state showSettings=false
+state h12Id=""persist
+state h12At=0 persist
+state kickId=""persist
+state kickAt=0 persist
+state nextDone=[]persist
+state view="MINE"persist
+state topLg="ALL"persist
+state euroLg="uefa.europa"persist
+state selJ=-1
+state showTables=true
+every 1s{elapsed=elapsed+(spinning?1:0)}
+on games{lastDur=spinning?elapsed:lastDur;lastOk=spinning?(games.ok??false):lastOk;lastAt=(games.ok??false)?now:lastAt;spinning=false;spinUntil=0}
+at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0}
+on showTeams{draft=value?myTeams:draft;query=value?"":query}
+when team!="ALL"&&count(myTeams)>0&&(myTeams.find(t=>t.abbr==team)??null)==null{team="ALL"}
+on games first{
+if soon12==null{h12Id="";h12At=0}
+else{h12Id=soon12.id;h12At=max(soon12.at-12*3600,now)}
+kickId=kickSoon==null?"":kickSoon.id
+kickAt=kickSoon==null?0:kickSoon.at
+}
+at h12At{
+let m=h12Match
+let unseen=h12Id!=""&&!nextDone.any(d=>d==h12Id)
+let fresh=m!=null&&m.state=="pre"&&m.at>now
+if unseen&&fresh&&h12Text!=""{notify(h12Title,h12Text)}
+if unseen{
+let d=flatten([nextDone,[h12Id]])
+nextDone=count(d)>30?reverse(take(reverse(d),30)):d
+}
+h12Id="";h12At=0
+}
+at kickAt{
+let m=kickMatch
+if m!=null&&m.state!="post"&&m.at>now-900&&kickText!=""{notify(kickTitle,kickText)}
+kickId="";kickAt=0
+}
+let favAbbrs=myTeams.map(t=>t.abbr)
+let selTeam=myTeams.find(t=>t.abbr==team)??null
+let setupNeeded=count(myTeams)==0||showTeams
+let gIds=(games.out??[]).map(g=>g.id)
+let sIds=(seasonAll??[]).map(g=>g.id)
+let all=flatten([(games.out??[]),(seasonAll??[]).filter(s=>!gIds.any(id=>id==s.id)),(extra.out??[]).filter(s=>!gIds.any(id=>id==s.id)&&!sIds.any(id=>id==s.id))]).sortBy(g=>g.at)
+let rounds=scheds.rounds??{}
+let anchors=scheds.anchors??{}
+let eurBase=all.filter(g=>g.league=='uefa.europa').sortBy(g=>g.at)
+let eurIds=eurBase.map(g=>g.id)
+let tables=standings??[]
+let live=all.filter(g=>g.state=='in')
+let base=all.filter(g=>count(myTeams)>0&&(team=="ALL"?(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):(g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((count(g.tids??[])>0&&selTeam!=null&&(selTeam.tid??"")!=""?(g.tids??[]).any(s=>s==selTeam.tid):(g.squads??[]).any(s=>s==team))&&(selTeam==null||(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c")))))
+let baseF=base
+let liveF=baseF.filter(g=>g.state=='in')
+let nextF=baseF.filter(g=>g.state=='pre')
+let pastA=baseF.filter(g=>g.state=='post')
+let upShow=flatten([liveF,nextF])
+let allMine=all.filter(g=>count(myTeams)>0&&(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c"))))))
+let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
+let soon12=first(notDone.sortBy(g=>g.at))
+let kickSoon=first(allMine.filter(g=>g.state=="pre"&&g.at>now).sortBy(g=>g.at))
+let heroMatch=first(upShow.sortBy(g=>g.at))
+let h12Match=all.find(g=>g.id==h12Id)
+let kickMatch=all.find(g=>g.id==kickId)
+let hKind=h12Match==null?"c":h12Match.league=="uefa.nations"||h12Match.league=="fifa.worldq.uefa"||h12Match.league=="fifa.friendly"?"n":"c"
+let hTeamH=h12Match==null||h12Match.home==null?{abbr:"",short:"",kind:hKind}:(myTeams.find(t=>t.abbr==h12Match.home.abbr&&t.kind==hKind)??{abbr:h12Match.home.abbr,short:h12Match.home.abbr,kind:hKind})
+let hTeamA=h12Match==null||h12Match.away==null?{abbr:"",short:"",kind:hKind}:(myTeams.find(t=>t.abbr==h12Match.away.abbr&&t.kind==hKind)??{abbr:h12Match.away.abbr,short:h12Match.away.abbr,kind:hKind})
+let hShortH=hTeamH.short??hTeamH.abbr
+let hShortA=hTeamA.short??hTeamA.abbr
+let h12Duel=h12Match==null||h12Match.home==null||h12Match.away==null?"":hShortH+" – "+hShortA
+let h12Title=h12Duel==""?"":hShortH+" ⚔️ "+hShortA
+let h12Text=h12Duel==""?"":(h12Match.tag==null||h12Match.tag==""?"":h12Match.tag+" · ")+fmtTime(h12Match.at,"EEE d/MM HH:mm",null,lang)+" · "+S.inPrep+fmtDuration(max(h12Match.at-now,60))
+let kKind=kickMatch==null?"c":kickMatch.league=="uefa.nations"||kickMatch.league=="fifa.worldq.uefa"||kickMatch.league=="fifa.friendly"?"n":"c"
+let kTeamH=kickMatch==null||kickMatch.home==null?{abbr:"",short:"",kind:kKind}:(myTeams.find(t=>t.abbr==kickMatch.home.abbr&&t.kind==kKind)??{abbr:kickMatch.home.abbr,short:kickMatch.home.abbr,kind:kKind})
+let kTeamA=kickMatch==null||kickMatch.away==null?{abbr:"",short:"",kind:kKind}:(myTeams.find(t=>t.abbr==kickMatch.away.abbr&&t.kind==kKind)??{abbr:kickMatch.away.abbr,short:kickMatch.away.abbr,kind:kKind})
+let kShortH=kTeamH.short??kTeamH.abbr
+let kShortA=kTeamA.short??kTeamA.abbr
+let kickTitle=kickMatch==null?"":kShortH+" ⚔️ "+kShortA
+let kickText=kickMatch==null||kickMatch.home==null||kickMatch.away==null?"":S.kickStart+fmtTime(kickMatch.at,"HH:mm")+(kickMatch.tag==null||kickMatch.tag==""?"":" · "+kickMatch.tag)
+let liveList=liveM.items??[]
+let liveAt=liveM.at??0
+let liveAge=liveAt>0?max(now-liveAt,0):null
+let liveSuffix=liveAge==null?"":" · live "+agoP+fmtDuration(liveAge)+agoS
+let liveWarn=liveAge!=null&&liveAge>900?" · "+(lang=="fr"?"màj ":"updated ")+agoP+fmtDuration(liveAge)+agoS:""
+let total=count(baseF)
+let pastTake=count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at)
+let wide=max(max(screenWidth??0,tileWidth??0),240)>=280
+let fz=uiSize=="S"?11:uiSize=="L"?15:uiSize=="XL"?17:13
+let heroH=heroMatch==null||heroMatch.home==null?"":(myTeams.find(t=>t.abbr==heroMatch.home.abbr).short??(wide?(heroMatch.home.name??heroMatch.home.abbr):heroMatch.home.abbr))
+let heroA=heroMatch==null||heroMatch.away==null?"":(myTeams.find(t=>t.abbr==heroMatch.away.abbr).short??(wide?(heroMatch.away.name??heroMatch.away.abbr):heroMatch.away.abbr))
+let heroHLogo=heroMatch==null||heroMatch.home==null?"":heroMatch.home.logo??""
+let heroALogo=heroMatch==null||heroMatch.away==null?"":heroMatch.away.logo??""
+let heroTime=heroMatch==null?"":heroMatch.state=="in"?(heroMatch.detail??""):fmtTime(heroMatch.at,"HH:mm")
+let heroTag=heroMatch==null||heroMatch.tag==null||heroMatch.tag==""?"":heroMatch.tag
+let heroDay=heroMatch==null||heroMatch.state=="in"?"":fmtTime(heroMatch.at,"d MMM",null,lang)
+let heroTagLine=heroDay==""?heroTag:(heroTag==""?heroDay:heroTag+" · "+heroDay)
+let heroDown=heroMatch==null?"":heroMatch.state=="in"?S.liveNowB:heroMatch.at-now<60?S.startingNow:S.kickoffIn+fmtDuration(heroMatch.at-now)
+let soft=mix(muted,foreground,0.5)
+let pop=mix(accent,foreground,0.4)
+let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[]).any(tm=>tm.ours!=null&&myTeams.any(t=>t.kind==(u.league=="uefa.nations"||u.league=="fifa.worldq.uefa"||u.league=="fifa.friendly"?"n":"c")&&t.abbr==tm.ours)))
+let modeTabs=[{id:"MINE",short:S.tabMine},{id:"RIV",short:S.tabRiv},{id:"TOP5",short:S.tabTop5},{id:"EUROPE",short:S.tabEurope}]
+let topTabs=[{id:"eng.1",short:"ENG"},{id:"esp.1",short:"ESP"},{id:"ger.1",short:"GER"},{id:"ita.1",short:"ITA"},{id:"fra.1",short:"FRA"}]
+let topLeagues=["eng.1","esp.1","ger.1","ita.1","fra.1"]
+let extraAll=extra??[]
+let nextAll=nextup??[]
+let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
+let rivLgs=["fra.1","fra.2","uefa.europa","uefa.europa.conf","uefa.nations","eng.1","esp.1","ger.1","ita.1","fifa.worldq.uefa","uefa.champions"]
+let scopeOf=selTeam==null?myTeams:[selTeam]
+let myLeagues=unique(flatten(scopeOf.map(t=>t.kind=="n"?["uefa.nations","fifa.worldq.uefa"]:[t.league,"uefa.europa","uefa.champions","uefa.europa.conf"]))).filter(l=>rivLgs.any(r=>r==l))
+let rivalsAll=extraAll.filter(g=>myLeagues.any(l=>l==g.league)&&!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))).sortBy(g=>g.at).reverse()
+let rivals=rivalsAll.take(12)
+let rivalsNext=nextNew.filter(g=>myLeagues.any(l=>l==g.league)&&count(g.squads??[])==0).sortBy(g=>g.at).take(10)
+let rivalsTile=flatten([rivalsNext.take(4),rivals.take(8)])
+let topAll=extraAll.filter(g=>topLeagues.any(l=>l==g.league)&&(topLg=="ALL"||g.league==topLg)).sortBy(g=>g.at).reverse()
+let topList=topAll.take(12)
+let topNext=nextNew.filter(g=>topLeagues.any(l=>l==g.league)&&(topLg=="ALL"||g.league==topLg)).sortBy(g=>g.at).take(10)
+let topTile=flatten([topNext.take(4),topList.take(8)])
+let myTables=team=="ALL"?myTablesAll:myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==team)&&(selTeam==null||(u.league=="uefa.nations"||u.league=="fifa.worldq.uefa"||u.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c")))
+let tbTopAll=tables.filter(u=>topLeagues.any(l=>l==u.league)&&(u.ends??9999999999)+604800>slow)
+let topTables=topLg=="ALL"?tbTopAll:tbTopAll.filter(u=>u.league==topLg)
+let euroTabs=[{id:"uefa.champions",short:"C1"},{id:"uefa.europa",short:"EUR"},{id:"uefa.europa.conf",short:"CONF"}]
+let euroLabel=euroLg=="uefa.champions"?(lang=="fr"?"Ligue des Champions":"Champions League"):euroLg=="uefa.europa"?"Europa League":"Conference League"
+let euroMatches=extraAll.filter(g=>g.league==euroLg).sortBy(g=>g.at).reverse()
+let euroNext=nextNew.filter(g=>g.league==euroLg).sortBy(g=>g.at).take(6)
+let euroList=flatten([euroNext.take(4),euroMatches.take(8)])
+let euroTables=tables.filter(u=>(u.league??"")==euroLg)
+let knockAll=knock??[]
+let knockLg=knockAll.filter(g=>g.league==euroLg).sortBy(g=>g.at)
+let knockRounds=["knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
+let knockLabels=lang=="fr"?{"knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
+let curLg=view=="TOP5"?(topLg=="ALL"?null:topLg):(selTeam==null||selTeam.kind=="n"?null:selTeam.league)
+let histMap=histfull??{}
+let histLg=curLg==null?[]:(get(histMap,curLg,[])??[])
+let jr=histLg.filter(g=>(g.round??0)>0).sortBy(g=>g.round)
+let maxJ=count(jr)>0?last(jr).round:null
+let minJ=count(jr)>0?first(jr).round:null
+let jrPast=histLg.filter(g=>(g.round??0)>0&&g.state!='pre').sortBy(g=>g.round)
+let maxPlayed=count(jrPast)>0?last(jrPast).round:maxJ
+let curJ=curLg==null||maxJ==null?null:(selJ<0?maxPlayed:clamp(selJ,minJ??1,maxJ))
+let jMatches=curJ==null?[]:histLg.filter(g=>g.round==curJ).sortBy(g=>g.at)
+let jFuture=curJ!=null&&maxPlayed!=null&&curJ>maxPlayed
+let euroHist=(get(histMap,euroLg,[])??[]).filter(g=>(g.round??0)>0).sortBy(g=>g.round)
+let euroMaxJ=count(euroHist)>0?last(euroHist).round:null
+let euroMinJ=count(euroHist)>0?first(euroHist).round:null
+let euroPast=euroHist.filter(g=>g.state!='pre')
+let euroMaxPlayed=count(euroPast)>0?last(euroPast).round:euroMaxJ
+let euroCurJ=euroMaxJ==null?null:(selJ<0?euroMaxPlayed:clamp(selJ,euroMinJ??1,euroMaxJ))
+let euroJMatches=euroCurJ==null?[]:(get(histMap,euroLg,[])??[]).filter(g=>g.round==euroCurJ).sortBy(g=>g.at)
+let euroUpJ=euroCurJ==null||euroMaxJ==null?null:clamp(euroCurJ+1,euroMinJ??1,euroMaxJ)
+let euroUpMatches=euroUpJ==null?[]:(get(histMap,euroLg,[])??[]).filter(g=>g.round==euroUpJ).sortBy(g=>g.at)
+let euroResMatches=euroCurJ==null?[]:(get(histMap,euroLg,[])??[]).filter(g=>g.round==euroCurJ&&g.state!='pre').sortBy(g=>g.at)
+let euroHero=(nextNew.filter(g=>g.league==euroLg).sortBy(g=>g.at).take(1)??[]).first
+let topHero=(topNext.take(1)??[]).first
+let topUpJ=curJ==null||maxJ==null?null:clamp(curJ+1,minJ??1,maxJ)
+let topUpMatches=topUpJ==null?[]:histLg.filter(g=>g.round==topUpJ).sortBy(g=>g.at)
+let topResMatches=curJ==null?[]:histLg.filter(g=>g.round==curJ&&g.state!='pre').sortBy(g=>g.at)
+let rivLabel=(team=="ALL"?join(myTeams.map(t=>t.short)," · "):(selTeam.short??team))+S.rivSuffix
+let topLabel=topLg=="ALL"?"ENG · ESP · GER · ITA · FRA":(topTabs.find(t=>t.id==topLg).short??topLg)
+let sprPath="~/.cache/espn-logos/sprite.png"
+let sprOk=spr!=null&&(spr.cell??0)>0&&(spr.w??0)>0
+component Rule(){
+Spacer{height:1;fill:width;background:alpha(muted,0.25)}
+}
+component Crest(logo=null,art=null,px=16){
+Box{
+size:px
+radius:px>20?6:4
+background:alpha(muted,0.18)
+clip:true
+let si=logo==null?-1:(sprOk?get(spr.idx??{},logo,-1):-1)
+if art{
+Image{src:art;size:px;fit:contain}
+}else if si>=0{
+Canvas{
+size:px
+let sc=px/spr.cell
+let cc=si%spr.cols
+let rr=floor(si/spr.cols)
+clip(0,0,px,px){image(sprPath,0-cc*px,0-rr*px,spr.w*sc,spr.h*sc)}
+}
+}else if logo{
+Image{src:"~/.cache/espn-logos/soccer/${logo}";size:px;fit:contain}
+}else{
+Box{size:px;radius:4;background:alpha(muted,0.18)}
+}
+}
+}
+component ZoneDot(c){
+Box{width:8;height:8;radius:4;background:c=='green'?"#22c55e":c=='blue'?"#3b82f6":c=='orange'?"#f59e0b":c=='red'?"#ef4444":rgb(0,0,0,0)}
+}
+component TableRow(tm){
+let ours=tm.ours!=null
+Row{
+gap:wide?4:2
+align:center
+Box{width:3;height:14;radius:1.5;background:tm.zone=='green'?"#22c55e":tm.zone=='blue'?"#3b82f6":tm.zone=='orange'?"#f59e0b":tm.zone=='red'?"#ef4444":rgb(0,0,0,0)}
+Text{text:tm.rank;width:wide?20:10;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+Text{text:wide?tm.name:tm.abbr;weight:1;fontSize:wide?fz:fz-2;maxLines:1;bold:ours;color:ours?pop:foreground}
+Text{text:tm.played;width:wide?20:10;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+Text{text:tm.won;width:wide?18:9;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+Text{text:tm.drawn;width:wide?18:9;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+Text{text:tm.lost;width:wide?18:9;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+if wide{
+Text{text:tm.bp==null?"–":"${tm.bp}:${tm.bc}";width:40;fontSize:fz;color:soft;align:end;maxLines:1}
+}
+Text{text:tm.gd>0?"+${tm.gd}":"${tm.gd}";width:wide?26:18;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
+Text{text:tm.pts;width:wide?28:17;fontSize:wide?fz:fz-2;bold:true;align:end;maxLines:1}
+}
+}
+component TableBlock(u){
+Rule{}
+Text{text:u.tag;style:title;maxLines:1}
+if startsWith(u.group,"Group"){
+Text{text:lang=="fr"?replace(u.group,"Group","Groupe"):u.group;style:small;color:soft}
+}else if u.group=="League Phase"{
+Text{text:lang=="fr"?"phase de ligue":"League phase";style:small;color:soft}
+}
+Row{
+gap:wide?4:2
+align:center
+Box{width:3;height:10;background:rgb(0,0,0,0)}
+Text{text:"#";width:wide?20:10;style:label;color:soft;align:end}
+Text{text:S.team;weight:1;style:label;color:soft;maxLines:1}
+Text{text:S.playedHdr;width:wide?20:10;style:label;color:soft;align:end}
+Text{text:S.wHdr;width:wide?18:9;style:label;color:soft;align:end}
+Text{text:S.dHdr;width:wide?18:9;style:label;color:soft;align:end}
+Text{text:S.lHdr;width:wide?18:9;style:label;color:soft;align:end}
+if wide{
+Text{text:S.bfHdr;width:40;style:label;color:soft;align:end}
+}
+Text{text:S.gdHdr;width:wide?26:18;style:label;color:soft;align:end}
+Text{text:S.pts;width:wide?28:17;style:label;color:soft;align:end}
+}
+for tm in u.teams key tm.abbr{TableRow{tm:tm}}
+if count(u.legend??[])>0{
+Flow{
+gap:8
+for z in u.legend key z.c+z.t{
+Row{
+gap:4
+align:center
+ZoneDot{c:z.c}
+Text{text:lang=="fr"?z.t:get(ENZ,z.t,z.t);style:label;color:soft}
+}
+}
+}
+}
+}
+component SetupBlock(){
+let q=lower(trim(query))
+let db=teamsDb??[]
+let res=q==""?db.take(12):db.filter(t=>contains(lower(t.name),q)||contains(lower(t.short),q)||contains(lower(t.abbr),q)).take(12)
+Column{
+gap:8
+Text{text:count(myTeams)==0?S.welcome:S.myTeamsT;style:title;align:center}
+Text{text:"${count(draft)}/5 — ${S.range}";style:small;color:soft;align:center}
+Input{placeholder:S.searchClub;text:query;onChange:query=value}
+if count(draft)>0{
+Flow{
+gap:6
+for d in draft key d.key{
+Text{text:"✕ ${d.short}";style:small;color:pop;onTap:draft=draft.filter(x=>x.key!=d.key)}
+}
+}
+}
+if count(draft)>=5{
+Text{text:S.maxFiveHint;style:label;color:soft;align:center}
+}
+if teamsDb==null{
+Text{text:S.loadingTeams;style:small;color:soft}
+}else if count(res)==0{
+Text{text:S.noTeams;style:small;color:soft}
+}else{
+for r in res key r.key{
+let inD=draft.any(x=>x.key==r.key)
+let full=count(draft)>=5&&!inD
+Row{
+gap:8
+align:center
+Crest{logo:r.logo;px:24}
+Column{
+weight:1;gap:0
+Text{text:r.name;style:small;maxLines:1}
+Text{text:r.tag;style:label;color:soft;maxLines:1}
+}
+Text{text:inD?"✓":"+";width:40;align:center;fontSize:18;color:inD?pop:full?muted:foreground;onTap:draft=inD?draft.filter(x=>x.key!=r.key):full?draft:(draft+[r]).take(5)}
+}
+}
+}
+Row{
+gap:8
+if count(myTeams)>0{
+Button{text:S.cancel;weight:1;color:soft;onTap:showTeams=false}
+}
+if count(draft)>=1&&count(draft)<=5{
+Button{text:"${S.validate} (${count(draft)}/5)";weight:1;color:pop;onTap:{myTeams=draft;showTeams=false;team="ALL";selJ=-1;refresh()}}
+}else{
+Button{text:count(draft)==0?S.pickOne:S.maxBtn;weight:1;color:muted;onTap:notify(S.notifT,S.notifX)}
+}
+}
+}
+}
+component FormChip(l,px=15){
+Canvas{
+width:px;height:px-1
+rect(0,0,px,px-1,radius:px>12?3:2,fill:l==cW?alpha("#22c55e",0.16):l==cL?alpha("#ef4444",0.16):alpha(muted,0.24))
+text(l,px/2,(px-1)/2,size:px>12?9:7,align:center,bold:true,color:l==cW?"#22c55e":l==cL?"#ef4444":soft)
+}
+}
+component GameRow(g,compact=false){
+let hm=g.home??{}
+let aw=g.away??{}
+let isLive=g.state=='in'
+let final=g.state=='post'
+let rd=get(rounds,g.id,"")
+let anchor=get(anchors,g.league,null)
+let aDay=anchor==null?0:floor(anchor.at/86400)
+let aW=(aDay+3)%7
+let aSat=aW>=4?aDay+(5-aW):aDay-(aW+2)
+let fDay=floor(g.at/86400)
+let fW=(fDay+3)%7
+let fSat=fW>=4?fDay+(5-fW):fDay-(fW+2)
+let est=rd==""&&g.state=='pre'&&(g.league=='fra.1'||g.league=='fra.2')&&anchor!=null&&(anchor.jn??0)>0?"${JP}${anchor.jn + floor((fSat + 5) / 7) - floor((aSat + 5) / 7)}":""
+let rdt=rd!=""?rd:(g.round??0)>0?"${JP}${g.round}":est
+let eurPos=indexOf(eurIds,g.id)+1
+let eurJ=g.league=='uefa.europa'&&eurPos>0?(eurPos>8?S.finals:"${JP}${eurPos}"):""
+let euroH=(g.league=='uefa.champions'||g.league=='uefa.europa'||g.league=='uefa.europa.conf')?(get(histMap,g.league,[])??[]).find(h=>h.id==g.id):null
+let euroR=euroH==null?0:(euroH.round??0)
+let euroJ=euroR>0?"${JP}${euroR}":""
+let stg=g.stage??""
+let stgL=stg=='knockout-round-playoffs'?S.stgPO:stg=='round-of-16'?S.stg16:stg=='quarterfinals'?S.stgQF:stg=='semifinals'?S.stgSF:stg=='final'?S.stgF:""
+let stgK=stgL!=""&&stg!="league-phase"?stgL:""
+let rdt2=stgK!=""?stgK:euroJ!=""?euroJ:rdt!=""?rdt:eurJ!=""?eurJ:stgL
+let hmOurs=favAbbrs.any(a=>a==hm.abbr)
+let awOurs=favAbbrs.any(a=>a==aw.abbr)
+let scored=(hm.score??null)!=null&&(aw.score??null)!=null
+let res=final&&(hmOurs!=awOurs)&&scored?(hmOurs?(hm.winner?cW:aw.winner?cL:cN):(aw.winner?cW:hm.winner?cL:cN)):""
+let slot=fz
+let cpc=fz*8/13
+let mwid=(compact?116:124)+2*slot
+let dstr=fmtTime(g.at,compact?"EEE d/MM":"EEE d MMM",null,lang)
+let dtw=len(dstr??"")*5.2+1
+Row{
+gap:2
+align:center
+Column{
+width:22;gap:0
+Text{text:g.tag;fontSize:10;color:soft;maxLines:1}
+}
+Crest{logo:hm.logo;px:16}
+Text{text:hmOurs?(myTeams.find(t=>t.abbr==hm.abbr).short??hm.abbr):wide?hm.name:hm.abbr;fontSize:fz;weight:1;maxLines:1;bold:hmOurs;color:hmOurs?pop:final&&aw.winner?soft:foreground}
+if g.state=='pre'&&!compact{
+Column{
+width:mwid;gap:0;align:center
+Text{text:fmtTime(g.at,"EEE d MMM HH:mm",null,lang);fontSize:fz;align:center;color:foreground;maxLines:1}
+Text{text:"("+S.inPrep+fmtDuration(max(g.at-slow,0))+")";style:label;align:center;color:soft;maxLines:1}
+}
+}else if g.state=='pre'{
+Text{text:fmtTime(g.at,"EEE d/MM HH:mm",null,lang);fontSize:fz;width:mwid;align:center;color:soft;maxLines:1}
+}else if final{
+Row{
+width:mwid;gap:1;align:center;justify:center
+Box{width:slot;height:slot-1
+if hmOurs&&res!=""{
+FormChip{l:res;px:fz}
+}
+}
+Text{text:hm.score??"?";fontSize:fz;font:mono;width:len((hm.score??"?")+"")*cpc;bold:hm.winner;color:foreground}
+Text{text:dstr;style:label;width:dtw;align:center;color:soft;maxLines:1}
+Text{text:aw.score??"?";fontSize:fz;font:mono;width:len((aw.score??"?")+"")*cpc;bold:aw.winner;color:foreground}
+Box{width:slot;height:slot-1
+if awOurs&&res!=""{
+FormChip{l:res;px:fz}
+}
+}
+}
+}else{
+Row{
+width:mwid;gap:2;align:center;justify:center
+Text{text:hm.score??"?";fontSize:fz;font:mono;width:18;align:end;bold:hmOurs&&isLive;color:isLive?"#22c55e":foreground}
+Box{width:6;height:6;radius:3;background:isLive?"#22c55e":rgb(0,0,0,0)}
+Text{text:g.detail;style:label;width:38;align:center;color:isLive?"#22c55e":soft;maxLines:1}
+Box{width:6}
+Text{text:aw.score??"?";fontSize:fz;font:mono;width:18;align:start;bold:awOurs&&isLive;color:isLive?"#22c55e":foreground}
+}
+}
+Text{text:awOurs?(myTeams.find(t=>t.abbr==aw.abbr).short??aw.abbr):wide?aw.name:aw.abbr;fontSize:fz;weight:1;maxLines:1;align:end;bold:awOurs;color:awOurs?pop:final&&hm.winner?soft:foreground}
+Crest{logo:aw.logo;px:16}
+Text{text:rdt2;fontSize:10;color:soft;width:30;align:end;maxLines:1}
+}
+}
+component LiveGame(g,compact=false){
+let lv=liveList.find(h=>h.id==g.id)??g
+GameRow{g:lv;compact:compact}
+}
+component FormStrip(t,px=15){
+let ms=all.filter(g=>g.state=="post"&&(t.kind??"c")==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")&&(count(g.tids??[])>0?((t.tid??"")!=""?(g.tids??[]).any(s=>s==t.tid):false):(g.squads??[]).any(s=>s==t.abbr))).sortBy(g=>-g.at).take(5).reverse()
+Row{
+width:5*px+8
+gap:2
+align:center
+for g in ms key g.id{
+let oh=(g.home.abbr??"")==t.abbr
+let r=oh?(g.home.winner?cW:g.away.winner?cL:cN):(g.away.winner?cW:g.home.winner?cL:cN)
+FormChip{l:r;px:px}
+}
+}
+}
+component BannerForm(t,px=11){
+let ex=(formsData.out??[]).filter(g=>g.home==t.abbr||g.away==t.abbr)
+let al=all.filter(g=>g.state=="post"&&((g.home.abbr??"")==t.abbr||(g.away.abbr??"")==t.abbr)).map(g=>{id:g.id,at:g.at,home:g.home.abbr,away:g.away.abbr,hw:g.home.winner,aw:g.away.winner})
+let ms=(ex.length>=5?ex:al.length>ex.length?al:ex).sortBy(g=>-g.at).take(5)
+Column{
+width:px
+gap:2
+align:center
+for g in ms key g.id{
+let oh=g.home==t.abbr
+let r=oh?(g.hw?cW:g.aw?cL:cN):(g.aw?cW:g.hw?cL:cN)
+FormChip{l:r;px:px}
+}
+}
+}
+component BannerLogo(logo=null,px=56){
+Box{
+size:px
+fill:false
+clip:true
+background:rgb(0,0,0,0)
+if logo!=null&&logo!=""{
+Image{src:"~/.cache/espn-logos/banner/${logo}";width:px;height:px;fit:contain}
+}
+}
+}
+component BannerOdd(l,v,tone=soft){
+Box{
+weight:1
+padding:[4,2]
+radius:4*corners
+background:alpha(tone,0.14)
+Row{
+gap:4
+align:center
+justify:center
+Text{text:l;width:12;style:label;color:tone;maxLines:1}
+Text{text:v==null?"—":"${fixed(v, 2)}";fontSize:fz;font:mono;bold:true;color:tone;maxLines:1}
+}
+}
+}
+component MatchBanner(w=72,h=96){
+let ht=heroMatch==null||heroMatch.home==null||heroMatch.away==null?null:first(myTablesAll.filter(u=>u.league==heroMatch.league&&(u.teams??[]).any(tm=>tm.abbr==heroMatch.home.abbr)&&(u.teams??[]).any(tm=>tm.abbr==heroMatch.away.abbr)))
+let hRow=ht==null?null:first((ht.teams??[]).filter(tm=>tm.abbr==heroMatch.home.abbr))
+let aRow=ht==null?null:first((ht.teams??[]).filter(tm=>tm.abbr==heroMatch.away.abbr))
+let hRank=hRow==null?null:hRow.rank
+let aRank=aRow==null?null:aRow.rank
+let od=heroMatch==null?null:heroMatch.odds
+let oh=od==null?null:od.h
+let odr=od==null?null:od.d
+let oa=od==null?null:od.a
+let oddsOn=heroMatch!=null&&heroMatch.state=="pre"&&oh!=null&&odr!=null&&oa!=null
+let midW=wide?fz*14:fz*13
+let hOurs=heroMatch!=null&&(myTeams??[]).any(t=>t.abbr==heroMatch.home.abbr)
+let aOurs=heroMatch!=null&&(myTeams??[]).any(t=>t.abbr==heroMatch.away.abbr)
+let winC="#22c55e"
+let drawC="#f59e0b"
+let lossC="#ef4444"
+let hTone=hOurs?winC:aOurs?lossC:soft
+let dTone=hOurs||aOurs?drawC:soft
+let aTone=aOurs?winC:hOurs?lossC:soft
+if heroMatch!=null{
+Box{fill:width;padding:[10,8];radius:8*corners;border:1;borderColor:accent;background:alpha(accent,0.18)
+Row{gap:8;align:center;fill:width
+BannerForm{t:heroMatch.home}
+Column{weight:1;gap:1;align:center
+BannerLogo{logo:heroHLogo;px:56}
+Text{text:heroH;bold:true;fontSize:fz;align:center;maxLines:1}
+Text{text:hRank==null?"":"#${hRank}";style:label;color:soft;align:center;maxLines:1}
+}
+Column{width:midW;gap:1;align:center
+Text{text:heroTime;style:title;align:center;maxLines:1}
+Text{text:heroTagLine;style:label;color:soft;align:center;maxLines:1}
+Text{text:heroDown;style:label;color:heroMatch.state=="in"?"#22c55e":accent;align:center;maxLines:1}
+if oddsOn{
+Row{
+width:midW
+padding:[3,2]
+gap:2
+align:center
+radius:5*corners
+background:alpha(background,0.5)
+border:1
+borderColor:alpha(accent,0.25)
+BannerOdd{l:"1";v:oh;tone:hTone}
+BannerOdd{l:"N";v:odr;tone:dTone}
+BannerOdd{l:"2";v:oa;tone:aTone}
+}
+}
+}
+Column{weight:1;gap:1;align:center
+BannerLogo{logo:heroALogo;px:56}
+Text{text:heroA;bold:true;fontSize:fz;align:center;maxLines:1}
+Text{text:aRank==null?"":"#${aRank}";style:label;color:soft;align:center;maxLines:1}
+}
+BannerForm{t:heroMatch.away}
+}
+}
+}
+}
+onTap:screen()
+Column{
+Row{
+gap:4
+align:center
+for m in modeTabs key m.id{
+Text{text:m.short;weight:1;align:center;style:label;maxLines:1;color:view==m.id?pop:soft;bold:view==m.id;onTap:{view=m.id;selJ=-1}}
+}
+}
+Rule{}
+if view=="TOP5"{
+Row{
+gap:4
+align:center
+for lg in topTabs key lg.id{
+Text{text:lg.short;weight:1;align:center;style:label;maxLines:1;color:topLg==lg.id?pop:soft;bold:topLg==lg.id;onTap:{topLg=topLg==lg.id?"ALL":lg.id;selJ=-1}}
+}
+}
+}else if view=="EUROPE"{
+Row{
+gap:4
+align:center
+for lg in euroTabs key lg.id{
+Text{text:lg.short;weight:1;align:center;style:label;maxLines:1;color:euroLg==lg.id?pop:soft;bold:euroLg==lg.id;onTap:{euroLg=lg.id;selJ=-1}}
+}
+}
+}else{
+Row{
+gap:4
+align:center
+for t in myTeams key t.abbr{
+Box{
+weight:1
+align:center
+padding:3
+border:2
+radius:8
+borderColor:team==t.abbr?pop:rgb(0,0,0,0)
+background:team==t.abbr?alpha(accent,0.15):rgb(0,0,0,0)
+onTap:{team=team==t.abbr?"ALL":t.abbr;selJ=-1}
+Column{
+gap:3
+align:center
+Crest{logo:t.logo;px:26}
+FormStrip{t:t;px:count(myTeams)>3?11:15}
+}
+}
+}
+}
+}
+Rule{}
+if count(myTeams)==0{
+Button{text:S.chooseTeams;fill:width;color:pop;onTap:{showTeams=true;screen()}}
+Rule{}
+}
+if view=="MINE"{
+MatchBanner{w:wide?88:48;h:wide?88:64}
+Column{
+weight:1
+scroll:true
+if games==null{
+Text{text:S.loading;style:small;color:soft}
+}else if total==0{
+Text{text:S.noMatchTeam;style:small;color:soft}
+}else{
+for g in pastTake key g.id{LiveGame{g:g;compact:true}}
+if count(upShow)>0{
+Rule{}
+Text{text:count(liveF)>0?S.upLive:S.upcoming;style:label;color:pop;align:center}
+for g in upShow key g.id{LiveGame{g:g;compact:true}}
+}
+}
+}
+}else if view=="RIV"{
+Column{
+weight:1
+scroll:true
+Text{text:rivLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
+if extra==null&&nextup==null{
+Text{text:S.loading;style:small;color:soft}
+}else if count(rivalsTile)==0{
+Text{text:S.noRecent;style:small;color:soft}
+}else{
+for g in rivalsTile key g.id{LiveGame{g:g;compact:true}}
+}
+}
+}else if view=="EUROPE"{
+Column{
+weight:1
+scroll:true
+Text{text:euroLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
+if extra==null&&nextup==null&&histfull==null{
+Text{text:S.loading;style:small;color:soft}
+}else if euroCurJ!=null&&euroMaxJ!=null{
+if euroHero!=null{
+LiveGame{g:euroHero;compact:true}
+Rule{}
+}
+Row{
+gap:4
+align:center
+Text{text:"←";width:64;padding:8;align:center;fontSize:fz;maxLines:1;color:euroCurJ!=null&&euroMinJ!=null&&euroCurJ>euroMinJ?foreground:muted;onTap:selJ=euroCurJ-1}
+Text{text:euroCurJ==null?"…":"${JP}${euroCurJ} → ${JP}${euroUpJ}";weight:1;style:label;align:center;maxLines:1;color:selJ<0?pop:soft;onTap:selJ=-1}
+Text{text:"→";width:64;padding:8;align:center;fontSize:fz;maxLines:1;color:euroCurJ!=null&&euroMaxJ!=null&&euroCurJ<euroMaxJ?foreground:muted;onTap:selJ=euroCurJ+1}
+}
+Rule{}
+if count(euroUpMatches)==0{
+Text{text:euroCurJ!=null&&euroMaxPlayed!=null&&euroCurJ>=euroMaxJ?S.seasonOver:S.noUpcoming;style:small;color:soft;align:center}
+}else{
+for g in euroUpMatches key g.id{LiveGame{g:g;compact:true}}
+}
+Rule{}
+Text{text:"· ${JP}${euroCurJ} ·";style:label;color:pop;align:center}
+if count(euroResMatches)==0{
+Text{text:S.noResults;style:small;color:soft;align:center}
+}else{
+for g in euroResMatches key g.id{LiveGame{g:g;compact:true}}
+}
+}else if count(euroList)==0{
+Text{text:S.noRecent;style:small;color:soft}
+}else{
+for g in euroList key g.id{LiveGame{g:g;compact:true}}
+}
+}
+}else{
+Column{
+weight:1
+scroll:true
+Text{text:(topLg=="ALL"?topLabel:topLabel+" · "+S.tapAll)+liveWarn;style:label;color:topLg=="ALL"?soft:pop;align:center;maxLines:1;onTap:topLg="ALL"}
+if extra==null&&nextup==null&&histfull==null{
+Text{text:S.loading;style:small;color:soft}
+}else if curLg!=null&&maxJ!=null&&curJ!=null{
+if topHero!=null{
+LiveGame{g:topHero;compact:true}
+Rule{}
+}
+Row{
+gap:4
+align:center
+Text{text:"←";width:64;padding:8;align:center;fontSize:fz;maxLines:1;color:curJ!=null&&minJ!=null&&curJ>minJ?foreground:muted;onTap:selJ=curJ-1}
+Text{text:curJ==null?"…":"${JP}${curJ} → ${JP}${topUpJ}";weight:1;style:label;align:center;maxLines:1;color:selJ<0?pop:soft;onTap:selJ=-1}
+Text{text:"→";width:64;padding:8;align:center;fontSize:fz;maxLines:1;color:curJ!=null&&maxJ!=null&&curJ<maxJ?foreground:muted;onTap:selJ=curJ+1}
+}
+Rule{}
+if count(topUpMatches)==0{
+Text{text:curJ!=null&&maxPlayed!=null&&curJ>=maxJ?S.seasonOver:S.noUpcoming;style:small;color:soft;align:center}
+}else{
+for g in topUpMatches key g.id{LiveGame{g:g;compact:true}}
+}
+Rule{}
+Text{text:"· ${JP}${curJ} ·";style:label;color:pop;align:center}
+if count(topResMatches)==0{
+Text{text:S.noResults;style:small;color:soft;align:center}
+}else{
+for g in topResMatches key g.id{LiveGame{g:g;compact:true}}
+}
+}else if count(topTile)==0{
+Text{text:S.noRecent;style:small;color:soft}
+}else{
+for g in topTile key g.id{LiveGame{g:g;compact:true}}
+}
+}
+}
+}
+screen{
+title:lang=="fr"?"mes matchs":"my matches"
+Column{
+scroll:true
+gap:10
+Text{
+text:(spinning?S.refreshing+elapsed+"s":lastOk==true?"✓ ${(lastDur ?? 0)}s · "+agoP+fmtDuration(max(slow-(lastAt??slow),0))+agoS:lastOk==false?((lastAt??0)>0?S.failP+agoP+fmtDuration(max(slow-(lastAt??slow),0))+agoS:S.fail):((lastAt??0)>0?agoP+fmtDuration(max(slow-(lastAt??slow),0))+agoS:S.tapRefresh)+liveSuffix)
+style:small;color:spinning?"#22c55e":lastOk==false?"#ef4444":soft
+align:center;maxLines:1
+}
+Row{
+gap:6
+for m in modeTabs key m.id{
+Button{text:m.short;weight:1;color:view==m.id?pop:soft;onTap:{view=m.id;selJ=-1}}
+}
+}
+Rule{}
+if setupNeeded{
+SetupBlock{}
+}else{
+Row{
+gap:8
+align:center
+for t in myTeams key t.abbr{
+Box{
+weight:1
+align:center
+padding:3
+border:2
+radius:8
+borderColor:team==t.abbr?pop:rgb(0,0,0,0)
+background:team==t.abbr?alpha(accent,0.15):rgb(0,0,0,0)
+onTap:{team=team==t.abbr?"ALL":t.abbr;selJ=-1}
+Column{
+gap:3
+align:center
+Crest{logo:t.logo;px:32}
+FormStrip{t:t;px:count(myTeams)>3?11:15}
+}
+}
+}
+Canvas{
+width:52;height:52
+onTap:{refresh();spinning=true;elapsed=0;lastOk=null;spinUntil=now+245}
+let mid=26
+rect(1,1,50,50,radius:10,fill:spinning?alpha("#22c55e",0.12):rgb(0,0,0,0),stroke:spinning?"#22c55e":border,width:1)
+if spinning{
+text(["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"][elapsed%10],mid,mid,size:22,align:center,color:"#22c55e")
+}else if lastOk==true{
+text("✓",mid,mid,size:22,align:center,color:"#22c55e")
+}else if lastOk==false{
+text("✗",mid,mid,size:22,align:center,color:"#ef4444")
+}else{
+text("↻",mid,mid,size:20,align:center,color:muted)
+}
+}
+}
+}
+Rule{}
+if view=="TOP5"{
+Row{
+gap:6
+for lg in topTabs key lg.id{
+Button{text:lg.short;weight:1;color:topLg==lg.id?pop:soft;onTap:{topLg=topLg==lg.id?"ALL":lg.id;selJ=-1}}
+}
+}
+}
+if view=="EUROPE"{
+Row{
+gap:6
+for lg in euroTabs key lg.id{
+Button{text:lg.short;weight:1;color:euroLg==lg.id?pop:soft;onTap:{euroLg=lg.id;selJ=-1}}
+}
+}
+}
+Rule{}
+Button{text:showSettings?S.hide:S.settings;fill:width;color:soft;onTap:showSettings=!showSettings}
+if showSettings{
+Column{
+gap:6
+Text{text:S.displaySize;style:label;color:soft}
+Row{
+gap:6
+for s in["S","M","L","XL"]key s{
+Button{text:s;weight:1;color:uiSize==s?pop:soft;onTap:uiSize=s}
+}
+}
+Text{text:"${S.myTeams} (${count(myTeams)}/5)";style:label;color:soft}
+Text{text:count(myTeams)==0?S.nonePick:join(myTeams.map(t=>t.short)," · ");style:small;color:pop;maxLines:2;onTap:showTeams=true}
+Button{text:S.editTeams;color:soft;onTap:showTeams=true}
+Text{text:lang=="fr"?"langue":"language";style:label;color:soft}
+Row{
+gap:6
+Button{text:"English";weight:1;color:lang=="en"?pop:soft;onTap:lang="en"}
+Button{text:"Français";weight:1;color:lang=="fr"?pop:soft;onTap:lang="fr"}
+}
+}
+}
+if view=="MINE"{
+MatchBanner{w:96;h:96}
+}
+if view=="RIV"{
+Rule{}
+Text{text:S.rivMatches;style:label;color:pop}
+Text{text:rivLabel;style:small;color:soft}
+if nextup==null{
+Text{text:S.fixturesLoading;style:small;color:soft}
+}else if count(rivalsNext)>0{
+Text{text:S.upcomingHdr;style:label;color:pop}
+for g in rivalsNext key g.id{LiveGame{g:g}}
+}
+if extra==null{
+Text{text:S.loading;style:body;color:soft}
+}else if curLg!=null&&maxJ!=null{
+Row{
+gap:6
+Button{text:"←";width:56;color:curJ!=null&&minJ!=null&&curJ>minJ?foreground:muted;onTap:selJ=curJ-1}
+Button{text:curJ==null?"…":"${JP}${curJ} · ${count(jMatches)}";weight:1;color:selJ<0?pop:soft;onTap:selJ=-1}
+Button{text:"→";width:56;color:curJ!=null&&maxJ!=null&&curJ<maxJ?foreground:muted;onTap:selJ=curJ+1}
+}
+if count(jMatches)==0{
+Text{text:S.noMatchDay;style:body;color:soft}
+}else{
+for g in jMatches key g.id{LiveGame{g:g}}
+}
+}else if count(rivalsAll)==0{
+Text{text:S.noRecent;style:body;color:soft}
+}else{
+for g in rivalsAll.take(team=="ALL"?15:30)key g.id{LiveGame{g:g}}
+}
+if standings==null{
+Text{text:S.standingsLoading;style:small;color:soft}
+}else if count(myTables)==0{
+Text{text:S.noStandings;style:small;color:soft}
+}else{
+Text{text:showTables?S.stOn:S.stOff;style:label;color:soft;align:center;onTap:showTables=!showTables}
+if showTables{
+for u in myTables key u.tag+" "+u.group{TableBlock{u:u}}
+}
+}
+}else if view=="TOP5"{
+Rule{}
+Text{text:S.top5Matches;style:label;color:pop}
+Text{text:topLabel+liveWarn;style:small;color:soft}
+if nextup==null{
+Text{text:S.fixturesLoading;style:small;color:soft}
+}else if count(topNext)>0{
+Text{text:S.upcomingHdr;style:label;color:pop}
+for g in topNext key g.id{LiveGame{g:g}}
+}
+if extra==null{
+Text{text:S.loading;style:body;color:soft}
+}else if curLg!=null&&maxJ!=null{
+Row{
+gap:6
+Button{text:"←";width:56;color:curJ!=null&&minJ!=null&&curJ>minJ?foreground:muted;onTap:selJ=curJ-1}
+Button{text:curJ==null?"…":"${JP}${curJ} · ${count(jMatches)}";weight:1;color:selJ<0?pop:soft;onTap:selJ=-1}
+Button{text:"→";width:56;color:curJ!=null&&maxJ!=null&&curJ<maxJ?foreground:muted;onTap:selJ=curJ+1}
+}
+if count(jMatches)==0{
+Text{text:S.noMatchDay;style:body;color:soft}
+}else{
+for g in jMatches key g.id{LiveGame{g:g}}
+}
+}else if count(topAll)==0{
+Text{text:S.noRecent;style:body;color:soft}
+}else{
+for g in(topLg=="ALL"?topList:topAll.take(30))key g.id{LiveGame{g:g}}
+}
+if standings==null{
+Text{text:S.standingsLoading;style:small;color:soft}
+}else if count(topTables)==0{
+Text{text:S.noStandings;style:small;color:soft}
+}else{
+Text{text:showTables?S.stOn:S.stOff;style:label;color:soft;align:center;onTap:showTables=!showTables}
+if showTables{
+for u in topTables key u.tag+" "+u.group{TableBlock{u:u}}
+}
+}
+}else if view=="EUROPE"{
+Rule{}
+Text{text:S.euroMatches;style:label;color:pop}
+Text{text:euroLabel+liveWarn;style:small;color:soft}
+if nextup==null{
+Text{text:S.fixturesLoading;style:small;color:soft}
+}else if count(euroNext)>0{
+Text{text:S.upcomingHdr;style:label;color:pop}
+for g in euroNext key g.id{LiveGame{g:g}}
+}
+if extra==null{
+Text{text:S.loading;style:body;color:soft}
+}else if euroCurJ!=null&&euroMaxJ!=null{
+Row{
+gap:6
+Button{text:"←";width:56;color:euroCurJ!=null&&euroMinJ!=null&&euroCurJ>euroMinJ?foreground:muted;onTap:selJ=euroCurJ-1}
+Button{text:euroCurJ==null?"…":"${JP}${euroCurJ} · ${count(euroJMatches)}";weight:1;color:selJ<0?pop:soft;onTap:selJ=-1}
+Button{text:"→";width:56;color:euroCurJ!=null&&euroMaxJ!=null&&euroCurJ<euroMaxJ?foreground:muted;onTap:selJ=euroCurJ+1}
+}
+if count(euroJMatches)==0{
+Text{text:S.noMatchDay;style:body;color:soft}
+}else{
+for g in euroJMatches key g.id{LiveGame{g:g}}
+}
+}else if count(euroMatches)==0{
+Text{text:S.noRecent;style:body;color:soft}
+}else{
+for g in euroMatches.take(30)key g.id{LiveGame{g:g}}
+}
+if standings==null{
+Text{text:S.standingsLoading;style:small;color:soft}
+}else if count(euroTables)==0{
+Text{text:S.noStandings;style:small;color:soft}
+}else{
+Text{text:showTables?S.stOn:S.stOff;style:label;color:soft;align:center;onTap:showTables=!showTables}
+if showTables{
+for u in euroTables key u.tag+" "+u.group{TableBlock{u:u}}
+}
+}
+Rule{}
+Text{text:S.bracket;style:label;color:pop}
+if knock==null{
+Text{text:S.bracketLoading;style:small;color:soft}
+}else if count(knockLg)==0{
+Text{text:S.leaguePhase;style:small;color:soft}
+}else{
+for st in knockRounds key st{
+let sm=knockLg.filter(g=>(g.stage??"")==st)
+if count(sm)>0{
+Text{text:"${get(knockLabels, st, st)} · ${count(sm)}";style:small;color:soft}
+for g in sm key g.id{LiveGame{g:g}}
+}
+}
+}
+}else if games==null{
+Text{text:S.loading;style:body;color:soft}
+}else if team=="ALL"{
+for t in myTeams key t.abbr{
+let gm=baseF.filter(g=>(g.squads??[]).any(s=>s==t.abbr))
+let tb=myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==t.abbr))
+let gmShown=gm
+let exp=!(secClosed.any(a=>a==t.abbr))
+if count(gm)>0||count(tb)>0{
+Rule{}
+Text{text:exp?t.name:"${t.name} (${count(gm)}) ›";style:label;color:pop;onTap:secClosed=secClosed.any(a=>a==t.abbr)?secClosed.filter(a=>a!=t.abbr):(secClosed+[t.abbr]).take(10)}
+if exp{
+for g in gmShown key g.id{LiveGame{g:g}}
+for u in tb key u.tag+" "+u.group{TableBlock{u:u}}
+}
+}
+}
+}else{
+let one=myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==team))
+if count(baseF)==0&&count(one)==0{
+Text{text:S.noMatchAny;style:body;color:soft}
+}else{
+let shown1=baseF
+for g in shown1 key g.id{LiveGame{g:g}}
+for u in one key u.tag+" "+u.group{TableBlock{u:u}}
+}
+}
+Button{text:S.close;onTap:close()}
+}
+}
+}
