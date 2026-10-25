@@ -1,0 +1,7 @@
+*.apk
+*.aab
+build/
+.gradle/
+*.log
+!measurements/**/*.log
+.DS_Store

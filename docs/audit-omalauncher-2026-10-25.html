@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit énergétique — Omalauncher (Xiaomi 11T Pro)</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#131a22; --panel2:#18212b; --line:#2a3644;
+    --text:#d7e0ea; --muted:#8b9bad; --accent:#7ee787; --accent2:#79c0ff;
+    --warn:#ffa657; --danger:#ff7b72; --ok:#3fb950; --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px;margin:0 auto;padding:38px 22px 70px}
+  header.hero{border:1px solid var(--line);background:linear-gradient(160deg,#111a24 0%,#0c1219 60%);border-radius:18px;padding:34px 30px;box-shadow:var(--shadow)}
+  .kicker{letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+  h1{font-size:31px;line-height:1.2;margin:8px 0 6px;font-weight:700}
+  .sub{color:var(--muted);font-size:14px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .badge{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#0e151d;color:var(--muted)}
+  .badge.hot{border-color:#5a2a2a;color:var(--danger);background:#1d1113}
+  .badge.ok{border-color:#1f4d2b;color:var(--ok);background:#0f1a13}
+  .badge.info{border-color:#1f3a57;color:var(--accent2);background:#0d1721}
+  nav.toc{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 10px;font-size:13px}
+  nav.toc a{background:var(--panel);border:1px solid var(--line);padding:6px 11px;border-radius:9px;color:var(--text)}
+  section{margin-top:30px}
+  h2{font-size:21px;margin:0 0 14px;letter-spacing:-.01em}
+  h3{font-size:16px;margin:0 0 7px}
+  p{margin:9px 0}
+  .lead{font-size:16px;color:#c5d1dd}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+  .card .v{font-size:25px;font-weight:700;letter-spacing:-.02em}
+  .card .v.red{color:var(--danger)}
+  .card .v.orange{color:var(--warn)}
+  .card .v.green{color:var(--ok)}
+  .card .v.blue{color:var(--accent2)}
+  .card .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .callout{border-left:3px solid var(--danger);background:#1a1112;border-radius:0 12px 12px 0;padding:16px 18px;margin:18px 0}
+  .callout.good{border-left-color:var(--ok);background:#0f1a13}
+  .callout.info{border-left-color:var(--accent2);background:#0d1721}
+  .tldr{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .tldr .item{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .tldr .rank{font-size:12px;color:var(--danger);font-weight:700;letter-spacing:.08em}
+  .tldr .t{font-weight:650;margin:4px 0 4px}
+  .tldr .d{font-size:12.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0;font-size:13.5px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#0f1720;color:#aebdcc;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+  tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bars{margin-top:8px}
+  .bar{display:grid;grid-template-columns:250px 1fr 80px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+  .track{height:11px;background:#0d141c;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#ff7b72,#ffa657)}
+  .fill.blue{background:linear-gradient(90deg,#1f6feb,#79c0ff)}
+  .fill.green{background:linear-gradient(90deg,#238636,#3fb950)}
+  .finding{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 19px;margin:14px 0}
+  .finding.p0{border-left:4px solid var(--danger)}
+  .finding.p1{border-left:4px solid var(--warn)}
+  .finding.p2{border-left:4px solid var(--accent2)}
+  .fhead{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+  .prio{font-size:11px;font-weight:700;letter-spacing:.1em;padding:3px 8px;border-radius:6px;border:1px solid}
+  .p0 .prio{color:var(--danger);border-color:#5a2a2a;background:#1d1113}
+  .p1 .prio{color:var(--warn);border-color:#5a4120;background:#1d170f}
+  .p2 .prio{color:var(--accent2);border-color:#1f3a57;background:#0d1721}
+  .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:11px 0}
+  .meta div{background:#0f1720;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12.5px}
+  .meta b{display:block;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;font-weight:600}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  code{background:#0e151d;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px;color:#cfe3ff}
+  pre{background:#080d12;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;font-size:12.5px;line-height:1.55;color:#cfe3ff}
+  pre code{background:none;border:none;padding:0}
+  ul,ol{margin:8px 0 8px 22px;padding:0}
+  li{margin:5px 0}
+  .small{font-size:12.5px;color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .divider{height:1px;background:var(--line);margin:26px 0}
+  footer{margin-top:38px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .pill.red{color:var(--danger);border-color:#5a2a2a}
+  .pill.green{color:var(--ok);border-color:#1f4d2b}
+  @media (max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.tldr{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.bar{grid-template-columns:1fr 1fr 60px}}
+  @media print{body{background:#fff;color:#111}.wrap{max-width:none;padding:0}header.hero,.card,.finding,table,.callout,.tldr .item{background:#fff;border-color:#ccc;box-shadow:none}.badge,.pill{border-color:#999;color:#333}a{color:#0645ad}.fill{background:#c33}.fill.blue{background:#36c}.fill.green{background:#2a2}nav.toc{display:none}.finding{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Audit de performance et de consommation</div>
+  <h1>Omalauncher — où part réellement la batterie</h1>
+  <div class="sub">Xiaomi 11T Pro · 2107113SG (<em>vili</em>) · Snapdragon 888 · Android 14 (SDK 34) · 8 Go RAM · 1080×2400 · 120 Hz</div>
+  <div class="badges">
+    <span class="badge hot">Sévérité élevée</span>
+    <span class="badge info">Omalauncher 0.12.0 (dev.omalauncher)</span>
+    <span class="badge">Play Store · installé le 12/10/2026 · MAJ 24/10/2026</span>
+    <span class="badge ok">Audit du 25/10/2026</span>
+    <span class="badge">Sans root · ADB</span>
+  </div>
+  <p class="lead" style="margin-top:18px">
+    <strong>Verdict.</strong> Le rendu de base d'Omalauncher n'est pas le problème : le launcher nu est à
+    <strong>0,03 % d'un cœur</strong> quand l'écran est éteint, ses fenêtres Linux sont déjà plafonnées à 60 fps,
+    son fond d'écran est statique et il ne demande aucune permission <code>WAKE_LOCK</code>.
+    Le coût vient de <strong>ce qu'il héberge et affiche</strong> : un script de widget orphelin qui tourne à
+    <strong>100 % d'un cœur depuis 45 minutes</strong>, un widget « now playing » qui redessine l'accueil à
+    <strong>111 fps</strong> tant que l'audio joue, et des processus <strong>Linux / opencode jamais suspendus</strong>
+    quand l'écran s'éteint. L'UID du launcher concentre <strong>≈ 68 % de la consommation estimée</strong> par Android.
+  </p>
+</header>
+
+<nav class="toc">
+  <a href="#synthese">Synthèse</a>
+  <a href="#mesures">Mesures</a>
+  <a href="#causes">Causes</a>
+  <a href="#plan">Plan d'action</a>
+  <a href="#bien">Ce qui va bien</a>
+  <a href="#amont">Recommandations amont</a>
+  <a href="#verif">Vérification</a>
+  <a href="#limites">Limites</a>
+  <a href="#annexe">Annexe</a>
+</nav>
+
+<section id="synthese">
+  <h2>1. Synthèse : trois charges dominent</h2>
+
+  <div class="cards">
+    <div class="card"><div class="v red">68,5 %</div><div class="l">de la conso estimée par Android imputée à l'UID 10446 (launcher + Linux invité)</div></div>
+    <div class="card"><div class="v red">100 %</div><div class="l">d'un cœur pour un script de widget foot/ESPN orphelin (45 min de CPU sur 46 min de vie)</div></div>
+    <div class="card"><div class="v orange">111 fps</div><div class="l">redessin de l'accueil à l'arrêt, uniquement parce que l'audio joue (0 fps audio en pause)</div></div>
+    <div class="card"><div class="v orange">1,2 cœur</div><div class="l">encore occupé écran éteint (widget orphelin + opencode), launcher nu à 0,03 %</div></div>
+  </div>
+
+  <div class="tldr">
+    <div class="item">
+      <div class="rank">ACTION 1 — IMMÉDIAT</div>
+      <div class="t">Tuer le script orphelin et retirer/réparer le widget de scores</div>
+      <div class="d">≈ 1 cœur en permanence, écran allumé comme éteint. Gain estimé : ≈ 6–10 % de batterie par heure, à confirmer après action.</div>
+    </div>
+    <div class="item">
+      <div class="rank">ACTION 2 — IMMÉDIAT</div>
+      <div class="t">Retirer le widget « now playing » (ou le figer hors lecture)</div>
+      <div class="d">Passe l'accueil de 111 fps à 0 fps quand l'audio est en pause. En jeu : ≈ 37 % d'un cœur + GPU en continu.</div>
+    </div>
+    <div class="item">
+      <div class="rank">ACTION 3 — RÉGLAGES</div>
+      <div class="t">Arrêter Linux/opencode écran éteint et retirer l'exemption batterie</div>
+      <div class="d">La veille reste à ≈ 1,2 cœur. Sans cela, le téléphone ne se met jamais vraiment au repos.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>À retenir :</strong> le téléphone était branché (alimentation détectée « AC ») pendant l'audit.
+    Les mAh absolus de <code>batterystats</code> sont donc inutilisables, et son profil batterie annonce une capacité de
+    818 mAh (au lieu des 5 000 mAh du 11T Pro). Toutes les conclusions ci-dessous reposent sur des mesures
+    <em>relatives</em> (temps CPU, cœurs occupés, fps, états Doze) — solides, mais à re-mesurer après chaque correction.
+  </div>
+
+  <div class="callout info">
+    <strong>Mise à jour post-audit (25/10, 13:52).</strong> Le script orphelin PID 14568 a été tué par un
+    <code>am force-stop dev.omalauncher</code> à 13:51. Mais au redémarrage du launcher, le widget de scores a
+    <strong>relancé automatiquement</strong> trois scripts ESPN (matchs, saison, classements) qui ont terminé en ~1 minute ;
+    le widget « news » a également lancé sa mise à jour. Conclusion inchangée : tuer le processus ne suffit pas,
+    il faut <strong>retirer ou réécrire le widget</strong> pour supprimer la cause. Le force-stop a aussi arrêté Linux/opencode,
+    que le terminal a relancés au démarrage.
+  </div>
+</section>
+
+<section id="mesures">
+  <h2>2. Mesures instrumentées</h2>
+
+  <table>
+    <thead><tr><th>Mesure</th><th>Valeur relevée</th><th>Contexte / source</th></tr></thead>
+    <tbody>
+      <tr><td>Consommation estimée de l'UID launcher</td><td class="num"><strong>289 mAh / 422 mAh</strong> calculés (68,5 %)</td><td><code>dumpsys batterystats --charged dev.omalauncher</code></td></tr>
+      <tr><td>Temps CPU total de l'UID (depuis dernière charge)</td><td class="num"><strong>2 h 15 min 41 s</strong></td><td>dont 122 mAh en avant-plan, 71,5 mAh en FGS</td></tr>
+      <tr><td>Temps d'écran imputé à l'UID</td><td class="num">25 min 34 s (94,7 mAh estimés)</td><td>écran = 2<sup>e</sup> poste de l'UID</td></tr>
+      <tr><td>Script foot/ESPN orphelin</td><td class="num"><strong>100,4 % d'un cœur</strong> (1 004 ticks/10 s)</td><td>PID 14568, PPID 1, 45 min de CPU à 46 min de vie</td></tr>
+      <tr><td>CPU du launcher écran allumé</td><td class="num"><strong>36,9 % d'un cœur</strong> (~55 % en pointe)</td><td>dont RenderThread ≈ 34,4 %, main thread ≈ 15,7 %</td></tr>
+      <tr><td>Rendu de l'accueil à l'arrêt</td><td class="num"><strong>111 fps</strong> (2 833 frames / 30 s ; 105 fps mesuré d'abord)</td><td><code>dumpsys gfxinfo dev.omalauncher</code>, 120 Hz actif</td></tr>
+      <tr><td>Rendu audio <strong>en pause</strong></td><td class="num"><strong>0 frame en 12 s</strong></td><td>preuve que l'animation du widget now-playing est la seule cause</td></tr>
+      <tr><td>Écran éteint, 60 s</td><td class="num">football <strong>99,6 %</strong> · opencode serve 13,3 % · TUI 7,2 % · launcher <strong>0,03 %</strong></td><td>mesure par delta de <code>/proc/&lt;pid&gt;/stat</code></td></tr>
+      <tr><td>Jank UI</td><td class="num">0,18 % (50<sup>e</sup> percentile 5 ms, GPU 2 ms)</td><td>rendu fluide, mais inutilement fréquent</td></tr>
+      <tr><td>Affichage</td><td class="num">mode actif 120 Hz · luminosité 128/255 · timeout 600 s · « rester éveillé branché » = 15</td><td><code>dumpsys display</code>, <code>settings</code></td></tr>
+      <tr><td>Mémoire</td><td class="num">launcher 208 Mo PSS · opencode serve 428 Mo · TUI 210 Mo · 135 Mo libres · 2,27 Go de zram</td><td><code>dumpsys meminfo</code>, <code>ps</code></td></tr>
+      <tr><td>Réseau UID launcher (dernière fenêtre 2 h)</td><td class="num">Wi-Fi 63,7 Mo reçus / 114 Mo émis · mobile 33,4 / 46,8 Mo</td><td>inclut le widget ESPN et les agents opencode</td></tr>
+      <tr><td>Exemption batterie</td><td class="num"><span class="pill red">user,dev.omalauncher,10446</span></td><td>liste blanche Doze / « sans restriction »</td></tr>
+      <tr><td>Services &amp; composants</td><td class="num">LinuxService (FGS <em>specialUse</em>, session) · MediaListener (notification listener persistant) · OmarchyWallpaperService</td><td><code>dumpsys activity services</code>, <code>dumpsys package</code></td></tr>
+      <tr><td>Permissions sensibles</td><td class="num">INTERNET, FOREGROUND_SERVICE, FOREGROUND_SERVICE_SPECIAL_USE, POST_NOTIFICATIONS, RECORD_AUDIO (refusée)</td><td>pas de <code>WAKE_LOCK</code> : point positif</td></tr>
+      <tr><td>Batterie / thermique</td><td class="num">85 %, 39 °C, en charge</td><td>pas de mesure de décharge possible dans ces conditions</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Répartition de la charge observée</h3>
+  <div class="bars">
+    <div class="bar"><span>Script widget foot/ESPN (orphelin)</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="num">100 %</span></div>
+    <div class="bar"><span>Rendu du launcher (widget now-playing)</span><div class="track"><div class="fill" style="width:37%"></div></div><span class="num">37 %</span></div>
+    <div class="bar"><span>opencode serve (veille)</span><div class="track"><div class="fill blue" style="width:13%"></div></div><span class="num">13 %</span></div>
+    <div class="bar"><span>opencode TUI dans le terminal (veille)</span><div class="track"><div class="fill blue" style="width:7%"></div></div><span class="num">7 %</span></div>
+    <div class="bar"><span>Launcher nu, écran éteint</span><div class="track"><div class="fill green" style="width:0.03%"></div></div><span class="num">0,03 %</span></div>
+  </div>
+  <p class="small">Pourcentages exprimés en fraction d'un cœur ; additionner plusieurs lignes = plusieurs cœurs. Le total écran allumé mesuré est ≈ 1,4 cœur ; écran éteint ≈ 1,2 cœur.</p>
+</section>
+
+<section id="causes">
+  <h2>3. Causes détaillées et actions</h2>
+
+  <article class="finding p0">
+    <div class="fhead"><h3>P0-1 · Un script de widget foot/ESPN a tourné en boucle 45 minutes</h3><span class="prio">P0</span></div>
+    <p>Un processus <code>bash</code> lancé par l'application (même UID 10446) exécute un script qui interroge l'API ESPN
+    pour <strong>13 compétitions × 12 mois</strong>, télécharge les logos des équipes, puis calcule les journées et met en cache
+    l'historique. Il est <strong>orphelin</strong> (PPID 1 : son proot parent a disparu), donc plus suivi par le moteur de widgets,
+    et il continue à <strong>100 % d'un cœur</strong> même écran éteint. Au moment du rapport : PID 14568, 46 min de vie,
+    45 min de CPU (97,1 %).</p>
+    <div class="meta">
+      <div><b>Preuve</b>100,4 % d'un cœur sur 10 s ; 99,6 % sur 60 s écran éteint ; 24 min de CPU à 25 min de vie au premier relevé.</div>
+      <div><b>Gain attendu</b>≈ 1 cœur permanent. Ordre de grandeur : 6–10 % de batterie par heure (estimation, pas une mesure de décharge).</div>
+      <div><b>Effort / risque</b>Faible. Perte : le cache de scores sera reconstruit. Aucun impact sur les autres apps.</div>
+    </div>
+    <p><strong>Pourquoi ça fuit.</strong> Les sources <code>cmd</code> sont normalement enveloppées dans <code>timeout</code>
+    (10 s par défaut) par <code>GuestShell</code>. Ce processus n'a pas de parent <code>timeout</code>/proot : il vient donc d'un
+    <code>stream</code>, d'une action « run » ou d'un arbre dont le proot a été tué avant ses enfants. Le code amont connaît ce cas :
+    <code>ProcessTree.kt</code> documente qu'un proot SIGKILLé laisse ses tracees « spin at full speed », et
+    <code>Proot.killAll()</code> ne tue que les binaires proot/loader, pas un <code>bash</code> déjà reparenté à init.</p>
+    <p><strong>À faire.</strong></p>
+    <ol>
+      <li>Identifier le widget dans l'interface (page voisine ou widget « scores ») et le <strong>retirer</strong> ou le remplacer (voir P1-6).</li>
+      <li>Tuer l'orphelin : depuis le terminal invité d'Omalauncher, <code>kill -9 14568</code> (le PID changera) ou <code>pkill -9 -f espn</code> ; sinon redémarrer le téléphone.</li>
+      <li>Vérifier : <code>ps -A | grep -E 'bash|opencode|libproot'</code> ne doit plus montrer de script de scores.</li>
+      <li>Si le widget est conservé : lui donner un <code>timeout 20s</code>, un intervalle <code>every 30m</code> ou plus, et le faire tourner <em>au tap</em>, pas en source permanente.</li>
+    </ol>
+    <p class="small"><strong>Statut au 25/10 13:52 :</strong> l'orphelin a été tué. Le widget a recréé trois scripts au redémarrage du launcher ;
+    ils ont cette fois terminé en ~1 minute. La correction durable reste le retrait ou la réécriture du widget.</p>
+  </article>
+
+  <article class="finding p0">
+    <div class="fhead"><h3>P0-2 · Le widget « now playing » redessine tout l'accueil à 111 fps</h3><span class="prio">P0</span></div>
+    <p>Un livre audio joue (<code>de.ph1b.audiobook</code>) et le widget « now playing » de l'accueil anime sa barre de progression
+    (<code>animate value: tween(900ms, "linear")</code>) ainsi qu'un petit égaliseur « qui n'existe et n'anime que pendant la lecture ».
+    Résultat : le launcher rend <strong>111 fps en continu</strong> (2 833 frames en 30 s), avec <strong>34 % d'un cœur dans RenderThread</strong>
+    et 16 % dans le thread principal, pour un écran qui ne change visuellement que sur la barre de progression et l'horloge.</p>
+    <div class="meta">
+      <div><b>Preuve</b>111 fps audio en lecture ; <strong>0 frame en 12 s</strong> audio en pause ; diff d'images limité à la barre (x 349–717, y 1608–1705).</div>
+      <div><b>Gain attendu</b>≈ 0,5–1 W pendant l'écran allumé, soit ~3–5 %/h, + GPU et chauffe en moins.</div>
+      <div><b>Effort / risque</b>Faible. Retirer le widget, ou le laisser mais ne pas laisser l'audio tourner « pour rien ».</div>
+    </div>
+    <p><strong>À faire (immédiat).</strong> Retirer le widget « now playing » de l'accueil, ou le remplacer par une version statique
+    (titre + bouton lecture, sans barre animée ni égaliseur). Si le widget est gardé : mettre l'audio en pause quand on n'écoute pas —
+    c'est la lecture, pas l'app audio, qui déclenche l'animation.</p>
+    <p><strong>Correctif amont (P2).</strong> Faire avancer la progression par pas de 1 s (ou 1 %), supprimer l'égaliseur ou le
+    plafonner à 15–30 fps, et ne pas animer quand la tuile n'est pas visible. Un widget peut rester joli sans réveiller le GPU 111 fois par seconde.</p>
+  </article>
+
+  <article class="finding p0">
+    <div class="fhead"><h3>P0-3 · Rien ne suspend Linux/proot quand l'écran s'éteint</h3><span class="prio">P0</span></div>
+    <p>Écran éteint, 60 s : le script foot consomme <strong>99,6 %</strong> d'un cœur, <code>opencode serve</code> <strong>13,3 %</strong>,
+    la TUI opencode dans le terminal <strong>7,2 %</strong> — soit <strong>≈ 1,2 cœur</strong> en veille. Le launcher nu, lui, ne consomme
+    que <strong>0,03 %</strong> : le problème est le système invité, pas la partie Android.</p>
+    <div class="meta">
+      <div><b>Preuve</b>Deltas <code>/proc/&lt;pid&gt;/stat</code> sur 60 s écran éteint ; launcher = 2 ticks, invités = 7 207 ticks.</div>
+      <div><b>Gain attendu</b>≈ 1,2 cœur en veille, soit ~8–10 %/h tant que le téléphone est « endormi » avec Linux vivant.</div>
+      <div><b>Effort / risque</b>Moyen. Arrêter Linux ferme les agents et terminaux ; sauvegarder le travail opencode avant.</div>
+    </div>
+    <p><strong>Pourquoi.</strong> <code>MainActivity.onStop()</code> prévient le runtime, mais <code>Runtime.screenStopped()</code>
+    ne fait que désactiver les substituts <code>/proc</code> ; il ne gèle ni ne tue le proot. <code>LinuxService</code> reste un
+    <em>foreground service</em> « session » tant que Linux est installé, et l'UID est dans la liste blanche Doze. Android n'a donc
+    aucune raison de suspendre les agents.</p>
+    <p><strong>À faire.</strong></p>
+    <ol>
+      <li>Fermer les terminaux et les agents opencode quand ils ne servent pas (la TUI et <code>opencode serve --port 6969</code>).</li>
+      <li>Arrêter Linux depuis les réglages de l'app quand il n'est pas utilisé ; le relancer au besoin. Si vous ne vous en servez pas, le désinstaller (seul <code>files/arch</code> est supprimé, les thèmes restent).</li>
+      <li>Retirer l'exemption batterie (P1-4), puis vérifier que la veille retombe à ~0 cœur.</li>
+      <li>Amont : geler le cgroup invité (freezer) ou arrêter <code>LinuxService</code> après un délai écran éteint, avec une option « garder les agents en veille » pour ceux qui en ont besoin.</li>
+    </ol>
+  </article>
+
+  <article class="finding p1">
+    <div class="fhead"><h3>P1-4 · Omalauncher est exempté de l'optimisation batterie</h3><span class="prio">P1</span></div>
+    <p>La liste blanche Doze contient <code>user,dev.omalauncher,10446</code>. Tout le système invité (proot, opencode, scripts)
+    hérite de cette exemption : pas de gel en Doze, réseau autorisé, réveils possibles. C'est cohérent avec la charge observée écran éteint.</p>
+    <div class="meta">
+      <div><b>Preuve</b><code>dumpsys deviceidle whitelist</code> ; état UID <code>TOP</code>, FGS LinuxService active.</div>
+      <div><b>Gain attendu</b>Débloque le gel/la restriction réseau en veille ; utile surtout combiné à P0-3.</div>
+      <div><b>Effort / risque</b>Faible. Un launcher n'a pas besoin d'être « sans restriction » pour rester l'écran d'accueil.</div>
+    </div>
+    <p><strong>À faire.</strong> Réglages Android › Applications › Omalauncher › Batterie › choisir « Optimisée » (et non « Sans restriction »).
+    En ADB :</p>
+    <pre><code>adb shell cmd deviceidle whitelist -dev.omalauncher
+adb shell dumpsys deviceidle whitelist | grep -i omalauncher   # doit être vide</code></pre>
+    <p class="small">Si vous utilisez volontairement les agents opencode en arrière-plan écran éteint, gardez l'exemption mais assumez la consommation — et préférez un arrêt automatique après N minutes.</p>
+  </article>
+
+  <article class="finding p1">
+    <div class="fhead"><h3>P1-5 · Écran : 120 Hz en permanence, luminosité 50 %, veille à 10 min</h3><span class="prio">P1</span></div>
+    <p>Le mode actif est <strong>120 Hz</strong> (<code>peak_refresh_rate=120</code>), la luminosité est à <strong>128/255</strong>,
+    le timeout à <strong>600 s</strong> et « rester éveillé en charge » est actif. L'écran représente déjà 94,7 mAh estimés, soit
+    un tiers de la conso de l'UID. Or aucune animation du launcher ne dépasse 60 fps (les fenêtres Linux sont explicitement
+    plafonnées à 60 fps dans <code>WindowRenderer.kt</code>).</p>
+    <div class="meta">
+      <div><b>Preuve</b><code>dumpsys display</code> : mode 2 = 120 Hz ; <code>settings get system peak_refresh_rate</code> = 120.</div>
+      <div><b>Gain attendu</b>Réduit la conso de la dalle et divise par deux le coût de rendu ; cumulé à P0-2, l'accueil peut devenir quasi immobile.</div>
+      <div><b>Effort / risque</b>Faible, réversible. Perte : fluidité perçue en dehors du launcher.</div>
+    </div>
+    <p><strong>À faire.</strong> Passer en 60 Hz dans Réglages › Affichage › Fréquence de rafraîchissement (ou
+    <code>adb shell settings put system peak_refresh_rate 60</code>, retour à 120 avec <code>120</code>). Activer la luminosité
+    automatique, réduire le timeout à 30–60 s, désactiver « rester éveillé pendant la charge ».</p>
+  </article>
+
+  <article class="finding p1">
+    <div class="fhead"><h3>P1-6 · Le widget de scores est trop lourd pour un launcher</h3><span class="prio">P1</span></div>
+    <p>Même sans la fuite, le principe est coûteux : <strong>156 requêtes HTTP</strong> (13 ligues × 12 mois), des téléchargements
+    de logos, puis du <code>jq</code> dans proot — le tout pour un widget. La documentation du projet recommande explicitement
+    <code>http(...)</code> côté Android plutôt que <code>cmd("curl ...")</code>, et <code>file(...)</code> pour le cache.</p>
+    <div class="meta">
+      <div><b>Preuve</b>Commande du processus 14568 ; 63,7 Mo reçus / 114 Mo émis en Wi-Fi sur la dernière fenêtre 2 h.</div>
+      <div><b>Gain attendu</b>Supprime proot, curl, jq et les téléchargements de logos du chemin critique ; réduit radio, CPU et chauffe.</div>
+      <div><b>Effort / risque</b>Moyen (réécriture du widget). Risque : aucune si l'ancien widget est conservé de côté.</div>
+    </div>
+    <p><strong>Recommandation.</strong> Un seul championnat, la saison en cours, <code>http(...) every 30m</code> ou 1 h,
+    pas de logos (initiales/abbréviations), cache dans <code>file("~/.cache/espn.json")</code>, et rafraîchissement manuel au tap.
+    Un widget de scores n'a pas besoin d'être à la seconde.</p>
+  </article>
+
+  <article class="finding p1">
+    <div class="fhead"><h3>P1-7 · Agents opencode laissés vivants</h3><span class="prio">P1</span></div>
+    <p>Deux processus opencode tournent : <code>opencode serve --port 6969</code> (428 Mo, 13,3 % d'un cœur écran éteint) et une TUI
+    dans le terminal (210 Mo, 7,2 % écran éteint). Ils sont enfants du système invité et restent actifs sans écran.</p>
+    <div class="meta">
+      <div><b>Preuve</b><code>ps</code>, <code>dumpsys meminfo</code>, delta CPU écran éteint.</div>
+      <div><b>Gain attendu</b>≈ 0,2 cœur et ~640 Mo de RAM ; moins de pression mémoire (135 Mo libres, 2,27 Go de zram).</div>
+      <div><b>Effort / risque</b>Faible ; fermer la TUI et le serveur quand le travail est fini.</div>
+    </div>
+    <p><strong>À faire.</strong> Quitter la TUI opencode, arrêter le serveur s'il n'est pas utilisé, et éviter de le laisser tourner
+    en permanence. Pour un usage ponctuel, le relancer à la demande coûte moins cher que de le garder 24 h/24.</p>
+  </article>
+
+  <article class="finding p2">
+    <div class="fhead"><h3>P2-8 · Surveiller les autres widgets animés</h3><span class="prio">P2</span></div>
+    <p>Le projet fournit des widgets intrinsèquement animés (koi, breathe, lava, aurora, matrix). Sur un écran 120 Hz, chacun peut
+    ajouter des frames en continu. Le mécanisme est le même que P0-2, mais l'ampleur dépend de leur présence à l'écran.</p>
+    <div class="meta">
+      <div><b>Preuve</b>Widgets <code>50-koi.owl</code>, <code>87-breathe.owl</code>, <code>89-lava.owl</code>, <code>92-aurora.owl</code>, <code>03-matrix.owl</code> dans l'APK.</div>
+      <div><b>Gain attendu</b>Variable ; à mesurer avec <code>gfxinfo</code> après retrait de P0-1/P0-2.</div>
+      <div><b>Effort / risque</b>Faible : ne pas les mettre sur l'accueil, ou les garder pour l'esthétique en assumant le coût.</div>
+    </div>
+  </article>
+</section>
+
+<section id="plan">
+  <h2>4. Plan d'action par priorité</h2>
+  <table>
+    <thead><tr><th>#</th><th>Action</th><th>Gain attendu</th><th>Effort</th><th>Vérification</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill red">P0</span></td><td>Tuer le script foot/ESPN orphelin (PID 14568) et retirer/réparer le widget</td><td>≈ 1 cœur permanent, ~6–10 %/h</td><td>Faible</td><td><code>ps</code> sans script ; CPU UID &lt; 5 % au repos</td></tr>
+      <tr><td><span class="pill red">P0</span></td><td>Retirer le widget now-playing ou le figer hors écoute</td><td>111 fps → 0 fps ; ~37 % de cœur + GPU</td><td>Faible</td><td><code>gfxinfo</code> : ~0 frame en 10 s au repos</td></tr>
+      <tr><td><span class="pill red">P0</span></td><td>Arrêter Linux/opencode quand l'écran est éteint ou inutilisé</td><td>≈ 1,2 cœur en veille</td><td>Moyen</td><td>Test 60 s écran éteint : UID &lt; 2 %</td></tr>
+      <tr><td><span class="pill red">P1</span></td><td>Retirer l'exemption batterie de dev.omalauncher</td><td>Débloque le gel Doze</td><td>Faible</td><td><code>deviceidle whitelist</code> vide</td></tr>
+      <tr><td><span class="pill red">P1</span></td><td>Passer en 60 Hz, luminosité auto, timeout 30–60 s</td><td>Conso dalle + rendu divisés</td><td>Faible</td><td>Mode actif 1 ; fps ≤ 60</td></tr>
+      <tr><td><span class="pill red">P1</span></td><td>Réécrire le widget scores en <code>http</code> + cache + 30–60 min</td><td>Supprime proot/curl/jq et 60–110 Mo de trafic</td><td>Moyen</td><td>Pas de processus invité au refresh</td></tr>
+      <tr><td><span class="pill red">P1</span></td><td>Fermer opencode serve/TUI quand inutilisés</td><td>~0,2 cœur + 640 Mo</td><td>Faible</td><td><code>ps</code> sans opencode</td></tr>
+      <tr><td><span class="pill green">P2</span></td><td>Éviter koi/breathe/lava/aurora/matrix sur l'accueil</td><td>Variable</td><td>Faible</td><td><code>gfxinfo</code> stable</td></tr>
+      <tr><td><span class="pill green">P2</span></td><td>Correctifs amont (freeze veille, kill orphelins, animations)</td><td>Durable, pour toutes les configs</td><td>Amont</td><td>Voir §6</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="bien">
+  <h2>5. Ce qui va déjà bien</h2>
+  <div class="callout good">
+    <ul style="margin:0 0 0 20px">
+      <li><strong>Fenêtres Linux plafonnées à 60 fps</strong> : <code>WindowRenderer.kt</code> explique que suivre le 120 Hz coûtait « deux fois le CPU et la batterie » — c'est déjà corrigé.</li>
+      <li><strong>Fond d'écran statique</strong> : le wallpaper ne redessine qu'au changement de thème, pas en continu.</li>
+      <li><strong>Aucune permission <code>WAKE_LOCK</code></strong> : le launcher ne peut pas retenir le CPU par un wakelock.</li>
+      <li><strong>Sources de widgets suspendues quand l'accueil n'est plus visible</strong> : le launcher nu tombe à 0,03 % d'un cœur écran éteint.</li>
+      <li><strong>Rendu fluide</strong> : 0,18 % de jank, 5 ms au 50<sup>e</sup> percentile. Le problème est la fréquence, pas la qualité.</li>
+      <li><strong>Live wallpaper utile</strong> : il sert surtout à fournir les couleurs Material You, sans animation.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="amont">
+  <h2>6. Recommandations pour le projet (amont)</h2>
+  <p>Constats recoupés avec le dépôt <code>SimonSchubert/omalauncher</code> (branche <code>main</code>, commit
+  <code>916b318</code> du 21/10/2026 ; l'app installée est 0.12.0, build Play du 24/10/2026).</p>
+  <table>
+    <thead><tr><th>Sujet</th><th>Constat</th><th>Proposition</th></tr></thead>
+    <tbody>
+      <tr><td>Veille</td><td><code>MainActivity.onStop()</code> → <code>Runtime.screenStopped()</code> ne désactive que les substituts <code>/proc</code> ; <code>LinuxService</code> reste FGS et le proot n'est jamais gelé.</td><td>Freezer le cgroup invité à l'extinction, ou arrêter <code>LinuxService</code> après un délai ; réglage « agents en veille ».</td></tr>
+      <tr><td>Orphelins</td><td><code>ProcessTree.kt</code> documente le cas « proot SIGKILLé → tracees non tracées qui tournent à plein régime » ; <code>Proot.killAll()</code> ne tue que proot/loader.</td><td>Tuer aussi les descendants par UID/arbre au moment du kill, et ajouter un watchdog des commandes invitées (durée &gt; N s → kill + rapport).</td></tr>
+      <tr><td>Timeouts</td><td><code>GuestShell</code> enveloppe les <code>cmd</code> dans <code>timeout</code> (10 s par défaut), mais un <code>stream</code>/une action peut lancer un processus sans cette enveloppe.</td><td>Appliquer un timeout à toute exécution invitée, y compris les streams et actions « run », avec un plafond dur.</td></tr>
+      <tr><td>Animations</td><td><code>97-now-playing.owl</code> : égaliseur animé + <code>Progress { ... animate value: tween(900ms, "linear") }</code>. Mesuré à 111 fps, 0 fps en pause.</td><td>Progression par pas de 1 s, égaliseur ≤ 30 fps, aucune animation quand la tuile n'est pas visible ; exposer un mode « économie ».</td></tr>
+      <tr><td>Widgets de données</td><td>La doc recommande <code>http(...)</code> plutôt que <code>cmd("curl ...")</code>, mais un widget peut encore lancer 156 requêtes + logos dans proot.</td><td>Linter/avertir au chargement : <code>cmd</code> réseau, nombre d'appels, téléchargements d'images ; proposer un modèle <code>http</code> + <code>file</code> + cache.</td></tr>
+      <tr><td>Diagnostic</td><td>Aucun écran ne montre le CPU par widget/commande.</td><td>Ajouter un panneau « consommation » (CPU par source, dernière exécution, orphelins) dans les réglages.</td></tr>
+      <tr><td>Batterie</td><td>L'app peut être exemptée de Doze sans que ce soit nécessaire.</td><td>Ne pas demander l'exemption par défaut ; expliquer le compromis et proposer un arrêt automatique de Linux.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="verif">
+  <h2>7. Protocole de vérification après optimisation</h2>
+  <ol>
+    <li><strong>Processus invités</strong> : <code>adb shell ps -A -o PID,PPID,NAME | grep -E 'bash|opencode|libproot'</code> — ne doit plus montrer de script de scores ni d'agent inutile.</li>
+    <li><strong>Accueil au repos</strong> : <code>adb shell dumpsys gfxinfo dev.omalauncher reset</code>, attendre 30 s sans toucher, puis <code>dumpsys gfxinfo dev.omalauncher</code> — viser &lt; 60 frames (au lieu de 2 833).</li>
+    <li><strong>CPU écran allumé</strong> : delta de <code>/proc/&lt;pid&gt;/stat</code> sur 10 s — viser &lt; 5 % pour l'UID launcher hors audio.</li>
+    <li><strong>Veille</strong> : écran éteint 60 s, delta CPU — viser &lt; 2 % pour l'UID launcher ; aucun processus invité actif.</li>
+    <li><strong>Après une charge complète</strong> : <code>adb shell dumpsys batterystats --charged dev.omalauncher</code> — comparer la part de l'UID (68,5 % avant) et le temps CPU (2 h 15 avant).</li>
+    <li><strong>30 min débranché</strong> (écran éteint, mode avion) : mesurer le %/h réel ; c'est la seule mesure de décharge fiable.</li>
+  </ol>
+  <pre><code># Relever le CPU d'un processus (ticks de 10 ms)
+adb shell cat /proc/&lt;pid&gt;/stat
+# Le parser côté PC : champs 14 (utime) + 15 (stime) / 100 = secondes CPU
+
+# Écran éteint puis rallumé
+adb shell input keyevent 26
+adb shell dumpsys power | grep mWakefulness
+adb shell input keyevent KEYCODE_WAKEUP</code></pre>
+</section>
+
+<section id="limites">
+  <h2>8. Limites de l'audit</h2>
+  <ul>
+    <li><strong>Téléphone en charge</strong> (alimentation « AC ») : impossible de mesurer une décharge réelle ; les mAh de <code>batterystats</code> sont des estimations. Son profil batterie indique 818 mAh, ce qui est faux pour un 11T Pro (5 000 mAh) — d'où le choix de raisonner en temps CPU, cœurs et fps.</li>
+    <li><strong>Échantillons courts</strong> : 10 s, 30 s, 60 s et 12 s. Ils suffisent à caractériser des charges permanentes, pas les pics occasionnels.</li>
+    <li><strong>Pas de root</strong> : pas d'historique complet des wakelocks, pas d'accès aux fichiers de widgets de l'app (<code>run-as</code> refusé, paquet non débuggable), pas de profil Perfetto système.</li>
+    <li><strong>Session particulière</strong> : un livre audio jouait, ce qui déclenche P0-2 ; les chiffres écran allumé incluent cette animation. En pause, l'accueil revient à 0 frame.</li>
+    <li><strong>Source amont</strong> : analyse statique de <code>main</code> (commit 916b318), pas exactement du build 0.12.0 installé.</li>
+    <li><strong>MIUI/HyperOS</strong> : les libellés de réglages et la gestion batterie diffèrent d'AOSP ; les commandes ADB restent valables.</li>
+    <li><strong>Correction partielle après l'audit</strong> : seuls des tests réversibles ont été faits pendant la collecte (pause/reprise audio, <code>stay_on_while_plugged_in</code> remis à 15). À 13:51, le script orphelin a été tué par <code>am force-stop</code> ; le widget l'a relancé au redémarrage, mais les nouveaux scripts ont terminé. Aucune autre optimisation (widgets, 60 Hz, exemption) n'a été appliquée.</li>
+    <li><strong>Thermique</strong> : 39 °C en charge ; le throttling n'a pas été caractérisé.</li>
+  </ul>
+</section>
+
+<section id="annexe">
+  <h2>9. Annexe — instantané technique</h2>
+  <div class="grid2">
+    <div>
+      <h3>Appareil</h3>
+      <pre><code>modèle      Xiaomi 2107113SG (vili)
+SoC         Snapdragon 888 (SM8350, QTI)
+Android     14 (SDK 34)
+écran       1080×2400, 440 dpi, 120 Hz, HDR
+RAM         7 393 380 Ko ; 135 Mo libres
+zram        2,27 Go utilisés
+batterie    5 000 mAh nominal (profil AOSP : 818 mAh)
+état        en charge (AC), 85 %, 39 °C</code></pre>
+    </div>
+    <div>
+      <h3>Application</h3>
+      <pre><code>package     dev.omalauncher
+version     0.12.0 (versionCode 21)
+minSdk 32 · targetSdk 37
+install      Play Store, 12/10/2026
+MAJ          24/10/2026 07:05
+défaut       oui (HOME = MainActivity)
+APK          base 8,2 Mo + splits arm64/fr/xxhdpi
+PSS          208 608 Ko
+permissions INTERNET, FGS, FGS_SPECIAL_USE,
+            POST_NOTIFICATIONS, RECORD_AUDIO (non accordée)
+services    LinuxService (FGS session),
+            MediaListener (notification listener),
+            OmarchyWallpaperService</code></pre>
+    </div>
+  </div>
+
+  <h3>Processus notables au moment du relevé</h3>
+  <table>
+    <thead><tr><th>PID</th><th>PPID</th><th>Processus</th><th>CPU observé</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr><td>14568</td><td>1</td><td><code>bash -c tmp=$(mktemp -d) … ESPN …</code></td><td class="num">100,4 %</td><td>orphelin, 45 min de CPU ; tué à 13:51</td></tr>
+      <tr><td>5759</td><td>977</td><td><code>dev.omalauncher</code></td><td class="num">36,9 %</td><td>UI + compositor Wayland</td></tr>
+      <tr><td>13559</td><td>13516</td><td><code>opencode serve --port 6969</code></td><td class="num">1,8 % / 13,3 %*</td><td>* écran éteint ; 428 Mo</td></tr>
+      <tr><td>14160</td><td>13459</td><td><code>opencode</code> (TUI)</td><td class="num">1,6 % / 7,2 %*</td><td>* écran éteint ; 210 Mo</td></tr>
+      <tr><td>13366</td><td>13364</td><td><code>foot</code> (terminal)</td><td class="num">≈ 0 %</td><td>héberge la TUI opencode</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Commandes de collecte principales</h3>
+  <pre><code>adb shell getprop | grep -E 'ro.product|ro.build.version|ro.soc|ro.board'
+adb shell dumpsys battery
+adb shell dumpsys package dev.omalauncher
+adb shell dumpsys batterystats --charged dev.omalauncher
+adb shell dumpsys gfxinfo dev.omalauncher
+adb shell dumpsys display
+adb shell dumpsys power
+adb shell dumpsys activity services
+adb shell dumpsys deviceidle whitelist
+adb shell dumpsys media_session
+adb shell dumpsys netstats detail
+adb shell dumpsys meminfo dev.omalauncher
+adb shell ps -A -o PID,PPID,VSZ,RSS,NAME
+adb shell top -b -n 2 -d 2
+adb shell settings get system peak_refresh_rate
+adb shell settings get global stay_on_while_plugged_in
+adb shell input keyevent 26          # écran éteint (test)
+adb shell input keyevent KEYCODE_WAKEUP</code></pre>
+
+  <h3>Méthode de calcul des pourcentages CPU</h3>
+  <p class="small">Sur Android, <code>/proc/&lt;pid&gt;/stat</code> exprime utime/stime en ticks de 10 ms (USER_HZ = 100).
+  <code>(utime + stime)</code> delta sur 10 s, divisé par 10, donne directement le % d'un cœur. Contrôlé contre <code>top</code> :
+  356 ticks / 10 s = 35,6 %, conforme au 35,6 % affiché par <code>top</code>.</p>
+
+  <h3>Fichiers bruts</h3>
+  <p class="small">Les relevés complets (batterystats, gfxinfo, top, logcat, ps, meminfo, netstats, copies d'écran) ont été
+  collectés sur le PC dans <code>/tmp/omalaudit/</code> pendant l'audit.</p>
+</section>
+
+<footer>
+  Audit réalisé le 25 octobre 2026 via ADB, sans root, sur Xiaomi 11T Pro (Android 14) — Omalauncher 0.12.0.
+  Les valeurs de consommation en %/h sont des estimations destinées à hiérarchiser les actions, pas des mesures de décharge.
+  Re-mesurer après chaque optimisation avec le protocole du §7.
+</footer>
+
+</div>
+</body>
+</html>
