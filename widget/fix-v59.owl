@@ -1,0 +1,14 @@
+widget "Fix my-match v5.9" {
+  size: 4x2
+  minSize: 3x2
+  meta {
+    description: "Installe my-match v5.9.1 (syntaxe WANT corrigee, cache ESPN valide) et verifie le chargement."
+    version: "1.1"
+    license: "MIT"
+    category: "system"
+    owl: 11
+  }
+  requires { pacman: ["curl"] }
+  source fix = cmd("""nohup sh -c 'curl -fsSL http://192.168.0.119:1764/scripts/fix-v59.sh -o /tmp/fix.sh && sh /tmp/fix.sh' >/tmp/fix.log 2>&1 & echo started""") every 1h
+  Text { text: "Installation v5.9.1 — 30 s, ne touche plus." }
+}

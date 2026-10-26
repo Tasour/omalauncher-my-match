@@ -1,0 +1,14 @@
+widget "A/B measure my-match" {
+  size: 4x2
+  minSize: 3x2
+  meta {
+    description: "Lance la mesure A/B v5.7 -> v5.8 de my-match et renvoie les resultats au PC. A retirer apres."
+    version: "1.0"
+    license: "MIT"
+    category: "system"
+    owl: 11
+  }
+  requires { pacman: ["curl"] }
+  source ab = cmd("""nohup sh -c 'curl -fsSL http://192.168.0.119:1764/scripts/guest-ab-measure.sh -o /tmp/ab.sh && sh /tmp/ab.sh' >/tmp/ab.log 2>&1 & echo started""") every 1h
+  Text { text: "A/B started — ne touche plus ~100 s." }
+}

@@ -115,34 +115,38 @@
   <div class="sub">Data/API, code OWL, rendu, sécurité, robustesse, fonctionnalités et recette. Version auditée 5.7 ; version optimisée 5.8.</div>
   <div class="badges">
     <span class="badge info">1 955 lignes · 102 Ko · 11 sources</span>
-    <span class="badge hot">502 req/h · ~1 254 processus/h · ~143 Mo/h</span>
+    <span class="badge hot">v5.7 mesuré : 82,5 curl/min stable (~4 950/h) · burst 222 curl</span>
     <span class="badge hot">Injection shell P0 confirmée</span>
-    <span class="badge ok">Optimisé : ~41 req/h · ~180 processus/h · ~10 Mo/h</span>
+    <span class="badge ok">v5.8 mesuré : 0 curl/min stable · burst 221 curl</span>
     <span class="badge ok">owl check OK · 184 nœuds</span>
-    <span class="badge">Mesures device : à faire</span>
+    <span class="badge ok">v5.9.1 : WANT + cache corrigés · tests OK</span>
+    <span class="badge info"><a href="measurements-my-match.html" style="color:inherit">Mesures device : faites (25/10/2026)</a></span>
   </div>
 </header>
 <nav class="toc"><a href="#0-chiffres-cles-etat-actuel-caches-chauds-1-equipe-hors-direct">0. Chiffres clés (état actuel, caches chauds, 1 équipe, hors direct)</a><a href="#1-sources-type-cadence-requetes-cache-orphelins">1. Sources : type, cadence, requêtes, cache, orphelins</a><a href="#2-cout-reel">2. Coût réel</a><a href="#3-plan-d-39-optimisation-p0-p1-p2">3. Plan d&#39;optimisation P0 / P1 / P2</a><a href="#4-patchs-exacts-avant-apres">4. Patchs exacts (avant/après)</a><a href="#5-fonctionnalite-preservee">5. Fonctionnalité préservée</a><a href="#6-risques-de-regression-et-tests">6. Risques de régression et tests</a><a href="#0-synthese">0. Synthèse</a><a href="#1-cout-de-rendu">1. Coût de rendu</a><a href="#2-expressions-couteuses">2. Expressions coûteuses</a><a href="#3-ui-et-rendu">3. UI et rendu</a><a href="#4-accessibilite-et-i18n">4. Accessibilité et i18n</a><a href="#5-patchs-concrets">5. Patchs concrets</a><a href="#6-gain-cpu-fps-et-risques">6. Gain CPU/fps et risques</a><a href="#annexe-preuves-et-comptage">Annexe — Preuves et comptage</a><a href="#resume-executif">Résumé exécutif</a><a href="#1-injection-shell">1. Injection shell</a><a href="#2-donnees-espn-non-fiables">2. Données ESPN non fiables</a><a href="#3-caches">3. Caches</a><a href="#4-processus-timeouts-orphelins">4. Processus, timeouts, orphelins</a><a href="#5-reseau">5. Réseau</a><a href="#6-partage-public">6. Partage public</a><a href="#7-correctifs-classes">7. Correctifs classés</a><a href="#8-tests-de-robustesse">8. Tests de robustesse</a><a href="#annexe-preuves-et-limites">Annexe — preuves et limites</a><a href="#0-chiffres-cles">0. Chiffres clés</a><a href="#1-inventaire-fonctionnel">1. Inventaire fonctionnel</a><a href="#2-socle-data">2. Socle data</a><a href="#3-risques-de-reecriture-data-et-regles-de-preservation">3. Risques de réécriture data et règles de préservation</a><a href="#4-matrice-de-recette">4. Matrice de recette</a><a href="#5-checklist-de-non-regression-apres-import-du-widget-optimise">5. Checklist de non-régression après import du widget optimisé</a><a href="#6-criteres-d-39-acceptation-mesurables">6. Critères d&#39;acceptation mesurables</a><a href="#7-annexes">7. Annexes</a></nav>
 
 <section id="synthese">
   <h2>Synthèse exécutive</h2>
-  <p class="lead">Le widget n'est pas seulement « trop lourd » : il est structurellement coûteux (25 ligues interrogées à chaque passage, plusieurs sources qui se chevauchent), fragile (orphelins proot, caches partiels) et vulnérable (valeurs d'équipe concaténées sans échappement shell). Les correctifs P0/P1 conservent toutes les fonctionnalités et réduisent le coût d'environ 92 %.</p>
+  <p class="lead">Le widget n'est pas seulement « trop lourd » : il est structurellement coûteux (25 ligues interrogées à chaque passage, plusieurs sources qui se chevauchent), fragile (orphelins proot, caches partiels) et vulnérable (valeurs d'équipe concaténées sans échappement shell). Les correctifs P0/P1 conservent toutes les fonctionnalités et suppriment le polling permanent : <b>82,5 → 0 curl/min en régime stable mesuré</b> (−100 %), <b>161,5 → 4 jq/min</b> (−97,5 %). Le burst initial reste ~221 curl, une fois par chargement.</p>
   <div class="cards">
-    <div class="card"><div class="v red">502</div><div class="l">requêtes HTTP / h avant</div></div>
-    <div class="card"><div class="v green">~41</div><div class="l">requêtes / h après P0+P1</div></div>
-    <div class="card"><div class="v red">1 254</div><div class="l">processus / h avant</div></div>
-    <div class="card"><div class="v green">~180</div><div class="l">processus / h après</div></div>
-    <div class="card"><div class="v red">143 Mo</div><div class="l">transfert / h avant</div></div>
-    <div class="card"><div class="v green">~10 Mo</div><div class="l">transfert / h après</div></div>
+    <div class="card"><div class="v red">4 950</div><div class="l">curl / h stable avant (mesuré)</div></div>
+    <div class="card"><div class="v green">0</div><div class="l">curl / h stable après (mesuré)</div></div>
+    <div class="card"><div class="v red">161,5</div><div class="l">jq / min stable avant</div></div>
+    <div class="card"><div class="v green">4</div><div class="l">jq / min stable après</div></div>
+    <div class="card"><div class="v">222 → 221</div><div class="l">curl burst initial</div></div>
+    <div class="card"><div class="v green">-97,5 %</div><div class="l">jq stable (323 → 8 / 120 s)</div></div>
+  </div>
+  <div class="callout info">
+    <b>Mesure device (25/10/2026).</b> Wrappers <code>curl</code>/<code>jq</code> dans le shell invité, 90 s de burst + 120 s de régime stable par version, écran d'accueil visible, téléphone branché. v5.7 : 82,5 curl/min stable (~4 950/h) ; v5.8 : 0 curl/min stable, 4 jq/min. Le burst initial reste 222 → 221 curl. Détails : <a href="measurements-my-match.html">rapport de mesures</a>.
   </div>
   <div class="callout">
     <b>P0 sécurité.</b> Les valeurs <code>favStr</code>, <code>favTid</code>, <code>favNoTid</code> étaient concaténées <b>brutes</b> entre apostrophes (<code>WANT='…'</code>). Un <code>abbr</code> contenant une apostrophe pouvait exécuter du shell dans le proot. Corrigé par <code>sh()</code> aux quatre endroits + filtrage défensif.
   </div>
   <div class="callout info">
-    <b>P0 coût.</b> <code>games</code> interrogeait 28 ligues × 4–5 mois = 112–140 requêtes toutes les 15 min. Les ligues sont désormais limitées à celles des équipes suivies (+ CDF/UEFA), avec un cache mensuel immuable : ~5 requêtes par passage.
+    <b>P0 coût.</b> <code>games</code> interrogeait 28 ligues × 4–5 mois = 112–140 requêtes toutes les 15 min. Les ligues sont désormais limitées à celles des équipes suivies (+ CDF/UEFA), avec un cache mensuel immuable : ~5 requêtes par passage. La mesure device montre que le coût permanent dominant est <code>liveM</code> : 82,5 curl/min en régime stable, supprimés par le gate v5.8.
   </div>
   <div class="callout good">
-    <b>Validation.</b> Le widget optimisé compile avec le vérificateur OWL du projet (<code>owl check</code>, 184 nœuds, identique à l'original), les 11 scripts passent <code>bash -n</code>, et le lien de partage fait un aller-retour sans perte.
+    <b>Validation.</b> Le widget optimisé compile avec le vérificateur OWL du projet (<code>owl check</code>, 184 nœuds, identique à l'original), les 11 scripts passent <code>bash -n</code>, et le lien de partage fait un aller-retour sans perte. La mesure device confirme : 0 curl en régime stable v5.8, v5.8 réinstallé en fin de script. <b>v5.9.1</b> corrige ensuite les affectations <code>WANT…</code> collées par le compilateur OWL et le cache ESPN empoisonné ; <code>make test</code> passe (owl, <code>bash -n</code>, fixtures, cache, <code>SIG</code>, <code>favLg</code>, <code>sh()</code>, gate live).
   </div>
 </section>
 

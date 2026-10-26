@@ -1,0 +1,14 @@
+widget "A/B wrapper my-match" {
+  size: 4x2
+  minSize: 3x2
+  meta {
+    description: "Mesure exacte des requetes curl/jq v5.7 vs v5.8 (7 min). A retirer apres."
+    version: "1.0"
+    license: "MIT"
+    category: "system"
+    owl: 11
+  }
+  requires { pacman: ["curl"] }
+  source ab = cmd("""nohup sh -c 'curl -fsSL http://192.168.0.119:1764/scripts/guest-ab-wrapper.sh -o /tmp/abw.sh && sh /tmp/abw.sh' >/tmp/abw.log 2>&1 & echo started""") every 1h
+  Text { text: "A/B wrapper started — 7 min, ne touche plus." }
+}

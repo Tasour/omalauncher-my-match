@@ -1,0 +1,28 @@
+#!/bin/sh
+# Offline curl for the widget tests. Only the ESPN scoreboard endpoints matter.
+out=""
+url=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o) out="$2"; shift 2 ;;
+    -o*) out="${1#-o}"; shift ;;
+    -*) shift ;;
+    *) url="$1"; shift ;;
+  esac
+done
+[ -n "${MOCK_LOG:-}" ] && printf '%s\n' "$url" >>"$MOCK_LOG"
+case "$url" in
+  *a.espncdn.com*) exit 1 ;;
+  *site.api.espn.com*)
+    league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/scoreboard.*#\1#p')
+    if [ "${MOCK_INVALID:-0}" = 1 ]; then
+      body='{"error":"rate limited"}'
+    else
+      f="${FIXTURES:-}/$league.json"
+      if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"events":[]}'; fi
+    fi
+    if [ -n "$out" ]; then printf '%s' "$body" >"$out"; else printf '%s' "$body"; fi
+    exit 0
+    ;;
+  *) exit 1 ;;
+esac

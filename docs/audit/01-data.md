@@ -3,6 +3,10 @@
 Fichier audité : `/home/tasour/Work/omalauncher-my-match/widget/my-match.owl` (1955 lignes, 102 Ko).
 Tous les chiffres ci-dessous sont dérivés du code aux lignes citées. Les tailles réseau sont mesurées sur l'API réelle (voir §1.3).
 
+> **Mesure device (25/10/2026)** — le régime stable réel de v5.7 est **82,5 curl/min (~4 950/h)**, pas 502/h ; v5.8 est **0 curl/min stable** (aucun match live) et **4 jq/min**. Le burst initial reste **222 → 221 curl**. Les 502/41 ci-dessous sont des estimations code ; la mesure appareil fait foi pour le régime stable. Voir `docs/measurements-2026-10-25.md`.
+>
+> **v5.9.1** corrige deux régressions de v5.8 : les affectations `WANT…` collées par le compilateur OWL (syntaxe `games`/`seasonAll`) et le cache `games` empoisonné par une réponse ESPN invalide. Tests : `make test`.
+
 ---
 
 ## 0. Chiffres clés (état actuel, caches chauds, 1 équipe, hors direct)

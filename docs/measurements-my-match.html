@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mesures device — my-match v5.7 vs v5.8</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#e6edf3;--muted:#8b949e;--red:#f85149;--green:#3fb950;--amber:#d29922;--blue:#58a6ff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 20px 80px}
+.kicker{color:var(--blue);font:600 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:2rem;line-height:1.2;margin:.35em 0 .25em}
+.sub{color:var(--muted);max-width:80ch}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.badge{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 10px;font:600 12px/1.4 var(--mono)}
+.badge.hot{border-color:#6e2b2b;color:#ffb4ae;background:#2a1516}
+.badge.ok{border-color:#1f5b2b;color:#9be9a8;background:#0f2415}
+.badge.info{border-color:#1f4b6e;color:#b6d7ff;background:#0d1f2e}
+h2{font-size:1.25rem;margin:2.2em 0 .5em;border-bottom:1px solid var(--line);padding-bottom:.35em}
+h3{font-size:1rem;margin:1.4em 0 .4em;color:var(--blue)}
+p{max-width:88ch}
+.lead{font-size:1.05rem;color:#c9d1d9}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.94rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:#c9d1d9;font:600 .82rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.04em}
+td.r,th.r{text-align:right;font-family:var(--mono)}
+tr:nth-child(even) td{background:#11161d}
+.red{color:var(--red);font-weight:700}
+.green{color:var(--green);font-weight:700}
+.amber{color:var(--amber);font-weight:700}
+.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card .v{font:700 1.65rem/1.1 var(--mono)}
+.card .l{color:var(--muted);font-size:.8rem;margin-top:6px}
+.bar{height:14px;background:#21262d;border-radius:7px;overflow:hidden;margin:4px 0 2px}
+.bar>span{display:block;height:100%;border-radius:7px}
+.bar.red>span{background:linear-gradient(90deg,#f85149,#ff7b72)}
+.bar.green>span{background:linear-gradient(90deg,#2ea043,#56d364)}
+.callout{border-left:3px solid var(--line);background:var(--panel);padding:12px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.callout.good{border-color:var(--green)}
+.callout.info{border-color:var(--blue)}
+.callout.warn{border-color:var(--amber)}
+code{font-family:var(--mono);font-size:.88em;background:#21262d;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+a{color:var(--blue)}
+ul{max-width:88ch}
+li{margin:.25em 0}
+.small{font-size:.86rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Mesures device · Omalauncher · my-match</div>
+  <h1>v5.7 → v5.8 : le polling permanent disparaît</h1>
+  <div class="sub">Xiaomi 11T Pro, Android 14, Omalauncher 0.12.0 — 25 octobre 2026. Wrappers <code>curl</code>/<code>jq</code> dans le shell invité, 90 s de démarrage + 120 s de régime stable par version, écran d'accueil visible, téléphone branché.</div>
+  <div class="badges">
+    <span class="badge hot">v5.7 : 82,5 curl/min stable (~4 950/h)</span>
+    <span class="badge ok">v5.8 : 0 curl/min stable</span>
+    <span class="badge info">burst initial : 222 → 221 curl</span>
+    <span class="badge info">jq stable : 161,5 → 4 /min</span>
+    <span class="badge ok">v5.8 actif en fin de mesure</span>
+  </div>
+</header>
+
+<h2>Résultat principal</h2>
+<div class="cards">
+  <div class="card"><div class="v red">82,5</div><div class="l">curl / min stable, v5.7</div></div>
+  <div class="card"><div class="v green">0</div><div class="l">curl / min stable, v5.8</div></div>
+  <div class="card"><div class="v red">~4 950</div><div class="l">curl / h stable, v5.7</div></div>
+  <div class="card"><div class="v green">0</div><div class="l">curl / h stable, v5.8</div></div>
+  <div class="card"><div class="v amber">222 → 221</div><div class="l">curl burst initial</div></div>
+  <div class="card"><div class="v green">-97,5 %</div><div class="l">jq stable (323 → 8 / 120 s)</div></div>
+</div>
+
+<table>
+<thead><tr><th>Métrique</th><th class="r">v5.7</th><th class="r">v5.8</th><th class="r">Écart</th></tr></thead>
+<tbody>
+<tr><td><code>curl</code> — burst initial 90 s</td><td class="r">222</td><td class="r">221</td><td class="r">-0,5 %</td></tr>
+<tr><td><code>jq</code> — burst initial 90 s</td><td class="r">733</td><td class="r">462</td><td class="r green">-37 %</td></tr>
+<tr><td><code>curl</code> — régime stable 120 s</td><td class="r red">165</td><td class="r green">0</td><td class="r green">-100 %</td></tr>
+<tr><td><code>jq</code> — régime stable 120 s</td><td class="r red">323</td><td class="r green">8</td><td class="r green">-97,5 %</td></tr>
+<tr><td><code>curl</code> / min stable</td><td class="r red">82,5</td><td class="r green">0</td><td class="r green">-100 %</td></tr>
+<tr><td><code>curl</code> / h stable (extrapolé)</td><td class="r red">~4 950</td><td class="r green">0</td><td class="r green">-100 %</td></tr>
+<tr><td><code>jq</code> / min stable</td><td class="r red">161,5</td><td class="r green">4</td><td class="r green">-97,5 %</td></tr>
+</tbody>
+</table>
+
+<div class="grid2">
+  <div>
+    <h3>v5.7 — régime stable (120 s)</h3>
+    <div class="bar red"><span style="width:100%"></span></div>
+    <div class="small">165 curl : 155 <code>scoreboard</code> + 10 <code>standings</code>.</div>
+    <ul>
+      <li>Polling des 28 ligues par <code>liveM</code> toutes les minutes.</li>
+      <li>Le burst initial de <code>games</code>/<code>standings</code>/<code>teams</code> déborde sur le début du régime stable.</li>
+      <li>Ligues vues : <code>eng.1</code>, <code>esp.1</code>, <code>ger.1</code>, <code>ita.1</code>, <code>fra.1</code>, <code>fra.2</code>, UEFA, nations, etc.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>v5.8 — régime stable (120 s)</h3>
+    <div class="bar green"><span style="width:0%"></span></div>
+    <div class="small">0 curl : 0 <code>scoreboard</code> + 0 <code>standings</code>.</div>
+    <ul>
+      <li>Aucun match live pendant la fenêtre : le gate <code>liveM</code> renvoie le cache.</li>
+      <li>8 <code>jq</code> seulement, pour lire l'index en cache.</li>
+      <li>Le polling permanent des ligues est supprimé.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Le burst initial reste à ~221 curl</h2>
+<p>Les deux versions chargent une fois <code>games</code>, <code>standings</code> et <code>teams</code>. Les équipes suivies couvrent encore beaucoup de ligues, donc la liste dynamique de v5.8 reste large au premier chargement. Le gain est déjà visible sur <code>jq</code> (-37 %), mais le nombre de <code>curl</code> est quasi identique.</p>
+<table>
+<thead><tr><th>Burst initial 90 s</th><th class="r">v5.7</th><th class="r">v5.8</th></tr></thead>
+<tbody>
+<tr><td><code>scoreboard</code></td><td class="r">160</td><td class="r">175</td></tr>
+<tr><td><code>standings</code></td><td class="r">28</td><td class="r">12</td></tr>
+<tr><td><code>teams</code></td><td class="r">34</td><td class="r">34</td></tr>
+<tr><td><code>jq</code></td><td class="r">733</td><td class="r green">462</td></tr>
+</tbody>
+</table>
+<div class="callout warn">
+  <b>Prochain axe (v5.9).</b> Réduire le burst initial : lazy-load des onglets non visibles (Rivaux / Top 5 / Europe), et réutiliser le premier résultat <code>games</code> entre deux chargements du widget. C'est le seul coût qui reste.
+</div>
+
+<h2>Ce que cela change pour la batterie</h2>
+<p>Le régime stable est ce qui tourne en permanence quand le téléphone est sur l'accueil. v5.7 exécutait <b>82,5 curl + 161,5 jq par minute</b> ; v5.8 exécute <b>0 curl + 4 jq par minute</b> sans match live. C'est la source principale du drainage qui disparaît, et non un simple lissage.</p>
+<div class="callout good">
+  <b>Validation.</b> v5.8 est réinstallé à la fin du script (et par le <code>trap</code>), les wrappers <code>curl</code>/<code>jq</code> sont retirés, et la fenêtre « after » ne fait aucun <code>curl</code> : la version optimisée est bien celle qui tournait.
+</div>
+<div class="callout warn">
+  <b>Correctif v5.9.1.</b> Après la mesure, <code>owl-check</code> a révélé deux régressions de v5.8 : les affectations <code>WANT…</code> étaient collées par le compilateur OWL (erreur de syntaxe dans <code>games</code>/<code>seasonAll</code>), et le cache <code>games</code> écrivait <code>.ok</code> sur une réponse ESPN invalide. v5.9.1 ajoute les points-virgules, valide la réponse avant cache, met <code>WANTLG</code> dans <code>SIG</code>, refetch les caches vides et fallback <code>favLg</code>. Tests : <code>make test</code>.
+</div>
+
+<h2>Méthode et limites</h2>
+<ul>
+  <li><b>Comptage exact</b> : wrappers dans le shell invité, chaque appel <code>curl</code>/<code>jq</code> est journalisé avec son URL et son horodatage.</li>
+  <li><b>Fenêtres</b> : 90 s de démarrage (burst) puis 120 s de régime stable, par version. Le téléphone est resté sur l'accueil, branché, avec <code>stay_on_while_plugged_in=15</code>.</li>
+  <li><b>Réseau</b> : <code>/proc/net/dev</code> est refusé au shell invité (<code>Permission denied</code>) ; les octets n'ont pas pu être mesurés depuis le guest. Les compteurs d'appels sont exacts.</li>
+  <li><b>Durée</b> : 2 min de régime stable suffisent pour le polling <code>liveM</code> (1 min), pas pour les sources à 6 h/12 h/24 h.</li>
+  <li><b>Variabilité</b> : le burst initial dépend du nombre de ligues des équipes suivies.</li>
+</ul>
+
+<h2>Fichiers</h2>
+<ul>
+  <li><code>docs/measurements-2026-10-25.md</code> — ce rapport en Markdown.</li>
+  <li><code>scripts/guest-ab-wrapper.sh</code> — script A/B embarqué (wrappers + fenêtres).</li>
+  <li><code>scripts/collect-server.py</code> — collecteur HTTP local (port 1764).</li>
+  <li><code>widget/ab-wrapper.owl</code> — widget déclencheur (à retirer après usage).</li>
+  <li><code>measurements/guest-20261025-222720.txt</code> — données brutes (881 Ko, local, non versionné).</li>
+  <li><a href="audit-my-match.html">Audit complet</a> · <a href="cycle-en-v-omalauncher.html">Cycle en V</a></li>
+</ul>
+
+<p class="small">Rapport généré le 25 octobre 2026. Les chiffres 502 → 41 req/h de l'audit sont des estimations de code ; les chiffres de cette page sont mesurés sur l'appareil.</p>
+</div>
+</body>
+</html>

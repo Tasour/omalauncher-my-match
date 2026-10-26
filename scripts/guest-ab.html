@@ -1,0 +1,13 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Omalauncher — mesure A/B my-match</title>
+<body style="font-family:ui-monospace,monospace;max-width:42em;margin:2em auto;padding:0 1em;line-height:1.55;background:#111;color:#eee">
+<h1 style="font-size:1.3em">Mesure A/B — my-match v5.7 → v5.8</h1>
+<p>1. Ouvre le <b>terminal invité</b> : Files → menu ⋮ → <i>open terminal here</i>, ou la tuile <b>Terminal</b>.</p>
+<p>2. Copie la commande ci-dessous, colle-la dans le terminal, puis <b>Entrée</b>.</p>
+<p>3. Reviens à l'écran d'accueil et <b>ne touche plus pendant ~100 s</b>.</p>
+<textarea id="c" readonly rows="5" style="width:100%;font:inherit;background:#000;color:#0f0;border:1px solid #444;padding:.6em;border-radius:6px">curl -fsSL http://192.168.0.119:1764/scripts/guest-ab-measure.sh -o /tmp/ab.sh && nohup sh /tmp/ab.sh >/tmp/ab.log 2>&1 &</textarea>
+<p><button onclick="c.select();document.execCommand('copy');this.textContent='Copié ✓'" style="font:inherit;padding:.6em 1em;border-radius:6px;border:1px solid #666;background:#222;color:#eee">Copier la commande</button></p>
+<p style="color:#aaa">Le script mesure v5.7 puis v5.8 (30 s chacune), laisse v5.8 installé, et renvoie les résultats au PC. Si le bouton ne copie pas, sélectionne le texte à la main.</p>
+</body>

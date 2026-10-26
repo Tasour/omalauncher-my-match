@@ -5,3 +5,9 @@ build/
 *.log
 !measurements/**/*.log
 .DS_Store
+
+# Données brutes de mesure (volumineuses, locales)
+measurements/guest-*.txt
+
+# Artefacts temporaires des tests
+*.tmp
