@@ -21,7 +21,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 - Document **cycle en V** complet de l'app : [`docs/cycle-en-v-omalauncher.html`](docs/cycle-en-v-omalauncher.html).
 - Audit multi-agents du widget : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
 - Mesures brutes : [`measurements/`](measurements/).
-- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.8).
+- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.9.2).
 
 ## Structure
 
@@ -40,6 +40,7 @@ scripts/     protocole de mesure reproductible
 - [x] Récupération du source `my-match` (v5.7, 1 955 lignes)
 - [x] Audit multi-agents (data, OWL/UI, sécurité, fonctionnalités)
 - [x] Réécriture iso-fonctionnelle (v5.8, `owl check` OK)
+- [x] Correctif v5.9.2 : bannière mise à jour (fusion `extra`/`games`/`seasonAll`, états `pre` périmés ignorés, formes du bandeau)
 - [ ] Mesures avant/après + test de décharge
 
 ## Sécurité

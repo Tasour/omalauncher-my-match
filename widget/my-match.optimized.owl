@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:3x3
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.9.1";license:"MIT";category:"sport";owl:11}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.9.2";license:"MIT";category:"sport";owl:11}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1275,9 +1275,9 @@ kickId="";kickAt=0
 let favAbbrs=myTeams.map(t=>t.abbr)
 let selTeam=myTeams.find(t=>t.abbr==team)??null
 let setupNeeded=count(myTeams)==0||showTeams
-let gIds=(games.out??[]).map(g=>g.id)
-let sIds=(seasonAll??[]).map(g=>g.id)
-let all=flatten([(games.out??[]),(seasonAll??[]).filter(s=>!gIds.any(id=>id==s.id)),(extra.out??[]).filter(s=>!gIds.any(id=>id==s.id)&&!sIds.any(id=>id==s.id))]).sortBy(g=>g.at)
+let gAdv=(games.out??[]).filter(g=>g.state!='pre'||!(extra??[]).any(e=>e.id==g.id))
+let eKeep=(extra??[]).filter(e=>!gAdv.any(g=>g.id==e.id))
+let all=flatten([gAdv,eKeep,(seasonAll??[]).filter(s=>!gAdv.any(g=>g.id==s.id)&&!eKeep.any(e=>e.id==s.id))]).filter(g=>g.state!='pre'||g.at>now-7200).sortBy(g=>g.at)
 let rounds=scheds.rounds??{}
 let anchors=scheds.anchors??{}
 let eurBase=all.filter(g=>g.league=='uefa.europa').sortBy(g=>g.at)
@@ -1329,7 +1329,7 @@ let heroTime=heroMatch==null?"":heroMatch.state=="in"?(heroMatch.detail??""):fmt
 let heroTag=heroMatch==null||heroMatch.tag==null||heroMatch.tag==""?"":heroMatch.tag
 let heroDay=heroMatch==null||heroMatch.state=="in"?"":fmtTime(heroMatch.at,"d MMM",null,lang)
 let heroTagLine=heroDay==""?heroTag:(heroTag==""?heroDay:heroTag+" · "+heroDay)
-let heroDown=heroMatch==null?"":heroMatch.state=="in"?S.liveNowB:heroMatch.at-now<60?S.startingNow:S.kickoffIn+fmtDuration(heroMatch.at-now)
+let heroDown=heroMatch==null?"":heroMatch.state=="in"?S.liveNowB:heroMatch.at-now<0?S.liveNowB:heroMatch.at-now<60?S.startingNow:S.kickoffIn+fmtDuration(heroMatch.at-now)
 let soft=mix(muted,foreground,0.5)
 let pop=mix(accent,foreground,0.4)
 let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[]).any(tm=>tm.ours!=null&&myTeams.any(t=>t.kind==(u.league=="uefa.nations"||u.league=="fifa.worldq.uefa"||u.league=="fifa.friendly"?"n":"c")&&t.abbr==tm.ours)))
@@ -1642,7 +1642,7 @@ FormChip{l:r;px:px}
 }
 }
 component BannerForm(t,px=11){
-let ex=(formsData.out??[]).filter(g=>g.home==t.abbr||g.away==t.abbr)
+let ex=(formsData??[]).filter(g=>g.home==t.abbr||g.away==t.abbr)
 let al=all.filter(g=>g.state=="post"&&((g.home.abbr??"")==t.abbr||(g.away.abbr??"")==t.abbr)).map(g=>{id:g.id,at:g.at,home:g.home.abbr,away:g.away.abbr,hw:g.home.winner,aw:g.away.winner})
 let ms=(ex.length>=5?ex:al.length>ex.length?al:ex).sortBy(g=>-g.at).take(5)
 Column{
