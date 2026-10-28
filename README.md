@@ -19,9 +19,19 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 ## Méthode
 
 - Document **cycle en V** complet de l'app : [`docs/cycle-en-v-omalauncher.html`](docs/cycle-en-v-omalauncher.html).
-- Audit multi-agents du widget : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
+- Audit multi-agents initial : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
+- Audit multi-expert 360° v5.9.8 (28/10/2026) : [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) — 17 expertises, 66 constats, cycle en V, RTM, registre des features et de validation.
 - Mesures brutes : [`measurements/`](measurements/).
 - Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.9.8).
+
+## Audits datés et traçabilité
+
+| Date | Version | Rapport | Portée | Validation |
+|---|---|---|---|---|
+| 2026-10-25 | v5.7 / v5.8 | [`docs/audit-my-match.html`](docs/audit-my-match.html) | Audit initial data/OWL/sécurité/fonctionnel + mesures | `owl-check`, scripts, fixtures, mesures device v5.7/v5.8 |
+| 2026-10-28 | v5.9.8 | [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) | Audit 360° : 17 expertises, 66 constats, cycle en V, RTM, F01–F32 | `owl-check`, 5 scripts `bash -n`, fixtures ; device v5.9.8 non exécuté |
+
+La matrice **« Features & versions »** du rapport du 28/10 est la référence datée pour distinguer ce qui est *implémenté*, *testé* et *validé*. Elle contient aussi les cases volontairement non exécutées.
 
 ## Structure
 
@@ -42,7 +52,8 @@ scripts/     protocole de mesure reproductible
 - [x] Réécriture iso-fonctionnelle (v5.8, `owl check` OK)
 - [x] Correctif v5.9.2 : bannière mise à jour (fusion `extra`/`games`/`seasonAll`, états `pre` périmés ignorés, formes du bandeau)
 - [x] v5.9.8 : cotes affichées instantanément depuis un cache `current.json` lu par une source `file` (plus de clignotement au refresh) ; cache par match mis à jour en arrière-plan, date/heure corrigées ; 5 formes pour les deux équipes, ordre ancien → récent
-- [ ] Mesures avant/après + test de décharge
+- [x] Audit multi-expert 360° v5.9.8 (28/10/2026) : 17 expertises, 66 constats, 0 P0, 14 P1 ouverts, cycle en V et registre de validation
+- [ ] Mesures device v5.9.8 + test de décharge
 
 ## Sécurité
 
