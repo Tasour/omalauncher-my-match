@@ -48,6 +48,9 @@ def main():
     # I04 - the standings visibility toggle survives a restart.
     check("I04 showTables persisted", bool(re.search(r"state showTables=true\s+persist", text)))
 
+    # I05 - the tile list is bounded, the full screen keeps everything.
+    check("I05 tile bounded", "let upTile=" in text and "for g in upTile key g.id" in text and "for g in upShow key g.id" not in text)
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1

@@ -1286,6 +1286,7 @@ let liveF=baseF.filter(g=>g.state=='in')
 let nextF=baseF.filter(g=>g.state=='pre')
 let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
+let upTile=count(upShow)<=8?upShow:upShow.take(8)
 let allMine=all.filter(g=>count(myTeams)>0&&(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c"))))))
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
@@ -1840,7 +1841,7 @@ for g in pastTake key g.id{LiveGame{g:g;compact:true}}
 if count(upShow)>0{
 Rule{}
 Text{text:count(liveF)>0?S.upLive:S.upcoming;style:label;color:pop;align:center}
-for g in upShow key g.id{LiveGame{g:g;compact:true}}
+for g in upTile key g.id{LiveGame{g:g;compact:true}}
 }
 }
 }
