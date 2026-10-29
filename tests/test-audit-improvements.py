@@ -42,6 +42,9 @@ def main():
     check("I02 LAN IP removed", not ip_hits, ", ".join(ip_hits))
     check("I02 host override", len(host_aware) >= 4, f"{len(host_aware)} script(s) OMA_BASE")
 
+    # I03 - French copy uses the accented word.
+    check("I03 French typography", 'team:"équipe"' in text and 'team:"equipe"' not in text)
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1
