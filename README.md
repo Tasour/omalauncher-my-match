@@ -33,7 +33,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 
 La matrice **« Features & versions »** du rapport du 28/10 est la référence datée pour distinguer ce qui est *implémenté*, *testé* et *validé*. Elle contient aussi les cases volontairement non exécutées.
 
-Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-10-28.md`](docs/improvements-2026-10-28.md) : une amélioration = un commit poussé + un test de continuité.
+Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-10-28.md`](docs/improvements-2026-10-28.md) : une amélioration = un commit poussé + un test de continuité. `showTables` est persisté ; `showSettings` reste volontairement limité à la session pour ne pas rouvrir les réglages à chaque redémarrage.
 
 ## Structure
 

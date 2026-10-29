@@ -1216,7 +1216,7 @@ state view="MINE"persist
 state topLg="ALL"persist
 state euroLg="uefa.europa"persist
 state selJ=-1
-state showTables=true
+state showTables=true persist
 every 1s{if spinning{elapsed=elapsed+1}}
 on games{
 lastDur=spinning?elapsed:lastDur

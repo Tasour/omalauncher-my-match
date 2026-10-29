@@ -45,6 +45,9 @@ def main():
     # I03 - French copy uses the accented word.
     check("I03 French typography", 'team:"équipe"' in text and 'team:"equipe"' not in text)
 
+    # I04 - the standings visibility toggle survives a restart.
+    check("I04 showTables persisted", bool(re.search(r"state showTables=true\s+persist", text)))
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1
