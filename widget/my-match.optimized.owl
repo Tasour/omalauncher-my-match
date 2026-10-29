@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:3x3
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.9.8";license:"MIT";category:"sport";owl:11}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.10.0";license:"MIT";category:"sport";owl:11}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -73,7 +73,7 @@ let gamesScript="""    set -o pipefail
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      r=$(curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
+      r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
       printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
       printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
@@ -145,7 +145,7 @@ let gamesScript="""    set -o pipefail
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/games.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -362,7 +362,7 @@ let seasonScript="""    set -o pipefail
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      r=$(curl --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
+      r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
       printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
       printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
@@ -437,7 +437,7 @@ let seasonScript="""    set -o pipefail
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/season.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -461,7 +461,7 @@ source scheds=cmd("""
     sched() {
       lg=$1
       id=$2
-      raw=$(curl --retry 2 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams/$id/schedule" 2>/dev/null)
+      raw=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams/$id/schedule" 2>/dev/null)
       printf '%s' "$raw" | jq -c --arg lg "$lg" '[((.events // []) | sort_by(.date)) | to_entries[] | {key: ($lg + ":" + (.value.id | tostring)), value: (if $lg == "fra.coupe_de_france" then "" elif $lg == "uefa.europa" and .key + 1 > 8 then "Finales" else "J\(.key + 1)" end)}] | from_entries | with_entries(select(.value != ""))' > "$tmp/sched-$lg-$id.json"
       printf '%s' "$raw" | jq -c --arg lg "$lg" '((.events // []) | sort_by(.date)) as $e | {($lg): {jn: ($e | length), at: (if ($e | length) > 0 then ($e[-1].date[0:16] + ":00Z" | fromdateiso8601) else 0 end)}}' > "$tmp/anchor-$lg-$id.json"
     }
@@ -537,7 +537,7 @@ let standingsScript="""    set -o pipefail
     one() {
       lg=$1
       tag=$(tagof "$lg")
-      s=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null)
+      s=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null)
       e=$(printf '%s' "$s" | jq -r '.season.endDate // "none"')
       case "$e" in ""|"none") e=9999999999;; *) e=$(date -d "$e" +%s || printf 9999999999);; esac
       printf '%s' "$s" | jq -c --arg lg "$lg" --arg tag "$tag" --argjson ends "$e" --arg want "$WANT" --arg wantid "$WANTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | [.children[] | {name: (.name | sub("[\r\n]+$"; "")), teams: ([.standings.entries[] | select(.stats != null) | (reduce .stats[] as $s ({}; .[$s.name] = ($s.value // 0 | floor))) as $st | {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), rank: $st.rank, played: $st.gamesPlayed, won: $st.wins, drawn: $st.ties, lost: $st.losses, bp: (($st.pointsFor // null) | if . != null then floor else null end), bc: (($st.pointsAgainst // null) | if . != null then floor else null end), gd: $st.pointDifferential, pts: $st.points, ours: (.team.abbreviation as $a | (.team.id // "" | tostring) as $i | if ($i | IN($wlid[])) then $a elif ($a | IN($wl[])) then $a else null end), zone: ((.note.description // "") | ascii_downcase | if . == "" then null elif test("relegat") and test("playoff") then "orange" elif test("relegat|eliminat") then "red" elif test("champions league$|round of 16|qualifies for world cup$|qualifies for qfs|promotion$") then "green" else "blue" end), zlabel: ((.note.description // "") | ascii_downcase | if test("champions") and test("qualifying") then "prelim. C1" elif test("champions") then "C1" elif test("round") and test("16") then "8es" elif test("conference") then "CONF" elif test("europa") then "C3" elif test("qfs") then "quarts" elif test("promotion") and test("playoff") then "barr. montee" elif test("promotion") then "montee" elif test("world") and test("cup") and test("playoff") then "barr. CDM" elif test("world") and test("cup") then "CDM" elif test("knockout") then "barrages" elif test("relegation") and test("playoff") then "barr. releg." elif test("relegation") then "relegation" elif test("eliminat") then "elimine" else "" end)}] | sort_by(.rank))}] | map(select(((.teams | map(select(.ours != null)) | length) > 0) or ($lg == "eng.1" or $lg == "esp.1" or $lg == "ger.1" or $lg == "ita.1" or $lg == "uefa.champions" or $lg == "uefa.europa" or $lg == "uefa.europa.conf"))) | .[] | {league: $lg, tag: $tag, group: .name, ends: $ends, teams: .teams, squads: ([.teams[].ours] | map(select(. != null)) | unique), legend: ([.teams[] | select(.zone != null) | {c: .zone, t: .zlabel, r: .rank}] | sort_by(.r) | map({c, t}) | reduce .[] as $x ([]; if index($x) then . else . + [$x] end))}' > "$tmp/t-$lg.jsonl"
@@ -615,7 +615,7 @@ source teamsDb=cmd("""
       tag=$(tagof "$lg")
       kind=c
       case "$lg" in uefa.nations|fifa.worldq.uefa|fifa.friendly) kind=n;; esac
-      curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg kind "$kind" '.sports[0].leagues[0].teams[]? | .team as $t | (($t.abbreviation // "") | tostring | gsub("[,\r\n\t]"; "") | .[0:16]) as $a | (($t.id // "") | tostring | gsub("[^0-9]"; "") | .[0:16]) as $i | {key: ((if $a != "" then $a else $i end) + ":" + $kind), name: $t.displayName, short: ($t.shortDisplayName // $t.displayName), abbr: $a, display: $t.displayName, logo: ((($t.logos[0].href // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9.]+[.]png$") then gsub("/"; "-") else "" end), league: $lg, tag: $tag, kind: $kind, tid: $i}' > "$tmp/t-$lg.jsonl" &
+      curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/teams" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg kind "$kind" '.sports[0].leagues[0].teams[]? | .team as $t | (($t.abbreviation // "") | tostring | gsub("[,\r\n\t]"; "") | .[0:16]) as $a | (($t.id // "") | tostring | gsub("[^0-9]"; "") | .[0:16]) as $i | {key: ((if $a != "" then $a else $i end) + ":" + $kind), name: $t.displayName, short: ($t.shortDisplayName // $t.displayName), abbr: $a, display: $t.displayName, logo: ((($t.logos[0].href // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9.]+[.]png$") then gsub("/"; "-") else "" end), league: $lg, tag: $tag, kind: $kind, tid: $i}' > "$tmp/t-$lg.jsonl" &
       n=$((n + 1))
       if [ "$n" -ge 6 ]; then wait; n=0; fi
     done
@@ -643,7 +643,7 @@ source teamsDb=cmd("""
     for f in $(jq -r '.[].logo | select(. != "")' "$tmp/teams.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -686,7 +686,7 @@ source extra=cmd("""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      curl --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "post" or $c.status.type.state == "in") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+      curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "post" or $c.status.type.state == "in") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
     n=0
     run() {
@@ -743,7 +743,7 @@ source extra=cmd("""
     rrun() {
       lg=$1
       if [ "$lg" = "fra.1" ] || [ "$lg" = "fra.2" ] || [ "$lg" = "ger.1" ]; then k=9; elif [ "$lg" = "uefa.champions" ]; then k=18; else k=10; fi
-      nn=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
+      nn=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
       [ "$nn" = "" ] && nn=0
       if [ "$nn" -gt 0 ] 2>/dev/null; then
         jq -c --arg lg "$lg" --argjson k "$k" --argjson n "$nn" '[.[] | select(.league == $lg)] | sort_by(.at) | length as $len | to_entries[] | {id: .value.id, round: ($n - ((($len - 1 - .key) / $k) | floor))} | select(.round > 0)' "$tmp/base.json" > "$tmp/rounds-$lg.json"
@@ -775,7 +775,7 @@ source extra=cmd("""
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/extra.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -857,7 +857,7 @@ let liveScript="""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      curl --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "in" or $c.status.type.state == "post") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+      curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "in" or $c.status.type.state == "post") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
     n=0
     run() {
@@ -903,7 +903,7 @@ source knock=cmd("""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      if r=$(curl --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
+      if r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
         printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .season.slug as $round | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: $round, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
       fi
     }
@@ -945,7 +945,7 @@ source knock=cmd("""
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/knock.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -987,7 +987,7 @@ source nextup=cmd("""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      if r=$(curl --retry 2 --retry-delay 2 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
+      if r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 2 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
         printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "pre") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
       fi
     }
@@ -1026,7 +1026,7 @@ source nextup=cmd("""
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/next.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -1068,7 +1068,7 @@ source histfull=cmd("""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      r=$(curl --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
+      r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
       printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
       printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
@@ -1139,7 +1139,7 @@ source histfull=cmd("""
         return
       fi
       if [ "$lg" = "fra.1" ] || [ "$lg" = "fra.2" ] || [ "$lg" = "ger.1" ]; then k=9; elif [ "$lg" = "uefa.champions" ]; then k=18; else k=10; fi
-      nn=$(curl --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
+      nn=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 1 -fsm 15 --compressed "https://site.api.espn.com/apis/v2/sports/soccer/$lg/standings" 2>/dev/null | jq '[.children[].standings.entries[] | select(.stats != null) | (.stats | map(select(.name == "gamesPlayed"))[0].value // 0 | floor)] | group_by(.) | max_by(length) | .[0] // 0')
       [ "$nn" = "" ] && nn=0
       if [ "$nn" -gt 0 ] 2>/dev/null; then
         jq -c --arg lg "$lg" --argjson k "$k" --argjson n "$nn" '[.[] | select(.league == $lg)] as $all | ([$all[] | select(.state != "pre")] | sort_by(.at)) as $past | ([$all[] | select(.state == "pre")] | sort_by(.at)) as $fut | ($past | length) as $lp | ([$past | to_entries[] | {id: .value.id, round: ($n - ((($lp - 1 - .key) / $k) | floor))}] + [$fut | to_entries[] | {id: .value.id, round: ($n + 1 + ((.key / $k) | floor))}]) | map(select(.round > 0)) | .[]' "$tmp/base.json" > "$tmp/rounds-$lg.json"
@@ -1159,7 +1159,7 @@ source histfull=cmd("""
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/base.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -1338,7 +1338,7 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
       CA=$(jq -r '.at // 0' "$F" 2>/dev/null)
       if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$CA" != "0" ] && [ $((NOW-TS)) -lt "$TTL" ]; then cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"; cat "$F"; exit 0; fi
     fi
-    OUT=$(curl --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O}')
+    OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 1 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O}')
     if [ -n "$OUT" ] && [ "$OUT" != "null" ]; then
       printf '%s\n' "$OUT" > "$F.tmp" && mv "$F.tmp" "$F"
       printf '%s\n' "$OUT" > "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"

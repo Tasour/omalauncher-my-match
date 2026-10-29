@@ -22,7 +22,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 - Audit multi-agents initial : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
 - Audit multi-expert 360° v5.9.8 (28/10/2026) : [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) — 17 expertises, 66 constats, cycle en V, RTM, registre des features et de validation.
 - Mesures brutes : [`measurements/`](measurements/).
-- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.9.8).
+- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.10.0 en cours).
 
 ## Audits datés et traçabilité
 
@@ -32,6 +32,8 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 | 2026-10-28 | v5.9.8 | [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) | Audit 360° : 17 expertises, 66 constats, cycle en V, RTM, F01–F32 | `owl-check`, 5 scripts `bash -n`, fixtures ; device v5.9.8 non exécuté |
 
 La matrice **« Features & versions »** du rapport du 28/10 est la référence datée pour distinguer ce qui est *implémenté*, *testé* et *validé*. Elle contient aussi les cases volontairement non exécutées.
+
+Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-10-28.md`](docs/improvements-2026-10-28.md) : une amélioration = un commit poussé + un test de continuité.
 
 ## Structure
 

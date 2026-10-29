@@ -22,3 +22,4 @@ for v in gamesScript seasonScript standingsScript liveScript heroOddsScript; do
 done
 
 bash "$ROOT/tests/test-games.sh" "$TMP/gamesScript.sh" "$WIDGET" "$TMP/liveScript.sh"
+python3 "$ROOT/tests/test-audit-improvements.py"
