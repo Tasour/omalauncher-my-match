@@ -7,7 +7,9 @@ LOCK=/tmp/my-match-fix.lock
 touch "$LOCK"
 trap 'rm -f "$LOCK"' EXIT INT TERM
 
-BASE="http://192.168.0.119:1764"
+BASE="${OMA_BASE:-}"
+[ -n "$BASE" ] || BASE=$(cat "$HOME/.config/omalauncher/measure-base" 2>/dev/null)
+BASE="${BASE:-http://127.0.0.1:1764}"
 GH="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/main"
 DIR="$HOME/.config/omalauncher/widgets"
 

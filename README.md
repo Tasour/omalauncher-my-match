@@ -61,6 +61,8 @@ scripts/     protocole de mesure reproductible
 
 Aucun secret, token ou donnée personnelle ne doit être publié. Le widget et les rapports sont vérifiés avant publication ; les versions complètes non assainies restent en local.
 
+Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` ou, à défaut, `~/.config/omalauncher/measure-base` (une ligne, ex. `http://192.168.0.10:1764`), puis retombent sur `http://127.0.0.1:1764`.
+
 ## Licence
 
 À définir selon la licence du widget original. Le code d'Omalauncher est sous MIT.

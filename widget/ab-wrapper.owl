@@ -9,6 +9,6 @@ widget "A/B wrapper my-match" {
     owl: 11
   }
   requires { pacman: ["curl"] }
-  source ab = cmd("""nohup sh -c 'curl -fsSL http://192.168.0.119:1764/scripts/guest-ab-wrapper.sh -o /tmp/abw.sh && sh /tmp/abw.sh' >/tmp/abw.log 2>&1 & echo started""") every 1h
+  source ab = cmd("""b=${OMA_BASE:-$(cat ~/.config/omalauncher/measure-base 2>/dev/null)}; b=${b:-http://127.0.0.1:1764}; nohup sh -c "curl -fsSL $b/scripts/guest-ab-wrapper.sh -o /tmp/abw.sh && sh /tmp/abw.sh" >/tmp/abw.log 2>&1 & echo started""") every 1h
   Text { text: "A/B wrapper started — 7 min, ne touche plus." }
 }

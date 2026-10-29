@@ -6,6 +6,7 @@ intentionally cheap and offline: each improvement must leave a trace that can
 be checked without a phone or network.
 """
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,6 +33,14 @@ def main():
     required = ("--proto '=https'", "--max-redirs 0", "--max-filesize", "--connect-timeout")
     bad = [line.strip() for line in curl_lines if not all(flag in line for flag in required)]
     check("I01 curl hardening", not bad and bool(curl_lines), f"{len(bad)} ligne(s) non durcie(s)")
+
+    # I02 - measurement scripts take the host from OMA_BASE or a local file.
+    private_ip = re.compile(r"\b(?:192\.168|10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b")
+    host_files = [*sorted((ROOT / "scripts").glob("*.sh")), *sorted((ROOT / "widget").glob("*.owl"))]
+    ip_hits = [str(p.relative_to(ROOT)) for p in host_files if private_ip.search(p.read_text(encoding="utf-8", errors="ignore"))]
+    host_aware = [p for p in host_files if "OMA_BASE" in p.read_text(encoding="utf-8", errors="ignore")]
+    check("I02 LAN IP removed", not ip_hits, ", ".join(ip_hits))
+    check("I02 host override", len(host_aware) >= 4, f"{len(host_aware)} script(s) OMA_BASE")
 
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")

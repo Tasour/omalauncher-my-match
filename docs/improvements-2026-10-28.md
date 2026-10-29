@@ -9,7 +9,7 @@ fonctionnalité retirée. Le widget passe au lot **v5.10.0**.
 | ID | Amélioration | Constats | Test de continuité | État |
 |---|---|---|---|---|
 | I01 | Durcir tous les `curl` du widget : HTTPS, zéro redirection, taille bornée, timeout de connexion | SEC-02 | `tests/test-audit-improvements.py` + `owl-check` + fixtures | **Fait** |
-| I02 | Retirer l'IP LAN codée en dur des scripts de mesure | SEC-03 | scan anti-IP + tests | À faire |
+| I02 | Retirer l'IP LAN codée en dur des scripts de mesure | SEC-03 | scan anti-IP + tests | **Fait** |
 | I03 | Corriger « equipe » → « équipe » | I18N-01 | test de chaînes + `owl-check` | À faire |
 | I04 | Persister `showTables` | PROD-03 | test de présence `persist` + `owl-check` | À faire |
 | I05 | Borner `upShow` dans la tuile, garder la liste complète dans l'écran | UX-01 | test statique + preview 7×12 | À faire |
