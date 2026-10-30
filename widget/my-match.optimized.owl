@@ -477,7 +477,7 @@ source scheds=cmd("""
     [ "$(jq 'length // 0' "$tmp/rounds.json")" -gt 0 ] || exit 1
     jq -cs '{rounds: .[0], anchors: .[1]}' "$tmp/rounds.json" "$tmp/anchors.json"
     rm -rf "$tmp"
-  """)every 24h json timeout 300s status
+  """)every 24h json timeout 900s status
 let standingsScript="""    set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
     cleanup() {
@@ -530,6 +530,21 @@ let standingsScript="""    set -o pipefail
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -607,6 +622,21 @@ source teamsDb=cmd("""
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -664,7 +694,12 @@ source extra=cmd("""
     }
     trap cleanup EXIT INT TERM
     NOW=$(date +%s)
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations eng.1 esp.1 ger.1 ita.1 fifa.worldq.uefa uefa.champions"
+    WANTLG="""+sh(favLg)+""";
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
+      case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
+    done
     tagof() {
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
@@ -679,6 +714,21 @@ source extra=cmd("""
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -783,7 +833,7 @@ source extra=cmd("""
     wait
     cat "$tmp/extra.json"
     rm -rf "$tmp"
-  """)every 1h json timeout 150s status
+  """)every 1h json timeout 360s status
 let liveScript="""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -850,6 +900,21 @@ let liveScript="""
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -965,7 +1030,12 @@ source nextup=cmd("""
       exit $rc
     }
     trap cleanup EXIT INT TERM
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations eng.1 esp.1 ger.1 ita.1 fifa.worldq.uefa uefa.champions"
+    WANTLG="""+sh(favLg)+""";
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
+      case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
+    done
     tagof() {
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
@@ -980,6 +1050,21 @@ source nextup=cmd("""
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -987,7 +1072,7 @@ source nextup=cmd("""
       lg=$1
       d=$2
       tag=$(tagof "$lg")
-      if r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 2 --retry-delay 2 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
+      if r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
         printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | select($c.status.type.state == "pre") | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: (.season.slug // ""), at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
       fi
     }
@@ -1034,7 +1119,7 @@ source nextup=cmd("""
     wait
     cat "$tmp/next.json"
     rm -rf "$tmp"
-  """)every 12h json timeout 150s status
+  """)every 12h json timeout 360s status
 source histfull=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -1046,7 +1131,12 @@ source histfull=cmd("""
       exit $rc
     }
     trap cleanup EXIT INT TERM
+    WANTLG="""+sh(favLg)+""";
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
     RR="fra.1 fra.2 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
+    for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
+      case " $ALLLG " in *" $l "*) case " $RR " in *" $l "*) ;; *) RR="$RR $l";; esac;; esac
+    done
     tagof() {
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
@@ -1061,6 +1151,21 @@ source histfull=cmd("""
       elif [ "$1" = "esp.1" ]; then printf 'ESP'
       elif [ "$1" = "ger.1" ]; then printf 'GER'
       elif [ "$1" = "ita.1" ]; then printf 'ITA'
+      elif [ "$1" = "ned.1" ]; then printf 'NED'
+      elif [ "$1" = "por.1" ]; then printf 'POR'
+      elif [ "$1" = "tur.1" ]; then printf 'TUR'
+      elif [ "$1" = "bel.1" ]; then printf 'BEL'
+      elif [ "$1" = "sco.1" ]; then printf 'SCO'
+      elif [ "$1" = "gre.1" ]; then printf 'GRE'
+      elif [ "$1" = "sui.1" ]; then printf 'SUI'
+      elif [ "$1" = "aut.1" ]; then printf 'AUT'
+      elif [ "$1" = "den.1" ]; then printf 'DEN'
+      elif [ "$1" = "nor.1" ]; then printf 'NOR'
+      elif [ "$1" = "swe.1" ]; then printf 'SWE'
+      elif [ "$1" = "rou.1" ]; then printf 'ROU'
+      elif [ "$1" = "cze.1" ]; then printf 'CZE'
+      elif [ "$1" = "isr.1" ]; then printf 'ISR'
+      elif [ "$1" = "cyp.1" ]; then printf 'CYP'
       else printf '%s' "$1"
       fi
     }
@@ -1179,7 +1284,7 @@ source histfull=cmd("""
     fi
     cat "$tmp/hist.json"
     rm -rf "$tmp"
-  """)every 24h json timeout 240s status
+  """)every 24h json timeout 300s status
 source now=clock every 15s
 source slow=clock every 1h
 source spr=file("~/.cache/espn-logos/sprite.json")json
@@ -1379,15 +1484,15 @@ let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[])
 let modeTabs=[{id:"MINE",short:S.tabMine},{id:"RIV",short:S.tabRiv},{id:"TOP5",short:S.tabTop5},{id:"EUROPE",short:S.tabEurope}]
 let topTabs=[{id:"eng.1",short:"ENG"},{id:"esp.1",short:"ESP"},{id:"ger.1",short:"GER"},{id:"ita.1",short:"ITA"},{id:"fra.1",short:"FRA"}]
 let topLeagues=["eng.1","esp.1","ger.1","ita.1","fra.1"]
+let supportedLeagues=["fra.1","fra.2","ned.1","por.1","tur.1","bel.1","sco.1","gre.1","sui.1","aut.1","den.1","nor.1","swe.1","rou.1","cze.1","isr.1","cyp.1","eng.1","esp.1","ger.1","ita.1","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","fifa.worldq.uefa","fifa.friendly"]
 let extraAll=extra.out??[]
 let nextAll=nextup.out??[]
 let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
-let rivLgs=["fra.1","fra.2","uefa.europa","uefa.europa.conf","uefa.nations","eng.1","esp.1","ger.1","ita.1","fifa.worldq.uefa","uefa.champions"]
 let scopeOf=selTeam==null?myTeams:[selTeam]
-let myLeagues=unique(flatten(scopeOf.map(t=>t.kind=="n"?["uefa.nations","fifa.worldq.uefa"]:[t.league,"uefa.europa","uefa.champions","uefa.europa.conf"]))).filter(l=>rivLgs.any(r=>r==l))
+let myLeagues=unique(flatten(scopeOf.map(t=>t.kind=="n"?["uefa.nations","fifa.worldq.uefa","fifa.friendly"]:[t.league,"uefa.europa","uefa.champions","uefa.europa.conf"]))).filter(l=>l!=null&&l!=""&&supportedLeagues.any(x=>x==l))
 let rivalsAll=extraAll.filter(g=>myLeagues.any(l=>l==g.league)&&!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))).sortBy(g=>g.at).reverse()
 let rivals=rivalsAll.take(12)
-let rivalsNext=nextNew.filter(g=>myLeagues.any(l=>l==g.league)&&count(g.squads??[])==0).sortBy(g=>g.at).take(10)
+let rivalsNext=nextNew.filter(g=>myLeagues.any(l=>l==g.league)&&!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))).sortBy(g=>g.at).take(10)
 let rivalsTile=flatten([rivalsNext.take(4),rivals.take(8)])
 let topAll=extraAll.filter(g=>topLeagues.any(l=>l==g.league)&&(topLg=="ALL"||g.league==topLg)).sortBy(g=>g.at).reverse()
 let topList=topAll.take(12)

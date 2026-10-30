@@ -58,6 +58,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] Audit multi-expert 360° v5.9.8 (28/10/2026) : 17 expertises, 66 constats, 0 P0, 14 P1 ouverts, cycle en V et registre de validation
 - [x] Lot v5.10.0 (I01–I10) : durcissement curl, IP LAN retirée, i18n, `showTables` persisté, tuile bornée, périmètre `standings` réduit, timeouts alignés, `status` + santé visible, spinner conditionnel, harnais CI portable
 - [x] Revue experte v5.10.0 (UI/UX, OWL, sécurité/SRE) et correctifs associés
+- [x] I11 : couverture rivaux/historique dérivée des équipes suivies (plus de liste blanche de ligues)
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

@@ -51,7 +51,11 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
 
 ### Fiabilité et données
 
-- `I11` Dériver `rivLgs` de `myTeams`/`teamsDb` au lieu d'une liste blanche (FOOT-01, DATA-05).
+- **Fait — I11** Dériver le périmètre rivaux/historique de `myTeams`/`teamsDb`
+  au lieu d'une liste blanche (FOOT-01, DATA-05) : `rivLgs` supprimé,
+  `supportedLeagues` unique source, `extra`/`nextup`/`histfull` reçoivent
+  `WANTLG` via `sh(favLg)`, tags NED/POR/TUR…, test `tests/test-league-scope.sh`
+  (un club néerlandais remonte dans les trois sources ; `foo.1` est ignoré).
 - `I12` Ajouter schéma/version/TTL aux caches et validation à la lecture (DATA-04).
 - `I13` Rendre les téléchargements de logos atomiques et verrouillés (SHELL-02, SHELL-04).
 - `I14` Gérer 429/5xx/offline avec jitter et `Retry-After` (SRE-02, QA-03).

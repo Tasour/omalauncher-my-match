@@ -86,6 +86,24 @@ def main():
     check("I07 teamsDb timeout",
           'every 168h json timeout 900s status' in text and '--connect-timeout 3 -fsm 6 -o "$d/$f"' in text)
 
+    # I11 - rivals and history follow the selected team's league, not a whitelist.
+    check("I11 no rival whitelist", "rivLgs" not in text and '"fifa.friendly"' in text)
+    def has(name, token):
+        start = re.search(rf"^source {name}=", text, re.M)
+        if not start:
+            return False
+        nxt = re.search(r"\n(?:source|let|state|on|at|every|when|screen|component)\b", text[start.end():])
+        end = start.end() + (nxt.start() if nxt else len(text) - start.end())
+        return token in text[start.start():end]
+    check("I11 dynamic league lists",
+          all(has(name, "WANTLG") and has(name, "ALLLG") for name in ("extra", "nextup", "histfull")))
+    check("I11 league tags", text.count('"ned.1"') >= 3 and text.count("printf 'NED'") >= 3)
+    check("I11 supported list",
+          "let supportedLeagues=" in text and text.count("ALLLG=") >= 3
+          and "supportedLeagues.any(x=>x==l)" in text)
+    check("I11 rivals next excludes my teams",
+          "!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))" in text)
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)
