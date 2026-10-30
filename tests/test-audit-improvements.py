@@ -153,7 +153,7 @@ def main():
           "aggH:" in text and "aggDone:" in text and "S.agg+" in text and 'agg:"cumul "' in text)
 
     # I19 - tables compose only when asked for (persisted choice).
-    check("I19 tables on demand", "state showTables=false persist" in text)
+    check("I19 tables toggle", "state showTables=true persist" in text and "onTap:showTables=!showTables" in text)
     # I20 - crest images carry an accessible name.
     check("I20 crest labels", text.count("label:name") >= 3 and 'component Crest(' in text and 'component BannerLogo(' in text)
     # I21 - live and zones carry text, not only colour.
@@ -183,7 +183,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.0' in text
+          "S.apropos" in text and 'copy("my-match v5.14.1' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -231,6 +231,13 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Standings and fixtures must be visible after the filter-era upgrades.
+    check("standings/fixtures migration",
+          "state uiSchema=0 persist" in text and "when uiSchema<1" in text
+          and "showTables=true;todayOnly=false;daySel=\"\"" in text)
+    check("fixtures block under hero",
+          "for g in upShow.take(8)" in text and "S.upcomingHdr" in text)
 
     # Regression: a day/today filter must never silently hide every fixture.
     check("fixtures filter fallback",

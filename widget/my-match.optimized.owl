@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.0";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.1";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1475,6 +1475,7 @@ state revealed=[]persist
 state prewarmOn=false persist
 state prewarmAt=0 persist
 state showDetail=false
+state uiSchema=0 persist
 state clearAsk=false
 state diagDone=false
 state h12Id=""persist
@@ -1487,7 +1488,7 @@ state view="MINE"persist
 state topLg="ALL"persist
 state euroLg="uefa.europa"persist
 state selJ=-1
-state showTables=false persist
+state showTables=true persist
 let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:scheds},{n:"standings",s:standings},{n:"teamsDb",s:teamsDb},{n:"extra",s:extra},{n:"liveM",s:liveM},{n:"knock",s:knock},{n:"nextup",s:nextup},{n:"histfull",s:histfull}]
 let healthLabel=lang=="fr"?{games:"matchs",seasonAll:"saison",scheds:"journées",standings:"classements",teamsDb:"équipes",extra:"calendrier",liveM:"direct",knock:"arbre",nextup:"à venir",histfull:"historique"}:{games:"games",seasonAll:"season",scheds:"matchdays",standings:"tables",teamsDb:"teams",extra:"fixtures",liveM:"live",knock:"bracket",nextup:"upcoming",histfull:"history"}
 let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
@@ -1530,6 +1531,7 @@ kickAt=kickSoon.at
 }
 at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0;spinAt=0}
 on showTeams{draft=value?myTeams:draft;query=value?"":query}
+when uiSchema<1{uiSchema=1;showTables=true;todayOnly=false;daySel=""}
 when team!="ALL"&&count(myTeams)>0&&(myTeams.find(t=>t.abbr==team)??null)==null{team="ALL"}
 on teamsDb first{
 let db=teamsDb.out??[]
@@ -2522,7 +2524,7 @@ Rule{}
 Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.0\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.1\n"+healthLine);diagDone=true}}
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
 }
 if diagDone{Text{text:S.diagDone;style:label;color:"#22c55e";align:center}}
@@ -2535,7 +2537,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.14.0 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.14.1 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }
@@ -2548,6 +2550,11 @@ Text{text:S.newsT+" · "+(heroH2HObj.news[0].h??"");style:small;color:soft;align
 }
 if filterOn&&count(baseF)==0{
 Text{text:S.noMatchDay+" · "+S.clearFilter;style:small;color:pop;align:center;maxLines:2;onTap:{todayOnly=false;daySel=""}}
+}
+if count(upShow)>0{
+Text{text:S.upcomingHdr;style:label;color:pop}
+for g in upShow.take(8) key g.id{LiveGame{g:g}}
+Rule{}
 }
 if showDetail&&heroH2HObj!=null{
 Column{
