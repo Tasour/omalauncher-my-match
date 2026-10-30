@@ -87,6 +87,10 @@ def main():
     check("I07 teamsDb timeout",
           'every 168h json timeout 900s status' in text and '--connect-timeout 3 -fsm 6 -o "$dltmp"' in text)
 
+    check("I11 multi-league teams",
+          "leagues: $lgs" in text and "t.leagues" in text
+          and "on teamsDb first" in text and "league:(db.find" in text)
+
     # I11 - rivals and history follow the selected team's league, not a whitelist.
     check("I11 no rival whitelist", "rivLgs" not in text and '"fifa.friendly"' in text)
     def has(name, token):

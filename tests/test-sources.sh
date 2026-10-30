@@ -57,6 +57,8 @@ jq -e 'type == "array" and length > 0' "$TMP/teams.json" >/dev/null 2>&1 ||
   fail "teamsDb produced no catalogue"
 jq -e 'any(.[]; .abbr == "LYON" and .league == "fra.1" and .tag == "L1" and .kind == "c" and .tid == "167")' \
   "$TMP/teams.json" >/dev/null 2>&1 || fail "teamsDb lost the LYON club entry"
+jq -e 'any(.[]; .abbr == "LYON" and .league == "fra.1" and (.leagues | index("fra.1")) and (.leagues | index("uefa.europa")))' \
+  "$TMP/teams.json" >/dev/null 2>&1 || fail "teamsDb lost a second league for LYON"
 jq -e 'all(.[]; has("key") and has("name") and has("short") and has("abbr") and has("display") and has("logo") and has("league") and has("tag") and has("kind") and has("tid"))' \
   "$TMP/teams.json" >/dev/null 2>&1 || fail "teamsDb entry shape is incomplete"
 meta_ok "$HOME/.cache/espn-teams.json.meta" || fail "teamsDb cache lacks metadata"

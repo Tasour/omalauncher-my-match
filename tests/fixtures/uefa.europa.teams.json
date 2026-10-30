@@ -1,0 +1,25 @@
+{
+  "sports": [
+    {
+      "leagues": [
+        {
+          "teams": [
+            {
+              "team": {
+                "id": "167",
+                "abbreviation": "LYON",
+                "displayName": "Olympique Lyonnais",
+                "shortDisplayName": "Lyon",
+                "logos": [
+                  {
+                    "href": "https://a.espncdn.com/i/teamlogos/soccer/500/167.png"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

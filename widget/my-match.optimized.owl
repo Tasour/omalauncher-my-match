@@ -6,7 +6,7 @@ requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favNoTid=join(myTeams.map(t=>(t.tid??"")==""?(t.abbr??""):"").filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
-let favLg=count(myTeams)>0&&myTeams.all(t=>(t.league??"")!="")?join(unique(myTeams.map(t=>t.league)),","):""
+let favLg=count(myTeams)>0?join(unique(flatten(myTeams.map(t=>count(t.leagues??[])>0?t.leagues:[t.league]))).filter(l=>l!=null&&l!=""&&!contains(l,",")&&!contains(l,"\n")&&!contains(l,"\r")),","):""
 let gamesScript="""    set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
     cleanup() {
@@ -695,7 +695,7 @@ source teamsDb=cmd("""
       if [ "$n" -ge 6 ]; then wait; n=0; fi
     done
     wait
-    cat "$tmp"/t-*.jsonl 2>/dev/null | jq -cs 'map(select((.abbr // "") != "" and .name != null)) | group_by(.key) | map(max_by(if .league == "fifa.friendly" then 0 elif .league == "fifa.worldq.uefa" then 1 else 2 end))' > "$tmp/teams.json" 2>/dev/null || echo '[]' > "$tmp/teams.json"
+    cat "$tmp"/t-*.jsonl 2>/dev/null | jq -cs 'map(select((.abbr // "") != "" and .name != null)) | group_by(.key) | map((map(.league) | unique) as $lgs | (max_by(if .league == "fifa.friendly" then 0 elif .league == "fifa.worldq.uefa" then 1 elif (.league == "uefa.champions" or .league == "uefa.europa" or .league == "uefa.europa.conf") then 2 else 3 end)) + {leagues: $lgs})' > "$tmp/teams.json" 2>/dev/null || echo '[]' > "$tmp/teams.json"
     CV=1
     cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
     cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
@@ -1490,6 +1490,14 @@ kickAt=kickSoon.at
 at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0;spinAt=0}
 on showTeams{draft=value?myTeams:draft;query=value?"":query}
 when team!="ALL"&&count(myTeams)>0&&(myTeams.find(t=>t.abbr==team)??null)==null{team="ALL"}
+on teamsDb first{
+let db=teamsDb.out??[]
+myTeams=myTeams.map(t=>merge(t,{leagues:(db.find(d=>d.key==(t.key??((t.abbr??"")+":"+(t.kind??"c"))))??{}).leagues??(t.leagues??[t.league]),league:(db.find(d=>d.key==(t.key??((t.abbr??"")+":"+(t.kind??"c"))))??{}).league??t.league}))
+}
+on teamsDb{
+let db=teamsDb.out??[]
+myTeams=myTeams.map(t=>merge(t,{leagues:(db.find(d=>d.key==(t.key??((t.abbr??"")+":"+(t.kind??"c"))))??{}).leagues??(t.leagues??[t.league]),league:(db.find(d=>d.key==(t.key??((t.abbr??"")+":"+(t.kind??"c"))))??{}).league??t.league}))
+}
 on games first{
 if (games.ok??false){
 if soon12!=null&&!nextDone.any(d=>d==soon12.id){
@@ -1624,7 +1632,7 @@ let extraAll=extra.out??[]
 let nextAll=nextup.out??[]
 let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
 let scopeOf=selTeam==null?myTeams:[selTeam]
-let myLeagues=unique(flatten(scopeOf.map(t=>t.kind=="n"?["uefa.nations","fifa.worldq.uefa","fifa.friendly"]:[t.league,"uefa.europa","uefa.champions","uefa.europa.conf"]))).filter(l=>l!=null&&l!=""&&supportedLeagues.any(x=>x==l))
+let myLeagues=unique(flatten(scopeOf.map(t=>count(t.leagues??[])>0?(t.kind=="n"?t.leagues:flatten([t.leagues,["uefa.europa","uefa.champions","uefa.europa.conf"]])):(t.kind=="n"?["uefa.nations","fifa.worldq.uefa","fifa.friendly"]:[t.league,"uefa.europa","uefa.champions","uefa.europa.conf"])))).filter(l=>l!=null&&l!=""&&supportedLeagues.any(x=>x==l))
 let rivalsAll=extraAll.filter(g=>myLeagues.any(l=>l==g.league)&&!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))).sortBy(g=>g.at).reverse()
 let rivals=rivalsAll.take(12)
 let rivalsNext=nextNew.filter(g=>myLeagues.any(l=>l==g.league)&&!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))).sortBy(g=>g.at).take(10)
