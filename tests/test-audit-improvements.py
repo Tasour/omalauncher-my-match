@@ -111,7 +111,7 @@ def main():
           "!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))" in text)
 
     check("I11 selected team keeps all results",
-          'team!="ALL"?pastA.sortBy' in text and "let shown1=baseF" in text)
+          'team!="ALL"?pastA.sortBy(g=>g.at)' in text and "let shown1=baseF" in text)
 
     # I12 - aggregate caches carry schema/version/TTL/expiry metadata.
     check("I12 cache metadata helpers",
