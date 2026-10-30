@@ -67,7 +67,10 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   `mkdir .$f.lock` par écusson, `mv` atomique après validation, purge des
   verrous/temp de plus de 15 min ; 7 blocs alignés, test statique + contrôle
   « aucun temp/lock laissé » dans `test-games.sh`.
-- `I14` Gérer 429/5xx/offline avec jitter et `Retry-After` (SRE-02, QA-03).
+- **Fait — I14** 429/5xx/offline : backoff exponentiel curl (`--retry-delay 0`),
+  `Retry-After` respecté par curl, `--retry-connrefused`, `--retry-max-time`
+  borné, jitter 0-2 s par source (`/dev/urandom`) (SRE-02) ; fixtures de panne
+  `MOCK_MODE=429/500/offline/trunc` et repli cache testé (QA-03).
 - `I15` Rendre `liveM` conditionnel hors fenêtre de match (ENERGY-02).
 - `I16` Remplacer les journées estimées par les rounds ESPN quand disponibles (FOOT-02).
 - `I17` Gérer reports/annulations et agrégats aller-retour (FOOT-03, FOOT-04).

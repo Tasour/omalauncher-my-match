@@ -61,6 +61,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] I11 : couverture rivaux/historique dérivée des équipes suivies (plus de liste blanche de ligues)
 - [x] I12 : métadonnées de cache (schéma/version/TTL/expiration) et validation à la lecture
 - [x] I13 : téléchargements d'écussons atomiques et verrouillés (temp privé + lock par fichier)
+- [x] I14 : backoff/Retry-After, jitter par source et fixtures 429/5xx/offline/tronqué
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

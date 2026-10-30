@@ -81,6 +81,30 @@ run_games || fail "a valid response after an invalid one should succeed"
 assert_match "cache recovers after an invalid response" "LYON"
 pass "cache recovers after an invalid response"
 
+# --- transient failures: 429, 5xx, offline, truncated JSON -----------------
+export TEST_FAVSTR="LYON"
+export TEST_FAVLG="fra.1"
+for mode in 429 500 offline trunc; do
+  rm -rf "$HOME/.cache/espn-games.json" "$HOME/.cache/espn-games.json.meta" \
+    "$HOME/.cache/espn-games.sig" "$HOME/.cache/espn-games-months"
+  export MOCK_MODE="$mode"
+  if run_games; then fail "MOCK_MODE=$mode should fail"; fi
+  if find "$HOME/.cache/espn-games-months" -name '*.ok' 2>/dev/null | grep -q .; then
+    fail "MOCK_MODE=$mode wrote a monthly .ok"
+  fi
+done
+unset MOCK_MODE
+pass "429/5xx/offline/truncated do not poison the cache"
+
+run_games || fail "recovery after transient failures"
+assert_match "recovery after transient failures" "LYON"
+rm -rf "$HOME/.cache/espn-games-months"
+export MOCK_MODE=offline
+run_games || fail "offline should fall back to a valid cache"
+assert_match "offline serves the cache" "LYON"
+unset MOCK_MODE
+pass "offline serves the cache"
+
 # --- SIG must change when the league list changes ---------------------------
 export TEST_FAVSTR="LYON"
 export TEST_FAVLG="fra.1"

@@ -117,6 +117,15 @@ def main():
           '-o "$d/$f"' not in text and text.count('mkdir "$dlock"') == 7
           and text.count('mv "$dltmp" "$d/$f"') == 7 and ".*.lock' -mmin +15" in text)
 
+    # I14 - exponential retries, Retry-After and a little per-source jitter.
+    retry_lines = [line for line in text.splitlines() if "--retry " in line]
+    active_retries = [line for line in retry_lines if "--retry 0" not in line]
+    check("I14 retry backoff",
+          len(active_retries) >= 10
+          and all("--retry-delay 0" in line and "--retry-connrefused" in line for line in active_retries)
+          and text.count("--retry-max-time") >= len(active_retries))
+    check("I14 request jitter", text.count("od -An -N1 -tu1 /dev/urandom") == 10)
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)

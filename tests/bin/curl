@@ -11,13 +11,23 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -n "${MOCK_LOG:-}" ] && printf '%s\n' "$url" >>"$MOCK_LOG"
+[ "${MOCK_MODE:-}" = "offline" ] && exit 7
 case "$url" in
   *a.espncdn.com*) exit 1 ;;
   *site.api.espn.com*)
+    case "${MOCK_MODE:-}" in
+      429|500|503)
+        body="{\"error\":\"http ${MOCK_MODE}\"}"
+        if [ -n "$out" ]; then printf '%s' "$body" >"$out"; else printf '%s' "$body"; fi
+        exit 22
+        ;;
+    esac
     case "$url" in
       */standings*)
         league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/standings.*#\1#p')
-        if [ "${MOCK_INVALID:-0}" = 1 ]; then
+        if [ "${MOCK_MODE:-}" = "trunc" ]; then
+          body='{"events":['
+        elif [ "${MOCK_INVALID:-0}" = 1 ]; then
           body='{"error":"rate limited"}'
         else
           f="${FIXTURES:-}/$league.standings.json"
@@ -26,7 +36,9 @@ case "$url" in
         ;;
       *)
         league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/scoreboard.*#\1#p')
-        if [ "${MOCK_INVALID:-0}" = 1 ]; then
+        if [ "${MOCK_MODE:-}" = "trunc" ]; then
+          body='{"events":['
+        elif [ "${MOCK_INVALID:-0}" = 1 ]; then
           body='{"error":"rate limited"}'
         else
           f="${FIXTURES:-}/$league.json"
