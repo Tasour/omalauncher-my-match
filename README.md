@@ -38,7 +38,7 @@ Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-
 ## Structure
 
 ```
-docs/        audit initial, cycle en V, audit du widget, modèle CI
+docs/        audit initial, cycle en V, audit du widget, notice de données, modèle CI
 widget/      my-match.owl original + version optimisée
 measurements/ avant/après (CPU, fps, réseau, batterie)
 scripts/     protocole de mesure reproductible + scripts/ci.sh
@@ -63,6 +63,14 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] I13 : téléchargements d'écussons atomiques et verrouillés (temp privé + lock par fichier)
 - [x] I14 : backoff/Retry-After, jitter par source et fixtures 429/5xx/offline/tronqué
 - [x] I15 : `liveM` conditionnel hors fenêtre de match (plus de shell/jq chaque minute)
+- [x] I16–I17 : rounds ESPN préférés ; reports/annulations explicites (agrégats aller/retour restant)
+- [x] I19, I21–I24 : classements à la demande, zones/live textuels, plancher typo, largeurs dynamiques, minimum 5×4
+- [x] I20 (partiel) : libellés d'écussons ; contrôles Canvas à convertir
+- [x] I25–I29 : base dérivée d'allMine, clés stables, tests sources/pannes/concurrence
+- [x] I31 (partiel) : langue initiale depuis Android ; réglages secondaires persistés
+- [x] I32 : LICENSE MIT + notice de données/attribution ESPN
+- [x] I33 (partiel) : preuves hors appareil + protocole ; décharge device non exécutée
+- [ ] I18 : listes lazy (refactor d'écran) · I30 : extraction des scripts
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité
@@ -70,6 +78,12 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 Aucun secret, token ou donnée personnelle ne doit être publié. Le widget et les rapports sont vérifiés avant publication ; les versions complètes non assainies restent en local.
 
 Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` ou, à défaut, `~/.config/omalauncher/measure-base` (une ligne, ex. `http://<IP-DU-PC>:1764`), puis retombent sur `http://127.0.0.1:1764`. L'hôte est validé (`http(s)://` + caractères sûrs) avant usage.
+
+## Données & attribution
+
+Les scores, classements, calendriers, cotes et écussons viennent de l'API publique **ESPN** (`site.api.espn.com`, `a.espncdn.com`). Le widget n'est ni affilié, ni sponsorisé, ni approuvé par ESPN : les données, logos et marques restent la propriété d'ESPN et de leurs ayants droit. Aucune donnée personnelle n'est envoyée ; seuls des caches publics sont conservés sous `~/.cache/espn-*`.
+
+Détail des données stockées, absence d'affiliation, effacement (`rm -rf ~/.cache/espn-*`, réglages) et précautions d'usage : [`docs/data-notice.md`](docs/data-notice.md).
 
 ## Tests et CI
 
@@ -79,4 +93,4 @@ Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` 
 
 ## Licence
 
-À définir selon la licence du widget original. Le code d'Omalauncher est sous MIT.
+Le code du widget est sous licence **MIT** — voir [`LICENSE`](LICENSE) (copyright © 2026 Tasour). La licence MIT couvre uniquement le code du widget, **pas** les données, logos ni marques ESPN, détaillés dans [`docs/data-notice.md`](docs/data-notice.md). Le code d'Omalauncher est lui aussi sous MIT.

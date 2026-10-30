@@ -65,7 +65,7 @@ def main():
     check("I03 French typography", 'team:"équipe"' in text and 'team:"equipe"' not in text)
 
     # I04 - the standings visibility toggle survives a restart.
-    check("I04 showTables persisted", bool(re.search(r"state showTables=true\s+persist", text)))
+    check("I04 showTables persisted", bool(re.search(r"state showTables=(?:true|false)\s+persist", text)))
 
     # I05 - the tile list is bounded, the full screen keeps everything.
     check("I05 tile bounded",
@@ -134,6 +134,38 @@ def main():
           and "source liveIdx=file(" in text and "now-10800" in text
           and '"printf ' in text and '\\"items\\":[],\\"at\\":0' in text)
 
+    # I16 - ESPN round numbers win over the estimate.
+    check("I16 ESPN rounds preferred", 'let rdt=rd!=""?rd:' in text and 'get(rounds,g.id,"")' in text)
+    # I17 - postponed/cancelled matches are kept and named.
+    check("I17 match status wording",
+          'postponed:"reporté"' in text and 'let special=contains(gdet' in text
+          and 'g.at>now-7200||contains(lower(g.detail' in text)
+    # I19 - tables compose only when asked for (persisted choice).
+    check("I19 tables on demand", "state showTables=false persist" in text)
+    # I20 - crest images carry an accessible name.
+    check("I20 crest labels", text.count("label:name") >= 3 and 'component Crest(' in text and 'component BannerLogo(' in text)
+    # I21 - live and zones carry text, not only colour.
+    check("I21 live and zone text", "isLive?S.liveWord" in text and 'tm.zlabel??""' in text)
+    # I22 - readable typographic floor.
+    check("I22 typographic floor", 'uiSize=="S"?12' in text and "fontSize:10;" not in text)
+    # I23 - score and round widths follow the font size.
+    check("I23 dynamic widths", 'width:max(18,len((hm.score' in text and 'width:max(30,fz*2)' in text)
+    # I24 - the tile minimum fits the header and five teams.
+    check("I24 tile minimum", "minSize:5x4" in text)
+    # I25 - one membership scan; base derives from allMine.
+    check("I25 single membership predicate", text.count("let allMine=") == 1 and 'let base=team=="ALL"?allMine' in text)
+    # I26 - stable list keys.
+    check("I26 stable keys",
+          "for t in myTeams key t.key{" in text
+          and 'key (tm.abbr??"")+":"+((tm.rank??0)+"")' in text)
+    # I31 - language follows the phone; display size stays persisted.
+    check("I31 language and settings",
+          'state lang=startsWith(lower(lang()),"fr")' in text and 'state uiSize="M"persist' in text)
+    # I32/I33 - legal notice and measurement report exist.
+    check("I32 license and data notice",
+          (ROOT / "LICENSE").exists() and (ROOT / "docs" / "data-notice.md").exists())
+    check("I33 measurement report", (ROOT / "docs" / "measurements-v5.10.0.md").exists())
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)
@@ -163,7 +195,7 @@ def main():
     ci = ROOT / "scripts" / "ci.sh"
     ci_text = ci.read_text(encoding="utf-8") if ci.exists() else ""
     check("I10 portable CI harness",
-          ci.exists() and os.access(ci, os.X_OK) and "./tests/run.sh" in ci_text)
+          ci.exists() and os.access(ci, os.X_OK) and ("./tests/run.sh" in ci_text or "./tests/run-all.sh" in ci_text))
     workflow = ROOT / ".github" / "workflows" / "ci.yml"
     template = ROOT / "docs" / "ci-workflow.yml"
     template_text = template.read_text(encoding="utf-8") if template.exists() else ""

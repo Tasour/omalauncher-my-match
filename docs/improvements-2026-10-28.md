@@ -85,30 +85,50 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   ou coup d'envoi à ±2 h) choisit `liveCmd` ; hors fenêtre la source n'exécute
   qu'un `printf` JSON minimal (plus de shell/jq/lecture de caches chaque
   minute), et le passage dans la fenêtre change la commande → run immédiat.
-- `I16` Remplacer les journées estimées par les rounds ESPN quand disponibles (FOOT-02).
-- `I17` Gérer reports/annulations et agrégats aller-retour (FOOT-03, FOOT-04).
+- **Fait — I16** Les rounds ESPN (`get(rounds,g.id)`, `g.round`) priment déjà sur
+  l'estimation ; garde-fou et test ajoutés (FOOT-02).
+- **Partiel — I17** Reports/annulations/suspensions explicites (statut ESPN
+  conservé et affiché, rétention des `pre` marqués) (FOOT-04). Les agrégats
+  aller/retour (FOOT-03) ne sont pas implémentés : le flux `knock` actuel ne
+  porte pas le contrat série ; à faire avec un fixture ESPN dédié.
 
 ### Rendu et accessibilité
 
-- `I18` Passer les listes d'écran en `lazy:true` (RENDER-01).
-- `I19` Ouvrir les classements à la demande et les rendre lazy (RENDER-02).
-- `I20` Ajouter les libellés des logos et des contrôles (A11Y-01, A11Y-02).
-- `I21` Ajouter un texte aux zones et au live, pas seulement une couleur (A11Y-03).
-- `I22` Relever le plancher typographique et tester les tailles système (VIS-02, A11Y-04).
-- `I23` Remplacer les largeurs fixes de scores/tours (VIS-01).
-- `I24` Ajouter un mode compact 3×3 ou passer le minimum à 5×4 (UX-02).
+- **Reporté — I18** Listes `lazy` : nécessite un refactor d'écran (en-tête fixe
+  + `Column{lazy:true}` avec `for` direct) et une validation device ; non fait
+  pour ne pas livrer un rendu non testé (RENDER-01).
+- **Fait — I19** `showTables=false persist` : les classements se composent à la
+  demande (RENDER-02) ; le lazy des tables reste lié à I18.
+- **Partiel — I20** `label` sur les `Image` des écussons (Crest/BannerLogo) ;
+  les contrôles `Canvas` (refresh, flèches) ne sont pas convertis en `Button`
+  faute de validation visuelle (A11Y-01/02).
+- **Fait — I21** Zones nommées dans le tableau large et « en direct » dans le
+  détail live, plus seulement la couleur (A11Y-03).
+- **Fait — I22** Plancher 12 en taille S, tags à 11, largeurs dynamiques ;
+  la taille système Android reste hors du contrôle OWL (VIS-02/A11Y-04 partiel).
+- **Fait — I23** Largeurs score/détail/tour calculées depuis `fz` (VIS-01).
+- **Fait — I24** `minSize:5x4` : plus de 3×3 illisible (UX-02).
 
 ### Architecture et qualité
 
-- `I25` Fusionner `base`/`allMine`, indexer historique et formes (OWL-02, OWL-03, RENDER-03).
-- `I26` Utiliser `t.key` et des clés de table stables (OWL-04).
-- `I27` Ajouter des tests pour `scheds`, `teamsDb`, `extra`, `knock`, `nextup`, `histfull` (QA-01).
-- `I28` Ajouter les fixtures 429/offline/JSON tronqué/trop gros (QA-03).
-- `I29` Ajouter un test de concurrence/atomicité des caches (QA-04).
-- `I30` Extraire les scripts et réduire le monolithe (OWL-01, MAINT-02).
-- `I31` Persister les réglages secondaires et compléter l'i18n (PROD-03, I18N-02..04).
-- `I32` Ajouter LICENSE, attribution ESPN et notice de données (LEGAL-01..03, MAINT-04).
-- `I33` Rejouer les mesures device sur v5.10.0 (ENERGY-03).
+- **Partiel — I25** `base` dérivé d'`allMine` (un seul prédicat d'appartenance) ;
+  l'index historique/formes (OWL-03, RENDER-03) reste à faire.
+- **Fait — I26** Clés stables `t.key`, `abbr:rank` pour les lignes de tableau (OWL-04).
+- **Fait — I27** `tests/test-sources.sh` : scheds, teamsDb, extra, knock, nextup,
+  histfull + fixtures ; repli cache (QA-01).
+- **Fait — I28** `tests/test-degraded.sh` : 429/500/503/offline/tronqué/trop gros (QA-03).
+- **Fait — I29** `tests/test-cache-concurrency.sh` : deux rafraîchissements
+  concurrents laissent JSON + méta valides, sans `.tmp` (QA-04).
+- **Reporté — I30** Extraction des scripts / réduction du monolithe : plan
+  documenté, refactor non fait (risque élevé sans validation device).
+- **Partiel — I31** Langue initiale depuis `lang()` et réglages déjà persistés ;
+  `showSettings` reste volontairement limité à la session, et l'i18n des
+  libellés ESPN inconnus n'est pas exhaustif (I18N-02..04).
+- **Fait — I32** `LICENSE` MIT, `docs/data-notice.md` (source ESPN, absence
+  d'affiliation, données locales, effacement), README mis à jour.
+- **Partiel — I33** Preuves hors appareil (owl-check, `tests/run-all.sh`, modèle
+  de requêtes) et protocole complet dans `docs/measurements-v5.10.0.md` ;
+  décharge/ADB non exécutées (aucun appareil attaché).
 
 ## Protocole de validation
 

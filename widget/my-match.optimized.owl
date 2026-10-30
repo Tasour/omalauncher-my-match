@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
-minSize:3x3
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.10.0";license:"MIT";category:"sport";owl:11}
+minSize:5x4
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.10.0";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1412,8 +1412,8 @@ source histfull=cmd("""
   """)every 24h json timeout 300s status
 source slow=clock every 1h
 source spr=file("~/.cache/espn-logos/sprite.json")json
-state lang="en"persist
-let S=lang=="fr"?{tabMine:"Mes matchs",tabRiv:"Rivaux",tabTop5:"Top 5",tabEurope:"Europe",loading:"chargement…",close:"fermer",settings:"réglages",hide:"masquer",refreshing:"actualisation… ",failP:"✗ échec · ",fail:"✗ échec",degraded:"données dégradées",health:"santé des sources",sourceErr:"source en échec",tapRefresh:"actualiser les données",noMatchTeam:"aucun match pour cette équipe",upLive:"· en direct / à venir ·",upcoming:"· à venir ·",liveWord:"en direct",liveNowB:"en direct maintenant",startingNow:"ça commence maintenant !",kickoffIn:"coup d'envoi dans ",inPrep:"dans ",kickStart:"Ça commence ",finals:"Finales",stgPO:"Barrages",stg16:"8es",stgQF:"Quarts",stgSF:"Demies",stgF:"Finale",team:"équipe",playedHdr:"J",wHdr:"V",dHdr:"N",lHdr:"D",bfHdr:"BP:BC",gdHdr:"+/-",pts:"Pts",rivSuffix:" · concurrents",tapAll:"toucher pour tout voir",seasonOver:"saison terminée",noUpcoming:"aucun match à venir",noResults:"aucun résultat",noRecent:"aucun résultat récent",chooseTeams:"Choisir mes équipes (1-5)",welcome:"Bienvenue — choisis tes équipes",myTeamsT:"Mes équipes",range:"1 minimum, 5 maximum",searchClub:"Rechercher un club ou une sélection…",maxFiveHint:"Maximum 5 — retire une équipe pour en changer",loadingTeams:"chargement des équipes…",noTeams:"aucune équipe trouvée",cancel:"Annuler",validate:"Valider",pickOne:"Choisis au moins 1 équipe",maxBtn:"Maximum 5 équipes",notifT:"Mes équipes",notifX:"Sélectionne entre 1 et 5 équipes",displaySize:"taille d'affichage",myTeams:"mes équipes",nonePick:"aucune — choisis tes équipes",editTeams:"modifier mes équipes",rivMatches:"Concurrents · matchs",fixturesLoading:"affiches à venir en chargement…",upcomingHdr:"À venir",noMatchDay:"aucun match cette journée",standingsLoading:"classements en chargement…",noStandings:"aucun classement",stOn:"classements : oui",stOff:"classements : non",top5Matches:"Top 5 · matchs",euroMatches:"Europe · matchs",bracket:"Arbre du tournoi",bracketLoading:"arbre en chargement…",leaguePhase:"phase de ligue en cours — l'arbre apparaîtra à la fin",noMatchAny:"aucun match"}:{tabMine:"My matches",tabRiv:"Rivals",tabTop5:"Top 5",tabEurope:"Europe",loading:"loading…",close:"close",settings:"settings",hide:"hide",refreshing:"refreshing… ",failP:"✗ failed · ",fail:"✗ failed",degraded:"degraded data",health:"source health",sourceErr:"source failed",tapRefresh:"tap to refresh",noMatchTeam:"no match for this team",upLive:"· live / upcoming ·",upcoming:"· upcoming ·",liveWord:"live",liveNowB:"live now",startingNow:"starting now!",kickoffIn:"kick-off in ",inPrep:"in ",kickStart:"Starts at ",finals:"Finals",stgPO:"PO",stg16:"R16",stgQF:"QF",stgSF:"SF",stgF:"Final",team:"team",playedHdr:"MP",wHdr:"W",dHdr:"D",lHdr:"L",bfHdr:"GF:GA",gdHdr:"GD",pts:"Pts",rivSuffix:" · rivals",tapAll:"tap to see all",seasonOver:"season over",noUpcoming:"no upcoming match",noResults:"no result",noRecent:"no recent result",chooseTeams:"Choose my teams (1-5)",welcome:"Welcome — pick your teams",myTeamsT:"My teams",range:"1 min, 5 max",searchClub:"Search a club or national side…",maxFiveHint:"Max 5 — remove a team to change",loadingTeams:"loading teams…",noTeams:"no team found",cancel:"Cancel",validate:"Done",pickOne:"Pick at least 1 team",maxBtn:"Max 5 teams",notifT:"My teams",notifX:"Select 1 to 5 teams",displaySize:"display size",myTeams:"my teams",nonePick:"none — pick your teams",editTeams:"edit my teams",rivMatches:"Rivals · matches",fixturesLoading:"upcoming fixtures loading…",upcomingHdr:"Upcoming",noMatchDay:"no match this matchday",standingsLoading:"standings loading…",noStandings:"no standings",stOn:"standings: yes",stOff:"standings: no",top5Matches:"Top 5 · matches",euroMatches:"Europe · matches",bracket:"Tournament bracket",bracketLoading:"bracket loading…",leaguePhase:"league phase underway — the bracket appears at the end",noMatchAny:"no match"}
+state lang=startsWith(lower(lang()),"fr")?"fr":"en"persist
+let S=lang=="fr"?{tabMine:"Mes matchs",tabRiv:"Rivaux",tabTop5:"Top 5",tabEurope:"Europe",loading:"chargement…",close:"fermer",settings:"réglages",hide:"masquer",refreshing:"actualisation… ",failP:"✗ échec · ",fail:"✗ échec",postponed:"reporté",cancelled:"annulé",suspended:"suspendu",degraded:"données dégradées",health:"santé des sources",sourceErr:"source en échec",tapRefresh:"actualiser les données",noMatchTeam:"aucun match pour cette équipe",upLive:"· en direct / à venir ·",upcoming:"· à venir ·",liveWord:"en direct",liveNowB:"en direct maintenant",startingNow:"ça commence maintenant !",kickoffIn:"coup d'envoi dans ",inPrep:"dans ",kickStart:"Ça commence ",finals:"Finales",stgPO:"Barrages",stg16:"8es",stgQF:"Quarts",stgSF:"Demies",stgF:"Finale",team:"équipe",playedHdr:"J",wHdr:"V",dHdr:"N",lHdr:"D",bfHdr:"BP:BC",gdHdr:"+/-",pts:"Pts",rivSuffix:" · concurrents",tapAll:"toucher pour tout voir",seasonOver:"saison terminée",noUpcoming:"aucun match à venir",noResults:"aucun résultat",noRecent:"aucun résultat récent",chooseTeams:"Choisir mes équipes (1-5)",welcome:"Bienvenue — choisis tes équipes",myTeamsT:"Mes équipes",range:"1 minimum, 5 maximum",searchClub:"Rechercher un club ou une sélection…",maxFiveHint:"Maximum 5 — retire une équipe pour en changer",loadingTeams:"chargement des équipes…",noTeams:"aucune équipe trouvée",cancel:"Annuler",validate:"Valider",pickOne:"Choisis au moins 1 équipe",maxBtn:"Maximum 5 équipes",notifT:"Mes équipes",notifX:"Sélectionne entre 1 et 5 équipes",displaySize:"taille d'affichage",myTeams:"mes équipes",nonePick:"aucune — choisis tes équipes",editTeams:"modifier mes équipes",rivMatches:"Concurrents · matchs",fixturesLoading:"affiches à venir en chargement…",upcomingHdr:"À venir",noMatchDay:"aucun match cette journée",standingsLoading:"classements en chargement…",noStandings:"aucun classement",stOn:"classements : oui",stOff:"classements : non",top5Matches:"Top 5 · matchs",euroMatches:"Europe · matchs",bracket:"Arbre du tournoi",bracketLoading:"arbre en chargement…",leaguePhase:"phase de ligue en cours — l'arbre apparaîtra à la fin",noMatchAny:"aucun match"}:{tabMine:"My matches",tabRiv:"Rivals",tabTop5:"Top 5",tabEurope:"Europe",loading:"loading…",close:"close",settings:"settings",hide:"hide",refreshing:"refreshing… ",failP:"✗ failed · ",fail:"✗ failed",postponed:"postponed",cancelled:"cancelled",suspended:"suspended",degraded:"degraded data",health:"source health",sourceErr:"source failed",tapRefresh:"tap to refresh",noMatchTeam:"no match for this team",upLive:"· live / upcoming ·",upcoming:"· upcoming ·",liveWord:"live",liveNowB:"live now",startingNow:"starting now!",kickoffIn:"kick-off in ",inPrep:"in ",kickStart:"Starts at ",finals:"Finals",stgPO:"PO",stg16:"R16",stgQF:"QF",stgSF:"SF",stgF:"Final",team:"team",playedHdr:"MP",wHdr:"W",dHdr:"D",lHdr:"L",bfHdr:"GF:GA",gdHdr:"GD",pts:"Pts",rivSuffix:" · rivals",tapAll:"tap to see all",seasonOver:"season over",noUpcoming:"no upcoming match",noResults:"no result",noRecent:"no recent result",chooseTeams:"Choose my teams (1-5)",welcome:"Welcome — pick your teams",myTeamsT:"My teams",range:"1 min, 5 max",searchClub:"Search a club or national side…",maxFiveHint:"Max 5 — remove a team to change",loadingTeams:"loading teams…",noTeams:"no team found",cancel:"Cancel",validate:"Done",pickOne:"Pick at least 1 team",maxBtn:"Max 5 teams",notifT:"My teams",notifX:"Select 1 to 5 teams",displaySize:"display size",myTeams:"my teams",nonePick:"none — pick your teams",editTeams:"edit my teams",rivMatches:"Rivals · matches",fixturesLoading:"upcoming fixtures loading…",upcomingHdr:"Upcoming",noMatchDay:"no match this matchday",standingsLoading:"standings loading…",noStandings:"no standings",stOn:"standings: yes",stOff:"standings: no",top5Matches:"Top 5 · matches",euroMatches:"Europe · matches",bracket:"Tournament bracket",bracketLoading:"bracket loading…",leaguePhase:"league phase underway — the bracket appears at the end",noMatchAny:"no match"}
 let JP=lang=="fr"?"J":"MD"
 let agoP=lang=="fr"?"il y a ":""
 let agoS=lang=="fr"?"":" ago"
@@ -1446,7 +1446,7 @@ state view="MINE"persist
 state topLg="ALL"persist
 state euroLg="uefa.europa"persist
 state selJ=-1
-state showTables=true persist
+state showTables=false persist
 let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:scheds},{n:"standings",s:standings},{n:"teamsDb",s:teamsDb},{n:"extra",s:extra},{n:"liveM",s:liveM},{n:"knock",s:knock},{n:"nextup",s:nextup},{n:"histfull",s:histfull}]
 let healthLabel=lang=="fr"?{games:"matchs",seasonAll:"saison",scheds:"journées",standings:"classements",teamsDb:"équipes",extra:"calendrier",liveM:"direct",knock:"arbre",nextup:"à venir",histfull:"historique"}:{games:"games",seasonAll:"season",scheds:"matchdays",standings:"tables",teamsDb:"teams",extra:"fixtures",liveM:"live",knock:"bracket",nextup:"upcoming",histfull:"history"}
 let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
@@ -1515,21 +1515,21 @@ let selTeam=myTeams.find(t=>t.abbr==team)??null
 let setupNeeded=count(myTeams)==0||showTeams
 let gAdv=(games.out??[]).filter(g=>g.state!='pre'||!(extra.out??[]).any(e=>e.id==g.id))
 let eKeep=(extra.out??[]).filter(e=>!gAdv.any(g=>g.id==e.id))
-let all=flatten([gAdv,eKeep,(seasonAll.out??[]).filter(s=>!gAdv.any(g=>g.id==s.id)&&!eKeep.any(e=>e.id==s.id))]).filter(g=>g.state!='pre'||g.at>now-7200).sortBy(g=>g.at)
+let all=flatten([gAdv,eKeep,(seasonAll.out??[]).filter(s=>!gAdv.any(g=>g.id==s.id)&&!eKeep.any(e=>e.id==s.id))]).filter(g=>g.state!='pre'||g.at>now-7200||contains(lower(g.detail??""),"postpon")||contains(lower(g.detail??""),"cancel")||contains(lower(g.detail??""),"susp")).sortBy(g=>g.at)
 let rounds=scheds.out.rounds??{}
 let anchors=scheds.out.anchors??{}
 let eurBase=all.filter(g=>g.league=='uefa.europa').sortBy(g=>g.at)
 let eurIds=eurBase.map(g=>g.id)
 let tables=standings.out??[]
 let live=all.filter(g=>g.state=='in')
-let base=all.filter(g=>count(myTeams)>0&&(team=="ALL"?(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):(g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((count(g.tids??[])>0&&selTeam!=null&&(selTeam.tid??"")!=""?(g.tids??[]).any(s=>s==selTeam.tid):(g.squads??[]).any(s=>s==team))&&(selTeam==null||(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c")))))
+let allMine=all.filter(g=>count(myTeams)>0&&(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c"))))))
+let base=team=="ALL"?allMine:allMine.filter(g=>((count(g.tids??[])>0&&selTeam!=null&&(selTeam.tid??"")!=""?(g.tids??[]).any(s=>s==selTeam.tid):(g.squads??[]).any(s=>s==team))&&(selTeam==null||(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c"))))
 let baseF=base
 let liveF=baseF.filter(g=>g.state=='in')
 let nextF=baseF.filter(g=>g.state=='pre')
 let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
 let upTile=count(upShow)<=8?upShow:upShow.take(8)
-let allMine=all.filter(g=>count(myTeams)>0&&(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c"))))))
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
 let kickSoon=first(allMine.filter(g=>g.state=="pre"&&g.at>now).sortBy(g=>g.at))
@@ -1559,7 +1559,7 @@ let liveWarn=liveAge!=null&&liveAge>900?" · "+(lang=="fr"?"màj ":"updated ")+a
 let total=count(baseF)
 let pastTake=count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at)
 let wide=max(max(screenWidth??0,tileWidth??0),240)>=280
-let fz=uiSize=="S"?11:uiSize=="L"?15:uiSize=="XL"?17:13
+let fz=uiSize=="S"?12:uiSize=="L"?15:uiSize=="XL"?17:13
 let heroH=heroMatch==null||heroMatch.home==null?"":(myTeams.find(t=>t.abbr==heroMatch.home.abbr).short??(wide?(heroMatch.home.name??heroMatch.home.abbr):heroMatch.home.abbr))
 let heroA=heroMatch==null||heroMatch.away==null?"":(myTeams.find(t=>t.abbr==heroMatch.away.abbr).short??(wide?(heroMatch.away.name??heroMatch.away.abbr):heroMatch.away.abbr))
 let heroHLogo=heroMatch==null||heroMatch.home==null?"":heroMatch.home.logo??""
@@ -1668,7 +1668,7 @@ let sprOk=spr!=null&&(spr.cell??0)>0&&(spr.w??0)>0
 component Rule(){
 Spacer{height:1;fill:width;background:alpha(muted,0.25)}
 }
-component Crest(logo=null,art=null,px=16){
+component Crest(logo=null,art=null,px=16,name=""){
 Box{
 size:px
 radius:px>20?6:4
@@ -1676,7 +1676,7 @@ background:alpha(muted,0.18)
 clip:true
 let si=logo==null?-1:(sprOk?get(spr.idx??{},logo,-1):-1)
 if art{
-Image{src:art;size:px;fit:contain}
+Image{src:art;size:px;fit:contain;label:name}
 }else if si>=0{
 Canvas{
 size:px
@@ -1686,7 +1686,7 @@ let rr=floor(si/spr.cols)
 clip(0,0,px,px){image(sprPath,0-cc*px,0-rr*px,spr.w*sc,spr.h*sc)}
 }
 }else if logo{
-Image{src:"~/.cache/espn-logos/soccer/${logo}";size:px;fit:contain}
+Image{src:"~/.cache/espn-logos/soccer/${logo}";size:px;fit:contain;label:name}
 }else{
 Box{size:px;radius:4;background:alpha(muted,0.18)}
 }
@@ -1703,6 +1703,9 @@ align:center
 Box{width:3;height:14;radius:1.5;background:tm.zone=='green'?"#22c55e":tm.zone=='blue'?"#3b82f6":tm.zone=='orange'?"#f59e0b":tm.zone=='red'?"#ef4444":rgb(0,0,0,0)}
 Text{text:tm.rank;width:wide?20:10;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
 Text{text:wide?tm.name:tm.abbr;weight:1;fontSize:wide?fz:fz-2;maxLines:1;bold:ours;color:ours?pop:foreground}
+if wide{
+Text{text:tm.zlabel??"";style:label;color:soft;width:46;maxLines:1}
+}
 Text{text:tm.played;width:wide?20:10;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
 Text{text:tm.won;width:wide?18:9;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
 Text{text:tm.drawn;width:wide?18:9;fontSize:wide?fz:fz-2;color:soft;align:end;maxLines:1}
@@ -1738,7 +1741,7 @@ Text{text:S.bfHdr;width:40;style:label;color:soft;align:end}
 Text{text:S.gdHdr;width:wide?26:18;style:label;color:soft;align:end}
 Text{text:S.pts;width:wide?28:17;style:label;color:soft;align:end}
 }
-for tm in u.teams key tm.abbr{TableRow{tm:tm}}
+for tm in u.teams key (tm.abbr??"")+":"+((tm.rank??0)+""){TableRow{tm:tm}}
 if count(u.legend??[])>0{
 Flow{
 gap:8
@@ -1786,7 +1789,7 @@ let full=count(draft)>=5&&!inD
 Row{
 gap:8
 align:center
-Crest{logo:r.logo;px:24}
+Crest{logo:r.logo;px:24;name:r.name??r.short??r.abbr}
 Column{
 weight:1;gap:0
 Text{text:r.name;style:small;maxLines:1}
@@ -1848,24 +1851,26 @@ let slot=fz
 let cpc=fz*8/13
 let mwid=(compact?116:124)+2*slot
 let dstr=fmtTime(g.at,compact?"EEE d/MM":"EEE d MMM",null,lang)
+let gdet=lower(g.detail??"")
+let special=contains(gdet,"postpon")?S.postponed:contains(gdet,"cancel")?S.cancelled:contains(gdet,"susp")?S.suspended:""
 let dtw=len(dstr??"")*5.2+1
 Row{
 gap:2
 align:center
 Column{
 width:22;gap:0
-Text{text:g.tag;fontSize:10;color:soft;maxLines:1}
+Text{text:g.tag;fontSize:11;color:soft;maxLines:1}
 }
-Crest{logo:hm.logo;px:16}
+Crest{logo:hm.logo;px:16;name:hm.name??hm.abbr}
 Text{text:hmOurs?(myTeams.find(t=>t.abbr==hm.abbr).short??hm.abbr):wide?hm.name:hm.abbr;fontSize:fz;weight:1;maxLines:1;bold:hmOurs;color:hmOurs?pop:final&&aw.winner?soft:foreground}
 if g.state=='pre'&&!compact{
 Column{
 width:mwid;gap:0;align:center
 Text{text:fmtTime(g.at,"EEE d MMM HH:mm",null,lang);fontSize:fz;align:center;color:foreground;maxLines:1}
-Text{text:"("+S.inPrep+fmtDuration(max(g.at-now,0))+")";style:label;align:center;color:soft;maxLines:1}
+Text{text:special!=""?special:"("+S.inPrep+fmtDuration(max(g.at-now,0))+")";style:label;align:center;color:soft;maxLines:1}
 }
 }else if g.state=='pre'{
-Text{text:fmtTime(g.at,"EEE d/MM HH:mm",null,lang);fontSize:fz;width:mwid;align:center;color:soft;maxLines:1}
+Text{text:special!=""?special:fmtTime(g.at,"EEE d/MM HH:mm",null,lang);fontSize:fz;width:mwid;align:center;color:soft;maxLines:1}
 }else if final{
 Row{
 width:mwid;gap:1;align:center;justify:center
@@ -1886,16 +1891,16 @@ FormChip{l:res;px:fz}
 }else{
 Row{
 width:mwid;gap:2;align:center;justify:center
-Text{text:hm.score??"?";fontSize:fz;font:mono;width:18;align:end;bold:hmOurs&&isLive;color:isLive?"#22c55e":foreground}
+Text{text:hm.score??"?";fontSize:fz;font:mono;width:max(18,len((hm.score??"?")+"")*cpc);align:end;bold:hmOurs&&isLive;color:isLive?"#22c55e":foreground}
 Box{width:6;height:6;radius:3;background:isLive?"#22c55e":rgb(0,0,0,0)}
-Text{text:g.detail;style:label;width:38;align:center;color:isLive?"#22c55e":soft;maxLines:1}
+Text{text:isLive?S.liveWord+" "+g.detail:g.detail;style:label;width:max(38,fz*3);align:center;color:isLive?"#22c55e":soft;maxLines:1}
 Box{width:6}
-Text{text:aw.score??"?";fontSize:fz;font:mono;width:18;align:start;bold:awOurs&&isLive;color:isLive?"#22c55e":foreground}
+Text{text:aw.score??"?";fontSize:fz;font:mono;width:max(18,len((aw.score??"?")+"")*cpc);align:start;bold:awOurs&&isLive;color:isLive?"#22c55e":foreground}
 }
 }
 Text{text:awOurs?(myTeams.find(t=>t.abbr==aw.abbr).short??aw.abbr):wide?aw.name:aw.abbr;fontSize:fz;weight:1;maxLines:1;align:end;bold:awOurs;color:awOurs?pop:final&&hm.winner?soft:foreground}
-Crest{logo:aw.logo;px:16}
-Text{text:rdt2;fontSize:10;color:soft;width:30;align:end;maxLines:1}
+Crest{logo:aw.logo;px:16;name:aw.name??aw.abbr}
+Text{text:rdt2;fontSize:11;color:soft;width:max(30,fz*2);align:end;maxLines:1}
 }
 }
 component LiveGame(g,compact=false){
@@ -1931,14 +1936,14 @@ FormChip{l:r;px:px}
 }
 }
 }
-component BannerLogo(logo=null,px=56){
+component BannerLogo(logo=null,px=56,name=""){
 Box{
 size:px
 fill:false
 clip:true
 background:rgb(0,0,0,0)
 if logo!=null&&logo!=""{
-Image{src:"~/.cache/espn-logos/soccer/${logo}";width:px;height:px;fit:contain}
+Image{src:"~/.cache/espn-logos/soccer/${logo}";width:px;height:px;fit:contain;label:name}
 }
 }
 }
@@ -1982,7 +1987,7 @@ Box{fill:width;padding:[10,8];radius:8*corners;border:1;borderColor:accent;backg
 Row{gap:8;align:center;fill:width
 BannerForm{t:heroMatch.home;lg:heroMatch.league}
 Column{weight:1;gap:1;align:center
-BannerLogo{logo:heroHLogo;px:56}
+BannerLogo{logo:heroHLogo;px:56;name:heroH}
 Text{text:heroH;bold:true;fontSize:fz;align:center;maxLines:1}
 Text{text:hRank==null?"":"#${hRank}";style:label;color:soft;align:center;maxLines:1}
 }
@@ -2007,7 +2012,7 @@ BannerOdd{l:"2";v:oa;tone:aTone}
 }
 }
 Column{weight:1;gap:1;align:center
-BannerLogo{logo:heroALogo;px:56}
+BannerLogo{logo:heroALogo;px:56;name:heroA}
 Text{text:heroA;bold:true;fontSize:fz;align:center;maxLines:1}
 Text{text:aRank==null?"":"#${aRank}";style:label;color:soft;align:center;maxLines:1}
 }
@@ -2049,7 +2054,7 @@ Text{text:lg.short;weight:1;align:center;style:label;maxLines:1;color:euroLg==lg
 Row{
 gap:4
 align:center
-for t in myTeams key t.abbr{
+for t in myTeams key t.key{
 Box{
 weight:1
 align:center
@@ -2062,7 +2067,7 @@ onTap:{team=team==t.abbr?"ALL":t.abbr;selJ=-1}
 Column{
 gap:3
 align:center
-Crest{logo:t.logo;px:26}
+Crest{logo:t.logo;px:26;name:t.name??t.short??t.abbr}
 FormStrip{t:t;px:count(myTeams)>3?11:15}
 }
 }
@@ -2225,7 +2230,7 @@ SetupBlock{}
 Row{
 gap:8
 align:center
-for t in myTeams key t.abbr{
+for t in myTeams key t.key{
 Box{
 weight:1
 align:center
@@ -2238,7 +2243,7 @@ onTap:{team=team==t.abbr?"ALL":t.abbr;selJ=-1}
 Column{
 gap:3
 align:center
-Crest{logo:t.logo;px:32}
+Crest{logo:t.logo;px:32;name:t.name??t.short??t.abbr}
 FormStrip{t:t;px:count(myTeams)>3?11:15}
 }
 }
@@ -2467,7 +2472,7 @@ Text{text:S.loading;style:body;color:soft}
 }else if gamesErr{
 Text{text:S.sourceErr+" "+(games.code??"");style:body;color:"#ef4444";align:center}
 }else if team=="ALL"{
-for t in myTeams key t.abbr{
+for t in myTeams key t.key{
 let gm=baseF.filter(g=>(g.squads??[]).any(s=>s==t.abbr))
 let tb=myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==t.abbr))
 let gmShown=gm
