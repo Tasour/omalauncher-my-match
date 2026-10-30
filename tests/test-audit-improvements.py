@@ -183,7 +183,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.1' in text
+          "S.apropos" in text and 'copy("my-match v5.14.2' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -236,6 +236,11 @@ def main():
     check("standings/fixtures migration",
           "state uiSchema=0 persist" in text and "when uiSchema<1" in text
           and "showTables=true;todayOnly=false;daySel=\"\"" in text)
+    check("tile fixtures before results",
+          "S.recent" in text
+          and text.find("for g in upTile key g.id") != -1
+          and text.find("for g in upTile key g.id") < text.find("for g in pastTake key g.id"))
+
     check("fixtures block under hero",
           "for g in upShow.take(8)" in text and "S.upcomingHdr" in text)
 
