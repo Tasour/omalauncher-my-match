@@ -2,7 +2,7 @@
 
 Référence : `AUD-2026-10-28-MYM-001`, widget v5.9.8, base Git `10801eb`.
 Règle : une amélioration = un commit poussé, un test de continuité, aucune
-fonctionnalité retirée. Le widget passe au lot **v5.10.0**.
+fonctionnalité retirée. Le widget passe au lot **v5.11.0** (lot 1 : I01–I10 ; lot 2 : I11–I33).
 
 ## Lot 1 — 10 premières améliorations
 
