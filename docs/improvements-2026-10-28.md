@@ -65,6 +65,13 @@ dépasser l'ancien budget de 300 s. Désormais un cache valide mais sans `.meta`
 est **adopté** (`cmark`) au lieu d'être jeté, et `seasonAll` dispose de 900 s.
 Test : `test-cache-meta.sh` vérifie l'adoption hors ligne (aucun refetch).
 
+## Tuile adaptative (2026-10-30)
+
+La tuile 7×12 s'arrêtait à 8 affiches alors qu'elle avait du vide. `tileRows`
+suit maintenant la hauteur en cellules : 8 (petite), 12 (moyenne), 60 (grande,
+liste scrollable). Le compteur `+N` ne reste que si le plafond est atteint ; il
+ouvre l'écran complet, qui garde toutes les rencontres.
+
 ## Backlog restant
 
 ### Fiabilité et données

@@ -1537,7 +1537,8 @@ let liveF=baseF.filter(g=>g.state=='in')
 let nextF=baseF.filter(g=>g.state=='pre')
 let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
-let upTile=count(upShow)<=8?upShow:upShow.take(8)
+let tileRows=(rows??4)>=10?60:(rows??4)>=6?12:8
+let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
 let kickSoon=first(allMine.filter(g=>g.state=="pre"&&g.at>now).sortBy(g=>g.at))
@@ -2104,7 +2105,7 @@ Text{text:S.noMatchTeam;style:small;color:soft}
 for g in pastTake key g.id{LiveGame{g:g;compact:true}}
 if count(upShow)>0{
 Rule{}
-Text{text:(count(liveF)>0?S.upLive:S.upcoming)+(count(upShow)>count(upTile)?" +"+(count(upShow)-count(upTile)):"");style:label;color:pop;align:center}
+Text{text:(count(liveF)>0?S.upLive:S.upcoming)+(count(upShow)>count(upTile)?" +"+(count(upShow)-count(upTile)):"");style:label;color:pop;align:center;onTap:screen()}
 for g in upTile key g.id{LiveGame{g:g;compact:true}}
 }
 }

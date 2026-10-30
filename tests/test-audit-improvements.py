@@ -69,7 +69,8 @@ def main():
 
     # I05 - the tile list is bounded, the full screen keeps everything.
     check("I05 tile bounded",
-          "let upTile=count(upShow)<=8?upShow:upShow.take(8)" in text
+          "let tileRows=(rows??4)>=10?60:(rows??4)>=6?12:8" in text
+          and "let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)" in text
           and "for g in upTile key g.id" in text
           and "for g in upShow key g.id" not in text)
     check("I05 hidden count shown", '" +"+(count(upShow)-count(upTile))' in text)
