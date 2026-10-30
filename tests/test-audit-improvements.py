@@ -50,7 +50,7 @@ def main():
     host_widgets = [ROOT / "widget" / name for name in (
         "ab-measure.owl", "ab-wrapper.owl", "fix-v59.owl")]
     host_aware = host_scripts + host_widgets
-    validation = "grep -Eq '^https?://[A-Za-z0-9._:-]+$'"
+    validation = "grep -Ex '^https?://[A-Za-z0-9._:-]+$'"
     check("I02 host override", len(host_aware) == 7,
           f"{len(host_aware)} fichier(s) OMA_BASE")
     check("I02 host validation",
@@ -59,7 +59,7 @@ def main():
           all('nohup sh -c \'curl -fsSL "$1/scripts/' in path.read_text(encoding="utf-8")
           for path in host_widgets))
     html = (ROOT / "scripts" / "guest-ab.html").read_text(encoding="utf-8")
-    check("I02 guest command carries host", "OMA_BASE=${location.origin}" in html)
+    check("I02 guest command carries host", "OMA_BASE='${location.origin}'" in html)
 
     # I03 - French copy uses the accented word.
     check("I03 French typography", 'team:"équipe"' in text and 'team:"equipe"' not in text)
@@ -68,7 +68,11 @@ def main():
     check("I04 showTables persisted", bool(re.search(r"state showTables=true\s+persist", text)))
 
     # I05 - the tile list is bounded, the full screen keeps everything.
-    check("I05 tile bounded", "let upTile=" in text and "for g in upTile key g.id" in text and "for g in upShow key g.id" not in text)
+    check("I05 tile bounded",
+          "let upTile=count(upShow)<=8?upShow:upShow.take(8)" in text
+          and "for g in upTile key g.id" in text
+          and "for g in upShow key g.id" not in text)
+    check("I05 hidden count shown", '" +"+(count(upShow)-count(upTile))' in text)
 
     # I06 - a first launch without teams does not fetch every standings table.
     first_scope = "TABLES=\"eng.1 esp.1 ger.1 ita.1 fra.1 uefa.champions uefa.europa uefa.europa.conf\""
@@ -78,9 +82,9 @@ def main():
     check("I07 scheds timeout",
           "source scheds=cmd(" in text and 'every 24h json timeout 300s status' in text)
     check("I07 standings timeout",
-          'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 240s status' in text)
+          'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 300s status' in text)
     check("I07 teamsDb timeout",
-          'every 168h json timeout 600s status' in text and '--connect-timeout 3 -fsm 6 -o "$d/$f"' in text)
+          'every 168h json timeout 900s status' in text and '--connect-timeout 3 -fsm 6 -o "$d/$f"' in text)
 
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
@@ -94,10 +98,14 @@ def main():
     status_names = ["seasonAll", "scheds", "standings", "teamsDb", "extra", "liveM", "knock", "nextup", "histfull"]
     missing_status = [name for name in status_names if " status" not in source_block(name)]
     check("I08 source status", not missing_status, ", ".join(missing_status))
-    check("I08 health visible", all(token in text for token in ["let healthTxt", "S.degraded", "S.health", "healthLine"]))
+    check("I08 health visible", all(token in text for token in ["let healthTxt", "let healthShort", "S.degraded", "S.health", "healthLine"]))
+    check("I08 error branches", all(token in text for token in ["let gamesErr", "let extraErr", "let nextErr", "S.sourceErr"]))
+    check("I08 readers use status.out",
+          all(f"{name}.out" in text for name in status_names)
+          and "(standings??[])" not in text and "(extra??[])" not in text)
 
     # I09 - the spinner no longer wakes the widget every second while idle.
-    check("I09 conditional spinner tick", "every 1s" not in text and "at spinAt{" in text and "spinAt=now+1" in text)
+    check("I09 conditional spinner tick", "every 1s" not in text and "at spinAt{if spinning{elapsed=elapsed+1;spinAt=spinAt+1}" in text)
 
     # I10 - one portable offline harness, plus a ready GitHub Actions template.
     ci = ROOT / "scripts" / "ci.sh"

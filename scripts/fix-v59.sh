@@ -11,8 +11,9 @@ BASE="${OMA_BASE:-}"
 if [ -z "$BASE" ] && [ -r "$HOME/.config/omalauncher/measure-base" ]; then
   BASE=$(head -n 1 "$HOME/.config/omalauncher/measure-base" 2>/dev/null | tr -d '\r')
 fi
-printf '%s' "$BASE" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
-GH="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/main"
+BASE=$(printf '%s' "$BASE" | tr -d '\r\n')
+printf '%s' "$BASE" | grep -Ex '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
+GH591="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/459ff1f/widget/my-match.optimized.owl"
 DIR="$HOME/.config/omalauncher/widgets"
 
 cd "$DIR" || { echo "no widgets dir"; exit 1; }
@@ -20,9 +21,7 @@ f=$(grep -l 'My Matches' *.owl 2>/dev/null | head -1)
 f=${f:-shared-my-matches-football.owl}
 echo "target=$f"
 
-if ! curl -fsSL --connect-timeout 10 --url "$BASE/widget/my-match.optimized.owl" -o /tmp/my-match.v59.owl; then
-  curl -fsSL --connect-timeout 20 "$GH/widget/my-match.optimized.owl" -o /tmp/my-match.v59.owl || exit 1
-fi
+curl -fsSL --connect-timeout 20 --url "$GH591" -o /tmp/my-match.v59.owl || exit 1
 grep -q 'version:"5.9.1"' /tmp/my-match.v59.owl || { echo "bad download"; exit 1; }
 
 cp /tmp/my-match.v59.owl .my-match.new && mv .my-match.new "$f"

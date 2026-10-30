@@ -9,6 +9,6 @@ widget "Fix my-match v5.9" {
     owl: 11
   }
   requires { pacman: ["curl"] }
-  source fix = cmd("""b=${OMA_BASE:-}; [ -n "$b" ] || b=$(head -n 1 ~/.config/omalauncher/measure-base 2>/dev/null | tr -d '\r'); b=${b:-http://127.0.0.1:1764}; printf '%s' "$b" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || b=http://127.0.0.1:1764; nohup sh -c 'curl -fsSL "$1/scripts/fix-v59.sh" -o /tmp/fix.sh && sh /tmp/fix.sh' sh "$b" >/tmp/fix.log 2>&1 & echo started""") every 1h
+  source fix = cmd("""b=${OMA_BASE:-}; [ -n "$b" ] || b=$(head -n 1 ~/.config/omalauncher/measure-base 2>/dev/null | tr -d '\r'); b=${b:-http://127.0.0.1:1764}; b=$(printf '%s' "$b" | tr -d '\r\n'); printf '%s' "$b" | grep -Ex '^https?://[A-Za-z0-9._:-]+$' || b=http://127.0.0.1:1764; nohup sh -c 'curl -fsSL "$1/scripts/fix-v59.sh" -o /tmp/fix.sh && sh /tmp/fix.sh' sh "$b" >/tmp/fix.log 2>&1 & echo started""") every 1h
   Text { text: "Installation v5.9.1 — 30 s, ne touche plus." }
 }

@@ -13,7 +13,8 @@ BASE="${OMA_BASE:-}"
 if [ -z "$BASE" ] && [ -r "$HOME/.config/omalauncher/measure-base" ]; then
   BASE=$(head -n 1 "$HOME/.config/omalauncher/measure-base" 2>/dev/null | tr -d '\r')
 fi
-printf '%s' "$BASE" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
+BASE=$(printf '%s' "$BASE" | tr -d '\r\n')
+printf '%s' "$BASE" | grep -Ex '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
 URL2="$BASE/widget/my-match.optimized.owl"
 if ! curl -fsSL --connect-timeout 10 --url "$URL1" -o .my-match.new; then
   echo "GitHub failed, trying local server..."

@@ -50,6 +50,6 @@ class Server(socketserver.ThreadingTCPServer):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 1764
     log(f"serving {ROOT} on 0.0.0.0:{port}")
     Server(("0.0.0.0", port), Handler).serve_forever()

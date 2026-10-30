@@ -11,6 +11,6 @@
 <p><button onclick="c.select();document.execCommand('copy');this.textContent='Copié ✓'" style="font:inherit;padding:.6em 1em;border-radius:6px;border:1px solid #666;background:#222;color:#eee">Copier la commande</button></p>
 <p style="color:#aaa">Le script mesure v5.7 puis v5.8 (30 s chacune), laisse v5.8 installé, et renvoie les résultats au PC. Si le bouton ne copie pas, sélectionne le texte à la main.</p>
 <script>
-document.getElementById("c").value = `curl -fsSL ${location.origin}/scripts/guest-ab-measure.sh -o /tmp/ab.sh && nohup env OMA_BASE=${location.origin} sh /tmp/ab.sh >/tmp/ab.log 2>&1 &`;
+document.getElementById("c").value = `curl -fsSL ${location.origin}/scripts/guest-ab-measure.sh -o /tmp/ab.sh && nohup env OMA_BASE='${location.origin}' sh /tmp/ab.sh >/tmp/ab.log 2>&1 &`;
 </script>
 </body>

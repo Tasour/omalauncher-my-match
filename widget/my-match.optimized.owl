@@ -565,7 +565,7 @@ let standingsScript="""    set -o pipefail
     cat "$tmp/merged.json"
     rm -rf "$tmp"
   """
-source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 240s status
+source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 300s status
 source teamsDb=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -651,7 +651,7 @@ source teamsDb=cmd("""
     wait
     cat "$tmp/teams.json"
     rm -rf "$tmp"
-  """)every 168h json timeout 600s status
+  """)every 168h json timeout 900s status
 source extra=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -1219,10 +1219,16 @@ state euroLg="uefa.europa"persist
 state selJ=-1
 state showTables=true persist
 let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:scheds},{n:"standings",s:standings},{n:"teamsDb",s:teamsDb},{n:"extra",s:extra},{n:"liveM",s:liveM},{n:"knock",s:knock},{n:"nextup",s:nextup},{n:"histfull",s:histfull}]
+let healthLabel=lang=="fr"?{games:"matchs",seasonAll:"saison",scheds:"journées",standings:"classements",teamsDb:"équipes",extra:"calendrier",liveM:"direct",knock:"arbre",nextup:"à venir",histfull:"historique"}:{games:"games",seasonAll:"season",scheds:"matchdays",standings:"tables",teamsDb:"teams",extra:"fixtures",liveM:"live",knock:"bracket",nextup:"upcoming",histfull:"history"}
 let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
-let healthTxt=join(healthBad.map(h=>h.n+" "+(h.s.code??"?"))," · ")
-let healthLine=join(healthList.map(h=>h.n+" "+(h.s==null?"…":(h.s.ok??false)?"✓":("✗"+(h.s.code??""))))," · ")
-at spinAt{if spinning{elapsed=elapsed+1;spinAt=now+1}else{spinAt=0}}
+let healthTxt=join(healthBad.map(h=>get(healthLabel,h.n,h.n)+" "+(h.s.code??"?"))," · ")
+let healthShort="⚠ "+count(healthBad)+" · "+S.degraded
+let healthLine=join(healthList.map(h=>get(healthLabel,h.n,h.n)+" "+(h.s==null?"…":(h.s.ok??false)?"✓":("✗"+(h.s.code??""))))," · ")
+let gamesErr=games!=null&&!(games.ok??true)
+let extraErr=extra!=null&&!(extra.ok??true)
+let nextErr=nextup!=null&&!(nextup.ok??true)
+let histErr=histfull!=null&&!(histfull.ok??true)
+at spinAt{if spinning{elapsed=elapsed+1;spinAt=spinAt+1}else{spinAt=0}}
 on games{
 lastDur=spinning?elapsed:lastDur
 lastOk=(games.ok??false)
@@ -1790,8 +1796,8 @@ Text{text:m.short;weight:1;align:center;style:label;maxLines:1;color:view==m.id?
 }
 }
 Rule{}
-if healthTxt!=""{
-Text{text:"⚠ "+S.degraded+" · "+healthTxt;style:label;color:"#ef4444";align:center;maxLines:1;onTap:screen()}
+if healthTxt!=""&&!setupNeeded{
+Text{text:healthShort;padding:4;style:label;color:"#ef4444";align:center;maxLines:1;onTap:screen()}
 }
 if view=="TOP5"{
 Row{
@@ -1845,13 +1851,15 @@ weight:1
 scroll:true
 if games==null{
 Text{text:S.loading;style:small;color:soft}
+}else if gamesErr{
+Text{text:S.sourceErr+" "+(games.code??"");style:small;color:"#ef4444";align:center}
 }else if total==0{
 Text{text:S.noMatchTeam;style:small;color:soft}
 }else{
 for g in pastTake key g.id{LiveGame{g:g;compact:true}}
 if count(upShow)>0{
 Rule{}
-Text{text:count(liveF)>0?S.upLive:S.upcoming;style:label;color:pop;align:center}
+Text{text:(count(liveF)>0?S.upLive:S.upcoming)+(count(upShow)>count(upTile)?" +"+(count(upShow)-count(upTile)):"");style:label;color:pop;align:center}
 for g in upTile key g.id{LiveGame{g:g;compact:true}}
 }
 }
@@ -1863,6 +1871,8 @@ scroll:true
 Text{text:rivLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
 if extra==null&&nextup==null{
 Text{text:S.loading;style:small;color:soft}
+}else if extraErr&&nextErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(rivalsTile)==0{
 Text{text:S.noRecent;style:small;color:soft}
 }else{
@@ -1876,6 +1886,8 @@ scroll:true
 Text{text:euroLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
 if extra==null&&nextup==null&&histfull==null{
 Text{text:S.loading;style:small;color:soft}
+}else if extraErr&&nextErr&&histErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if euroCurJ!=null&&euroMaxJ!=null{
 if euroHero!=null{
 LiveGame{g:euroHero;compact:true}
@@ -1914,6 +1926,8 @@ scroll:true
 Text{text:(topLg=="ALL"?topLabel:topLabel+" · "+S.tapAll)+liveWarn;style:label;color:topLg=="ALL"?soft:pop;align:center;maxLines:1;onTap:topLg="ALL"}
 if extra==null&&nextup==null&&histfull==null{
 Text{text:S.loading;style:small;color:soft}
+}else if extraErr&&nextErr&&histErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if curLg!=null&&maxJ!=null&&curJ!=null{
 if topHero!=null{
 LiveGame{g:topHero;compact:true}
@@ -1957,8 +1971,8 @@ text:(spinning?S.refreshing+elapsed+"s":lastOk==true?"✓ ${max(lastDur ?? 0, 0)
 style:small;color:spinning?"#22c55e":lastOk==false?"#ef4444":soft
 align:center;maxLines:1
 }
-if healthTxt!=""{
-Text{text:"⚠ "+S.degraded+" · "+healthTxt;style:small;color:"#ef4444";align:center;maxLines:2}
+if healthTxt!=""&&!setupNeeded{
+Text{text:healthShort;style:small;color:"#ef4444";align:center;maxLines:1}
 }
 Row{
 gap:6
@@ -2058,12 +2072,16 @@ Text{text:S.rivMatches;style:label;color:pop}
 Text{text:rivLabel;style:small;color:soft}
 if nextup==null{
 Text{text:S.fixturesLoading;style:small;color:soft}
+}else if nextErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(rivalsNext)>0{
 Text{text:S.upcomingHdr;style:label;color:pop}
 for g in rivalsNext key g.id{LiveGame{g:g}}
 }
 if extra==null{
 Text{text:S.loading;style:body;color:soft}
+}else if extraErr{
+Text{text:S.sourceErr+" "+(extra.code??"");style:body;color:"#ef4444";align:center}
 }else if curLg!=null&&maxJ!=null{
 Row{
 gap:6
@@ -2099,12 +2117,16 @@ Text{text:S.top5Matches;style:label;color:pop}
 Text{text:topLabel+liveWarn;style:small;color:soft}
 if nextup==null{
 Text{text:S.fixturesLoading;style:small;color:soft}
+}else if nextErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(topNext)>0{
 Text{text:S.upcomingHdr;style:label;color:pop}
 for g in topNext key g.id{LiveGame{g:g}}
 }
 if extra==null{
 Text{text:S.loading;style:body;color:soft}
+}else if extraErr{
+Text{text:S.sourceErr+" "+(extra.code??"");style:body;color:"#ef4444";align:center}
 }else if curLg!=null&&maxJ!=null{
 Row{
 gap:6
@@ -2140,12 +2162,16 @@ Text{text:S.euroMatches;style:label;color:pop}
 Text{text:euroLabel+liveWarn;style:small;color:soft}
 if nextup==null{
 Text{text:S.fixturesLoading;style:small;color:soft}
+}else if nextErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(euroNext)>0{
 Text{text:S.upcomingHdr;style:label;color:pop}
 for g in euroNext key g.id{LiveGame{g:g}}
 }
 if extra==null{
 Text{text:S.loading;style:body;color:soft}
+}else if extraErr{
+Text{text:S.sourceErr+" "+(extra.code??"");style:body;color:"#ef4444";align:center}
 }else if euroCurJ!=null&&euroMaxJ!=null{
 Row{
 gap:6
@@ -2194,6 +2220,8 @@ for g in sm key g.id{LiveGame{g:g}}
 }
 }else if games==null{
 Text{text:S.loading;style:body;color:soft}
+}else if gamesErr{
+Text{text:S.sourceErr+" "+(games.code??"");style:body;color:"#ef4444";align:center}
 }else if team=="ALL"{
 for t in myTeams key t.abbr{
 let gm=baseF.filter(g=>(g.squads??[]).any(s=>s==t.abbr))

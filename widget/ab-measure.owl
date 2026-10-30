@@ -9,6 +9,6 @@ widget "A/B measure my-match" {
     owl: 11
   }
   requires { pacman: ["curl"] }
-  source ab = cmd("""b=${OMA_BASE:-}; [ -n "$b" ] || b=$(head -n 1 ~/.config/omalauncher/measure-base 2>/dev/null | tr -d '\r'); b=${b:-http://127.0.0.1:1764}; printf '%s' "$b" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || b=http://127.0.0.1:1764; nohup sh -c 'curl -fsSL "$1/scripts/guest-ab-measure.sh" -o /tmp/ab.sh && sh /tmp/ab.sh' sh "$b" >/tmp/ab.log 2>&1 & echo started""") every 1h
+  source ab = cmd("""b=${OMA_BASE:-}; [ -n "$b" ] || b=$(head -n 1 ~/.config/omalauncher/measure-base 2>/dev/null | tr -d '\r'); b=${b:-http://127.0.0.1:1764}; b=$(printf '%s' "$b" | tr -d '\r\n'); printf '%s' "$b" | grep -Ex '^https?://[A-Za-z0-9._:-]+$' || b=http://127.0.0.1:1764; nohup sh -c 'curl -fsSL "$1/scripts/guest-ab-measure.sh" -o /tmp/ab.sh && sh /tmp/ab.sh' sh "$b" >/tmp/ab.log 2>&1 & echo started""") every 1h
   Text { text: "A/B started — ne touche plus ~100 s." }
 }

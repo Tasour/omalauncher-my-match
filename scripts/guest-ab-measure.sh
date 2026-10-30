@@ -11,8 +11,10 @@ BASE="${OMA_BASE:-}"
 if [ -z "$BASE" ] && [ -r "$HOME/.config/omalauncher/measure-base" ]; then
   BASE=$(head -n 1 "$HOME/.config/omalauncher/measure-base" 2>/dev/null | tr -d '\r')
 fi
-printf '%s' "$BASE" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
-GH="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/main"
+BASE=$(printf '%s' "$BASE" | tr -d '\r\n')
+printf '%s' "$BASE" | grep -Ex '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
+GH57="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/f7bc076/widget/my-match.owl"
+GH58="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/c918d58/widget/my-match.optimized.owl"
 DIR="$HOME/.config/omalauncher/widgets"
 
 cd "$DIR" || { echo "no widgets dir"; exit 1; }
@@ -23,10 +25,9 @@ cp "$f" /tmp/my-match.current.owl 2>/dev/null || true
 
 fetch() { curl -fsSL --connect-timeout 5 --url "$1" -o "$2"; }
 fetch "$BASE/widget/my-match.owl" /tmp/my-match.v57.owl ||
-  fetch "$GH/widget/my-match.owl" /tmp/my-match.v57.owl ||
+  fetch "$GH57" /tmp/my-match.v57.owl ||
   { echo "v57 download failed"; exit 1; }
-fetch "$BASE/widget/my-match.optimized.owl" /tmp/my-match.v58.owl ||
-  fetch "$GH/widget/my-match.optimized.owl" /tmp/my-match.v58.owl ||
+fetch "$GH58" /tmp/my-match.v58.owl ||
   { echo "v58 download failed"; exit 1; }
 grep -q 'version:"5.7"' /tmp/my-match.v57.owl || { echo "v57 bad"; exit 1; }
 grep -q 'version:"5.8"' /tmp/my-match.v58.owl || { echo "v58 bad"; exit 1; }

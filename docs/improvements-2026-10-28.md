@@ -27,6 +27,25 @@ Le workflow GitHub Actions prêt à l'emploi est `docs/ci-workflow.yml` : il doi
 `workflow` (`gh auth refresh -s workflow`). Le token courant ne l'a pas, et
 GitHub rejette alors tout push contenant un fichier de workflow.
 
+## Revue experte v5.10.0 (UI/UX, OWL, sécurité/SRE)
+
+Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
+
+- **I09** : `spinAt=now+1` ne ré-armait pas le tick (l'horloge `now` est à 15 s).
+  Corrigé en `spinAt=spinAt+1`, test aligné sur l'expression exacte.
+- **I08** : une source en échec affichait « aucun match » ; branches d'erreur
+  ajoutées (MINE, RIV, TOP5, EUROPE), bannière santé courte (`⚠ N · dégradé`)
+  avec noms localisés, masquée pendant l'onboarding.
+- **I05** : le nombre de matchs masqués dans la tuile est affiché (`+N`), test
+  sur `take(8)` et sur le compteur.
+- **I07** : budgets portés à `standings 300s` / `teamsDb 900s`, `bash -n` étendu
+  aux neuf sources shell (`extract.py` sait lire `source X=cmd("""`).
+- **I02** : validation sur la valeur entière (`grep -Ex`, CR/LF retirés), hôte
+  passé en argument positionnel, `guest-ab.html` transmet `OMA_BASE`, scripts
+  de mesure épinglés aux commits v5.7/v5.8/v5.9.1 (les gardes de version ne
+  peuvent plus échouer sur `main`), port du serveur aligné sur 1764.
+- **I10** : `tests/__pycache__` ignoré.
+
 ## Backlog restant
 
 ### Fiabilité et données

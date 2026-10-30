@@ -11,3 +11,7 @@ measurements/guest-*.txt
 
 # Artefacts temporaires des tests
 *.tmp
+
+# Python bytecode
+__pycache__/
+*.pyc
