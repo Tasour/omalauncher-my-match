@@ -190,6 +190,11 @@ def main():
           dump.exists() and os.access(dump, os.X_OK)
           and all(name in dump_text for name in ("scheds", "teamsDb", "histfull")))
 
+    # N04 - spoiler-free mode hides current scores and result chips.
+    check("N04 anti-spoiler",
+          "state spoiler=false persist" in text and "let hide=spoiler&&" in text
+          and 'text:hide?"–":' in text and "S.spoiler" in text)
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)
