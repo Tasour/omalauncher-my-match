@@ -8,8 +8,10 @@ touch "$LOCK"
 trap 'rm -f "$LOCK"' EXIT INT TERM
 
 BASE="${OMA_BASE:-}"
-[ -n "$BASE" ] || BASE=$(cat "$HOME/.config/omalauncher/measure-base" 2>/dev/null)
-BASE="${BASE:-http://127.0.0.1:1764}"
+if [ -z "$BASE" ] && [ -r "$HOME/.config/omalauncher/measure-base" ]; then
+  BASE=$(head -n 1 "$HOME/.config/omalauncher/measure-base" 2>/dev/null | tr -d '\r')
+fi
+printf '%s' "$BASE" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
 GH="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/main"
 DIR="$HOME/.config/omalauncher/widgets"
 
@@ -18,7 +20,7 @@ f=$(grep -l 'My Matches' *.owl 2>/dev/null | head -1)
 f=${f:-shared-my-matches-football.owl}
 echo "target=$f"
 
-if ! curl -fsSL --connect-timeout 10 "$BASE/widget/my-match.optimized.owl" -o /tmp/my-match.v59.owl; then
+if ! curl -fsSL --connect-timeout 10 --url "$BASE/widget/my-match.optimized.owl" -o /tmp/my-match.v59.owl; then
   curl -fsSL --connect-timeout 20 "$GH/widget/my-match.optimized.owl" -o /tmp/my-match.v59.owl || exit 1
 fi
 grep -q 'version:"5.9.1"' /tmp/my-match.v59.owl || { echo "bad download"; exit 1; }
@@ -40,5 +42,5 @@ sleep 20
     echo "owl-check missing"
   fi
 } >/tmp/my-match-fix.txt
-curl -fsSL --connect-timeout 10 -X POST --data-binary @/tmp/my-match-fix.txt "$BASE/measure" -o /tmp/my-match-fix.out || true
+curl -fsSL --connect-timeout 10 -X POST --data-binary @/tmp/my-match-fix.txt --url "$BASE/measure" -o /tmp/my-match-fix.out || true
 echo done

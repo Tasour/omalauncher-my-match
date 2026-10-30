@@ -8,8 +8,10 @@ LOCK=/tmp/ab-measure.lock
 touch "$LOCK"
 
 BASE="${OMA_BASE:-}"
-[ -n "$BASE" ] || BASE=$(cat "$HOME/.config/omalauncher/measure-base" 2>/dev/null)
-BASE="${BASE:-http://127.0.0.1:1764}"
+if [ -z "$BASE" ] && [ -r "$HOME/.config/omalauncher/measure-base" ]; then
+  BASE=$(head -n 1 "$HOME/.config/omalauncher/measure-base" 2>/dev/null | tr -d '\r')
+fi
+printf '%s' "$BASE" | grep -Eq '^https?://[A-Za-z0-9._:-]+$' || BASE="http://127.0.0.1:1764"
 GH="https://raw.githubusercontent.com/Tasour/omalauncher-my-match/main"
 DIR="$HOME/.config/omalauncher/widgets"
 
@@ -19,7 +21,7 @@ f=${f:-shared-my-matches-football.owl}
 echo "target=$f"
 cp "$f" /tmp/my-match.current.owl 2>/dev/null || true
 
-fetch() { curl -fsSL --connect-timeout 5 "$1" -o "$2"; }
+fetch() { curl -fsSL --connect-timeout 5 --url "$1" -o "$2"; }
 fetch "$BASE/widget/my-match.owl" /tmp/my-match.v57.owl ||
   fetch "$GH/widget/my-match.owl" /tmp/my-match.v57.owl ||
   { echo "v57 download failed"; exit 1; }
@@ -81,7 +83,7 @@ sleep 6
 measure after
 install /tmp/my-match.v58.owl
 cat /tmp/measure-before.txt /tmp/measure-after.txt >/tmp/ab-measure.txt
-if curl -fsSL --connect-timeout 10 -X POST --data-binary @/tmp/ab-measure.txt "$BASE/measure" -o /tmp/ab-post.out; then
+if curl -fsSL --connect-timeout 10 -X POST --data-binary @/tmp/ab-measure.txt --url "$BASE/measure" -o /tmp/ab-post.out; then
   echo "POST OK: $(cat /tmp/ab-post.out)"
 else
   echo "POST FAILED"

@@ -35,13 +35,31 @@ def main():
     bad = [line.strip() for line in curl_lines if not all(flag in line for flag in required)]
     check("I01 curl hardening", not bad and bool(curl_lines), f"{len(bad)} ligne(s) non durcie(s)")
 
-    # I02 - measurement scripts take the host from OMA_BASE or a local file.
+    # I02 - measurement scripts take the host from OMA_BASE or a local file,
+    # validate it, and never interpolate it into a shell command.
     private_ip = re.compile(r"\b(?:192\.168|10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b")
-    host_files = [*sorted((ROOT / "scripts").glob("*.sh")), *sorted((ROOT / "widget").glob("*.owl"))]
-    ip_hits = [str(p.relative_to(ROOT)) for p in host_files if private_ip.search(p.read_text(encoding="utf-8", errors="ignore"))]
-    host_aware = [p for p in host_files if "OMA_BASE" in p.read_text(encoding="utf-8", errors="ignore")]
+    suffixes = {".sh", ".owl", ".md", ".html", ".py", ".yml", ".yaml"}
+    text_files = [path for path in ROOT.rglob("*")
+                  if path.is_file() and path.suffix in suffixes and ".git" not in path.parts]
+    ip_hits = [str(path.relative_to(ROOT)) for path in text_files
+               if private_ip.search(path.read_text(encoding="utf-8", errors="ignore"))]
     check("I02 LAN IP removed", not ip_hits, ", ".join(ip_hits))
-    check("I02 host override", len(host_aware) >= 4, f"{len(host_aware)} script(s) OMA_BASE")
+
+    host_scripts = [ROOT / "scripts" / name for name in (
+        "fix-v59.sh", "guest-ab-measure.sh", "guest-ab-wrapper.sh", "guest-update-widget.sh")]
+    host_widgets = [ROOT / "widget" / name for name in (
+        "ab-measure.owl", "ab-wrapper.owl", "fix-v59.owl")]
+    host_aware = host_scripts + host_widgets
+    validation = "grep -Eq '^https?://[A-Za-z0-9._:-]+$'"
+    check("I02 host override", len(host_aware) == 7,
+          f"{len(host_aware)} fichier(s) OMA_BASE")
+    check("I02 host validation",
+          all(validation in path.read_text(encoding="utf-8") for path in host_aware))
+    check("I02 no command injection",
+          all('nohup sh -c \'curl -fsSL "$1/scripts/' in path.read_text(encoding="utf-8")
+          for path in host_widgets))
+    html = (ROOT / "scripts" / "guest-ab.html").read_text(encoding="utf-8")
+    check("I02 guest command carries host", "OMA_BASE=${location.origin}" in html)
 
     # I03 - French copy uses the accented word.
     check("I03 French typography", 'team:"équipe"' in text and 'team:"equipe"' not in text)
