@@ -198,6 +198,13 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    # F11-F15: sharing and personalisation.
+    check("F11 copy match", "let heroShare=" in text and "S.copyMatch" in text and "copy(heroShare)" in text)
+    check("F12 copy teams", "S.copyTeams" in text and "copy(toJson(myTeams))" in text)
+    check("F13 team accent", "hsl(hash(t.abbr)*360" in text)
+    check("F14 colour-blind", "state cbMode=false persist" in text and "wide||cbMode" in text and "S.cb" in text)
+    check("F15 per-match reveal", "state revealed=[]persist" in text and "!revealed.any" in text and "revealed+[g.id]" in text)
+
     # F06-F10: display controls.
     check("F06 matchday mode", "state matchdayMode=false persist" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
     check("F07 compact mode", "state compactMode=false persist" in text and "compactMode?5" in text and "S.compact" in text)
