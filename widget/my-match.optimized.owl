@@ -124,6 +124,7 @@ let gamesScript="""    set -o pipefail
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     CACHE=~/.cache/espn-games.json
     CACHE_SIG=~/.cache/espn-games.sig
+    if [ -s "$CACHE" ] && [ ! -s "$CACHE.meta" ] && jq -e 'type == "array"' "$CACHE" >/dev/null 2>&1; then cmark "$CACHE" 604800; fi
     OLD="$CACHE"
     if [ "$(cat "$CACHE_SIG" 2>/dev/null)" != "$SIG" ] || ! cvalid "$CACHE" || cstale "$CACHE" || ! jq -e 'type == "array"' "$CACHE" >/dev/null 2>&1; then OLD=/dev/null; fi
     now=$(date +%s)
@@ -412,8 +413,9 @@ let seasonScript="""    set -o pipefail
     cache=~/.cache/espn-season.json
     CUR=$(date +%Y%m)
     sig=$(printf '%s|%s' "$WANTID" "$WANT" | sha256sum | cut -d' ' -f1)
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then cmark "$cache" 2592000; fi
     OLD="$cache"
-    if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then OLD=/dev/null; printf '{"sig":"","lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; fi
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then OLD=/dev/null; printf '{"sig":"","lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; cmark "$cache" 2592000; fi
     if ! jq -e --arg sig "$sig" '.sig == $sig' "$cache" >/dev/null 2>&1; then
       jq -c --arg sig "$sig" '{sig: $sig, lms: [], items: (.items // [])}' "$cache" > "$cache.tmp" 2>/dev/null && mv "$cache.tmp" "$cache" || printf '{"sig":"%s","lms":[],"items":[]}' "$sig" > "$cache"
     fi
@@ -478,7 +480,7 @@ let seasonScript="""    set -o pipefail
     cat "$tmp/season.json"
     rm -rf "$tmp"
   """
-source seasonAll=cmd("bash -c ${sh(seasonScript)}")every 12h json timeout 300s status
+source seasonAll=cmd("bash -c ${sh(seasonScript)}")every 12h json timeout 900s status
 source scheds=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -605,6 +607,7 @@ let standingsScript="""    set -o pipefail
     cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-standings.json
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then cmark "$cache" 604800; fi
     OLD="$cache"
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
     jq -cs '.[1] as $old | (.[0] // []) as $fu | ([($fu[]) | select(.league != null) | {key: ((.league // "") + ":" + (.group // "")), value: .}] | from_entries) as $fm | $fu + ([($old // [])[]] | map(select($fm[((.league // "") + ":" + (.group // ""))] == null)))' "$tmp/tables.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
@@ -698,6 +701,7 @@ source teamsDb=cmd("""
     cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-teams.json
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then cmark "$cache" 2592000; fi
     OLD="$cache"
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
     FRESH=$(jq 'length // 0' "$tmp/teams.json" 2>/dev/null || echo 0)
@@ -813,6 +817,7 @@ source extra=cmd("""
     cache=~/.cache/espn-extra-base.json
     CUR=$(date +%Y%m)
     KEEPM=$(date -d "120 day ago" +%Y%m)
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then cmark "$cache" 2592000; fi
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then printf '{"lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; cmark "$cache" 2592000; fi
     for lg in $LEAGUES; do
       case " $RR " in *" $lg "*) MS="$MONTHS5";; *) MS="$MONTHS2";; esac
@@ -1078,6 +1083,7 @@ source knock=cmd("""
     cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-knock.json
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then cmark "$cache" 604800; fi
     OLD="$cache"
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
     jq -cs --argjson keep "$keep" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) >= $keep and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/knock.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
@@ -1195,6 +1201,7 @@ source nextup=cmd("""
     cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-nextup.json
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then cmark "$cache" 86400; fi
     OLD="$cache"
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
     jq -cs --argjson cut "$((now - 86400))" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) > $cut and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/next.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
@@ -1307,6 +1314,7 @@ source histfull=cmd("""
     cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-hist-base.json
     CUR=$(date +%Y%m)
+    if [ -s "$cache" ] && [ ! -s "$cache.meta" ] && jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then cmark "$cache" 2592000; fi
     if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then printf '{"lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; cmark "$cache" 2592000; fi
     for lg in $RR; do
       for m in $SEASON; do

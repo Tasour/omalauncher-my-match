@@ -44,6 +44,12 @@ AT2=$(jq -r '.at' "$META")
 jq -e 'length > 0' "$TMP/out.json" >/dev/null 2>&1 || fail "cache-only fallback lost the table"
 pass "cache-only fallback keeps fetchedAt"
 
+rm -f "$META"
+if ! MOCK_INVALID=1 run; then fail "a cache without metadata should be adopted, not discarded"; fi
+jq -e 'length > 0' "$TMP/out.json" >/dev/null 2>&1 || fail "adoption lost the table"
+jq -e '.v == 1 and .exp > .at' "$META" >/dev/null 2>&1 || fail "adoption did not write metadata"
+pass "old cache is adopted without a refetch"
+
 printf '{"v":0,"at":0,"ttl":0,"exp":0}' >"$META"
 run || fail "standings should migrate an old cache"
 jq -e '.v == 1 and .exp > .at' "$META" >/dev/null 2>&1 || fail "old cache was not migrated"

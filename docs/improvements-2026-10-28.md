@@ -57,6 +57,14 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
 - **I13** : test de téléchargement réel (faux curl `MOCK_LOGO=1`), verrou/temp
   périmés purgés et absence de résidu vérifiée.
 
+## Correctif de migration des caches (2026-10-30)
+
+Le premier passage I12 pouvait remettre à zéro un cache créé avant l'ajout des
+`.meta` (notamment `seasonAll`), ce qui forçait un refetch complet et pouvait
+dépasser l'ancien budget de 300 s. Désormais un cache valide mais sans `.meta`
+est **adopté** (`cmark`) au lieu d'être jeté, et `seasonAll` dispose de 900 s.
+Test : `test-cache-meta.sh` vérifie l'adoption hors ligne (aucun refetch).
+
 ## Backlog restant
 
 ### Fiabilité et données
