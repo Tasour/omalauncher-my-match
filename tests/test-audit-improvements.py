@@ -198,6 +198,12 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    check("banner logos high-res",
+          "B=~/.cache/espn-logos/banner" in text and "w=160&h=160" in text
+          and "dims_ok()" in text and "-ge 160" in text
+          and 'cp "$d/$f" "$B/$f"' in text
+          and "banner/${logo}" in text and "HL=" in text and "AL=" in text)
+
     # F16-F20: reliability, data and calendar.
     check("F16 prewarm", "state prewarmOn=false persist" in text and "at prewarmAt{" in text and "prewarmAt=now+86400" in text and "S.prewarm" in text)
     check("F17 dedupe matches", "values(groupBy(allRaw" in text and "map(a=>first(a))" in text)

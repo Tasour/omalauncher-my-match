@@ -146,6 +146,8 @@ let gamesScript="""    set -o pipefail
     printf '%s' "$SIG" > "$CACHE_SIG"
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
@@ -159,7 +161,7 @@ let gamesScript="""    set -o pipefail
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -455,6 +457,8 @@ let seasonScript="""    set -o pipefail
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
@@ -468,7 +472,7 @@ let seasonScript="""    set -o pipefail
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -720,6 +724,8 @@ source teamsDb=cmd("""
     # dossier partage (sprite reconstruit par games apres validation).
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
@@ -731,7 +737,7 @@ source teamsDb=cmd("""
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 3 -fsm 6 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 3 -fsm 6 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -891,6 +897,8 @@ source extra=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
@@ -900,7 +908,7 @@ source extra=cmd("""
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -1097,6 +1105,8 @@ source knock=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
@@ -1106,7 +1116,7 @@ source knock=cmd("""
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -1215,6 +1225,8 @@ source nextup=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
@@ -1224,7 +1236,7 @@ source nextup=cmd("""
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -1384,6 +1396,8 @@ source histfull=cmd("""
     wait
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
     find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
     find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
@@ -1393,7 +1407,7 @@ source histfull=cmd("""
         dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
         if mkdir "$dlock" 2>/dev/null; then
           if [ ! -s "$d/$f" ]; then
-            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"; [ -s "$d/$f" ] && [ ! -s "$B/$f" ] && cp "$d/$f" "$B/$f"
           fi
           rmdir "$dlock"
         fi &
@@ -1653,7 +1667,25 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
     ST="""+sh(heroMatch==null?"":(heroMatch.state??""))+""";
     HID="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.tid??"")))+""";
     HABBR="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.abbr??"")))+""";
+    HL="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.logo??"")))+""";
+    AL="""+sh(heroMatch==null?"":(heroMatch.away==null?"":(heroMatch.away.logo??"")))+""";
     if [ "$ST" != "pre" ] || [ -z "$LG" ] || [ -z "$ID" ]; then printf 'null'; exit 0; fi
+    B=~/.cache/espn-logos/banner
+    mkdir -p "$B"
+    dims_ok() {
+      [ -s "$1" ] || return 1
+      W=$(od -An -N4 -j16 -tu1 "$1" 2>/dev/null | awk '{print $1*16777216+$2*65536+$3*256+$4}')
+      [ "${W:-0}" -ge 160 ] 2>/dev/null
+    }
+    for f in "$HL" "$AL"; do
+      [ -n "$f" ] || continue
+      if ! dims_ok "$B/$f"; then
+        p=$(echo "$f" | tr '-' '/')
+        t="$B/.$f.$$.tmp"
+        if curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 10 "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=160&h=160" -o "$t" 2>/dev/null && [ -s "$t" ]; then mv "$t" "$B/$f"; else rm -f "$t"; [ -s ~/.cache/espn-logos/soccer/$f ] && cp ~/.cache/espn-logos/soccer/$f "$B/$f"; fi
+      fi
+    done
+    find "$B" -type f -mtime +60 -delete 2>/dev/null
     RAW=${ID#*:}
     C=~/.cache/espn-odds
     mkdir -p "$C"
@@ -2034,7 +2066,7 @@ fill:false
 clip:true
 background:rgb(0,0,0,0)
 if logo!=null&&logo!=""{
-Image{src:"~/.cache/espn-logos/soccer/${logo}";width:px;height:px;fit:contain;label:name}
+Image{src:"~/.cache/espn-logos/banner/${logo}";width:px;height:px;fit:contain;label:name}
 }
 }
 }

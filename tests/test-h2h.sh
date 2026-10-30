@@ -17,6 +17,9 @@ export TEST_HERO_AT="$(( $(date +%s) + 86400 ))"
 export TEST_HERO_ST="pre"
 export TEST_HERO_HID="6994"
 export TEST_HERO_HABBR="GRE"
+export TEST_HERO_HL="soccer-500-167.png"
+export TEST_HERO_AL="soccer-500-168.png"
+export MOCK_LOGO=1
 
 pass() { printf 'PASS %s\n' "$1"; }
 fail() {
@@ -32,6 +35,12 @@ jq -e '.h2h.n == 5 and .h2h.w == 3 and .h2h.d == 1 and .h2h.l == 1' "$TMP/out.js
   fail "wrong head-to-head form (expected 3W 1D 1L over 5)"
 jq -e '.h2h.last.hs == "2" and .h2h.last.as == "1" and .h2h.last.won == true' "$TMP/out.json" >/dev/null 2>&1 ||
   fail "wrong last head-to-head result (expected 2-1 win)"
+[ -s "$HOME/.cache/espn-logos/banner/soccer-500-167.png" ] ||
+  fail "home banner logo was not downloaded"
+[ -s "$HOME/.cache/espn-logos/banner/soccer-500-168.png" ] ||
+  fail "away banner logo was not downloaded"
+pass "banner logos are cached at high resolution"
+
 pass "head-to-head form is 3W 1D 1L over 5"
 
 printf 'ALL H2H TESTS PASSED\n'

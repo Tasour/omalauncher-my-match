@@ -46,6 +46,8 @@ values = {
     'sh(heroMatch==null?"":(heroMatch.state??""))': "${TEST_HERO_ST}",
     'sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.tid??"")))': "${TEST_HERO_HID}",
     'sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.abbr??"")))': "${TEST_HERO_HABBR}",
+    'sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.logo??"")))': "${TEST_HERO_HL}",
+    'sh(heroMatch==null?"":(heroMatch.away==null?"":(heroMatch.away.logo??"")))': "${TEST_HERO_AL}",
 }
 out = chunks[0]
 for expr, chunk in zip(exprs, chunks[1:]):

@@ -84,6 +84,8 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 
 Aucun secret, token ou donnée personnelle ne doit être publié. Le widget et les rapports sont vérifiés avant publication ; les versions complètes non assainies restent en local.
 
+Les écussons de **bannière** sont mis en cache en **160×160** dans `~/.cache/espn-logos/banner/` (les listes gardent le cache 48 px) ; les anciens fichiers trop petits sont remplacés automatiquement.
+
 Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` ou, à défaut, `~/.config/omalauncher/measure-base` (une ligne, ex. `http://<IP-DU-PC>:1764`), puis retombent sur `http://127.0.0.1:1764`. L'hôte est validé (`http(s)://` + caractères sûrs) avant usage.
 
 ## Données & attribution
