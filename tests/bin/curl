@@ -27,6 +27,11 @@ case "$url" in
         if [ -n "$out" ]; then printf '%s' "$body" >"$out"; else printf '%s' "$body"; fi
         exit 22
         ;;
+      big)
+        # Real curl --max-filesize 2097152 refuses the transfer before it
+        # starts (exit 63). Do not hand any oversized body to the widget.
+        exit 63
+        ;;
     esac
     case "$url" in
       */standings*)
@@ -38,6 +43,34 @@ case "$url" in
         else
           f="${FIXTURES:-}/$league.standings.json"
           if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"children":[]}'; fi
+        fi
+        ;;
+      */teams/*/schedule*)
+        league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/teams/.*#\1#p')
+        id=$(printf '%s' "$url" | sed -n 's#.*/teams/\([^/]*\)/schedule.*#\1#p')
+        if [ "${MOCK_MODE:-}" = "trunc" ]; then
+          body='{"events":['
+        elif [ "${MOCK_INVALID:-0}" = 1 ]; then
+          body='{"error":"rate limited"}'
+        else
+          body=''
+          for f in "${FIXTURES:-}/$league.$id.schedule.json" \
+                   "${FIXTURES:-}/$league.schedule.json" \
+                   "${FIXTURES:-}/schedule.json"; do
+            if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); break; fi
+          done
+          [ -n "$body" ] || body='{"events":[]}'
+        fi
+        ;;
+      */teams|*/teams'?'*)
+        league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/teams.*#\1#p')
+        if [ "${MOCK_MODE:-}" = "trunc" ]; then
+          body='{"sports":['
+        elif [ "${MOCK_INVALID:-0}" = 1 ]; then
+          body='{"error":"rate limited"}'
+        else
+          f="${FIXTURES:-}/$league.teams.json"
+          if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"sports":[{"leagues":[{"teams":[]}]}]}'; fi
         fi
         ;;
       *)

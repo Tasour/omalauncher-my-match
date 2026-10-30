@@ -9,4 +9,4 @@ cd "$ROOT"
 
 python3 -m py_compile tests/*.py
 # shellcheck disable=SC1091
-./tests/run.sh
+./tests/run-all.sh

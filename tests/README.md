@@ -3,9 +3,13 @@
 Lancer après chaque modification du widget :
 
 ```sh
-make test
+make test        # suite rapide (~3 min)
 # ou
 ./tests/run.sh
+
+make test-all    # + sources secondaires, pannes réseau, concurrence de caches (~10 min)
+# ou
+./tests/run-all.sh
 ```
 
 ## Ce qui est vérifié

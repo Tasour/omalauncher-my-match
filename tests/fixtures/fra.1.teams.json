@@ -1,0 +1,34 @@
+{
+  "sports": [
+    {
+      "leagues": [
+        {
+          "teams": [
+            {
+              "team": {
+                "id": "167",
+                "abbreviation": "LYON",
+                "displayName": "Olympique Lyonnais",
+                "shortDisplayName": "Lyon",
+                "logos": [
+                  {"href": "https://a.espncdn.com/i/teamlogos/soccer/500/167.png"}
+                ]
+              }
+            },
+            {
+              "team": {
+                "id": "168",
+                "abbreviation": "PSG",
+                "displayName": "Paris Saint-Germain",
+                "shortDisplayName": "Paris SG",
+                "logos": [
+                  {"href": "https://a.espncdn.com/i/teamlogos/soccer/500/168.png"}
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
