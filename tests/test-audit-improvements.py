@@ -195,6 +195,13 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    # F01-F05: notification controls.
+    check("F01 reminder lead", "state leadH=12 persist" in text and "leadH*3600" in text and "S.lead" in text)
+    check("F02 quiet hours", "state quietOn=false persist" in text and "quietNow=quietOn" in text and "!quietNow" in text)
+    check("F03 daily digest", "state digestOn=false persist" in text and "at digestAt{" in text and "S.dailyTitle" in text and "digestAt=now+86400" in text)
+    check("F04 weekly digest", "state weeklyOn=false persist" in text and "S.weekTitle" in text and '=="Mon"' in text)
+    check("F05 reset reminders", "S.resetRem" in text and "nextDone=[];kickDone=[]" in text)
+
     # N01 - goal alerts compare the live source's previous and current scores.
     check("N01 goal flash",
           "on liveM{" in text and 'notify("⚽ "' in text
