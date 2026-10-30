@@ -130,7 +130,7 @@ def main():
     retry_lines = [line for line in text.splitlines() if "--retry " in line]
     active_retries = [line for line in retry_lines if "--retry 0" not in line]
     check("I14 retry backoff",
-          len(active_retries) >= 10
+          len(active_retries) >= 9
           and all("--retry-delay 0" in line and "--retry-connrefused" in line for line in active_retries)
           and text.count("--retry-max-time") >= len(active_retries))
     check("I14 request jitter", text.count("od -An -N1 -tu1 /dev/urandom") == 9)
@@ -202,7 +202,8 @@ def main():
           "B=~/.cache/espn-logos/banner" in text and "w=160&h=160" in text
           and "dims_ok()" in text and "-ge 160" in text
           and 'cp "$d/$f" "$B/$f"' in text
-          and "banner/${logo}" in text and "HL=" in text and "AL=" in text)
+          and "banner/${logo}" in text and "HL=" in text and "AL=" in text
+          and "source bannerLogos" in text)
 
     # F16-F20: reliability, data and calendar.
     check("F16 prewarm", "state prewarmOn=false persist" in text and "at prewarmAt{" in text and "prewarmAt=now+86400" in text and "S.prewarm" in text)

@@ -2,7 +2,8 @@
 # N07: the hero summary script extracts the head-to-head form for the home team.
 set -euo pipefail
 
-HERO="${1:?usage: test-h2h.sh heroOddsScript.sh}"
+HERO="${1:?usage: test-h2h.sh heroOddsScript.sh bannerScript.sh}"
+BANNER="${2:?usage: test-h2h.sh heroOddsScript.sh bannerScript.sh}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -35,6 +36,7 @@ jq -e '.h2h.n == 5 and .h2h.w == 3 and .h2h.d == 1 and .h2h.l == 1' "$TMP/out.js
   fail "wrong head-to-head form (expected 3W 1D 1L over 5)"
 jq -e '.h2h.last.hs == "2" and .h2h.last.as == "1" and .h2h.last.won == true' "$TMP/out.json" >/dev/null 2>&1 ||
   fail "wrong last head-to-head result (expected 2-1 win)"
+bash "$BANNER" >/dev/null 2>"$TMP/banner.err" || fail "banner logo source failed"
 [ -s "$HOME/.cache/espn-logos/banner/soccer-500-167.png" ] ||
   fail "home banner logo was not downloaded"
 [ -s "$HOME/.cache/espn-logos/banner/soccer-500-168.png" ] ||

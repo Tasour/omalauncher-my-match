@@ -1667,9 +1667,35 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
     ST="""+sh(heroMatch==null?"":(heroMatch.state??""))+""";
     HID="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.tid??"")))+""";
     HABBR="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.abbr??"")))+""";
-    HL="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.logo??"")))+""";
-    AL="""+sh(heroMatch==null?"":(heroMatch.away==null?"":(heroMatch.away.logo??"")))+""";
     if [ "$ST" != "pre" ] || [ -z "$LG" ] || [ -z "$ID" ]; then printf 'null'; exit 0; fi
+    RAW=${ID#*:}
+    C=~/.cache/espn-odds
+    mkdir -p "$C"
+    F="$C/$LG-$RAW.json"
+    NOW=$(date +%s)
+    TTL=21600
+    if [ "$AT" -gt 0 ] 2>/dev/null; then LEFT=$((AT-NOW)); if [ "$LEFT" -lt 43200 ] && [ "$LEFT" -gt -7200 ]; then TTL=3600; fi; fi
+    if [ -s "$F" ]; then
+      TS=$(jq -r '.ts // 0' "$F" 2>/dev/null)
+      CA=$(jq -r '.at // 0' "$F" 2>/dev/null)
+      if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$CA" != "0" ] && [ $((NOW-TS)) -lt "$TTL" ] && [ "$(jq -r '.hv // 0' "$F" 2>/dev/null)" = "1" ]; then cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"; cat "$F"; exit 0; fi
+    fi
+    OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" --arg hid "$HID" --arg habbr "$HABBR" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O, hv: 1, h2h: (([.seasonseries[]? | select((.type? // "") == "head-to-head")][0]) as $s | if $s == null then null else (($s.events // []) | length) as $n | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)] | length) as $w | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)!=$hid) and ((.team.abbreviation? // "")!=$habbr))) | .winner] | any)] | length) as $l | {n: $n, w: $w, d: ($n - $w - $l), l: $l, last: (((($s.events // []) | .[0]) as $e | if $e == null then null else {hs: ([$e.competitors[]? | select(.homeAway=="home") | .score][0] // null), as: ([$e.competitors[]? | select(.homeAway=="away") | .score][0] // null), won: ([$e.competitors[]? | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)} end))} end)}')
+    if [ -n "$OUT" ] && [ "$OUT" != "null" ]; then
+      printf '%s\n' "$OUT" > "$F.tmp" && mv "$F.tmp" "$F"
+      printf '%s\n' "$OUT" > "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"
+      printf '%s\n' "$OUT"
+    elif [ -s "$F" ]; then
+      cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"
+      cat "$F"
+    else
+      printf 'null'
+    fi
+    find "$C" -type f -name '*.json' -mtime +7 -delete 2>/dev/null
+"""
+let bannerScript="""    HL="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.logo??"")))+""";
+    AL="""+sh(heroMatch==null?"":(heroMatch.away==null?"":(heroMatch.away.logo??"")))+""";
+    [ -n "$HL$AL" ] || { printf 'ok'; exit 0; }
     B=~/.cache/espn-logos/banner
     mkdir -p "$B"
     dims_ok() {
@@ -1686,31 +1712,9 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
       fi
     done
     find "$B" -type f -mtime +60 -delete 2>/dev/null
-    RAW=${ID#*:}
-    C=~/.cache/espn-odds
-    mkdir -p "$C"
-    F="$C/$LG-$RAW.json"
-    NOW=$(date +%s)
-    TTL=21600
-    if [ "$AT" -gt 0 ] 2>/dev/null; then LEFT=$((AT-NOW)); if [ "$LEFT" -lt 43200 ] && [ "$LEFT" -gt -7200 ]; then TTL=3600; fi; fi
-    if [ -s "$F" ]; then
-      TS=$(jq -r '.ts // 0' "$F" 2>/dev/null)
-      CA=$(jq -r '.at // 0' "$F" 2>/dev/null)
-      if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$CA" != "0" ] && [ $((NOW-TS)) -lt "$TTL" ] && [ "$(jq -r '.hv // 0' "$F" 2>/dev/null)" = "1" ]; then cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"; cat "$F"; exit 0; fi
-    fi
-    OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" --arg hid "$HID" --arg habbr "$HABBR" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O, hv: 1, h2h: (([.seasonseries[]? | select((.type? // "") == "head-to-head")][0]) as $s | if $s == null then null else (($s.events // []) | length) as $n | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)] | length) as $w | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)!=$hid) and ((.team.abbreviation? // "")!=$habbr))) | .winner] | any)] | length) as $l | {n: $n, w: $w, d: ($n - $w - $l), l: $l, last: (((($s.events // []) | .[0]) as $e | if $e == null then null else {hs: ([$e.competitors[]? | select(.homeAway=="home") | .score][0] // null), as: ([$e.competitors[]? | select(.homeAway=="away") | .score][0] // null), won: ([$e.competitors[]? | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)} end))} end)}')
-    if [ -n "$OUT" ] && [ "$OUT" != "null" ]; then
-      printf '%s\n' "$OUT" > "$F.tmp" && mv "$F.tmp" "$F"
-      printf '%s\n' "$OUT" > "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"
-      printf '%s\n' "$OUT"
-    elif [ -s "$F" ]; then
-      cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"
-      cat "$F"
-    else
-      printf 'null'
-    fi
-    find "$C" -type f -name '*.json' -mtime +7 -delete 2>/dev/null
+    printf 'ok'
 """
+source bannerLogos=cmd("bash -c ${sh(bannerScript)}")every 1h timeout 60s
 source heroOdds=cmd("bash -c ${sh(heroOddsScript)}")every 1h json timeout 20s
 source oddsNow=file("~/.cache/espn-odds/current.json")json
 let heroAt=heroMatch==null?0:((oddsNow??{}).id==heroMatch.id&&oddsNow.at!=null?oddsNow.at:(heroOdds!=null&&heroOdds.id==heroMatch.id&&heroOdds.at!=null?heroOdds.at:heroMatch.at))

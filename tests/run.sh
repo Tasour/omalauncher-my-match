@@ -15,7 +15,7 @@ else
   echo "SKIP owl check (set OWL_JAR to the owl checker jar)"
 fi
 
-for v in gamesScript seasonScript standingsScript liveScript heroOddsScript scheds teamsDb extra knock nextup histfull; do
+for v in gamesScript seasonScript standingsScript liveScript heroOddsScript bannerScript scheds teamsDb extra knock nextup histfull; do
   python3 "$ROOT/tests/extract.py" "$WIDGET" "$v" >"$TMP/$v.sh"
   bash -n "$TMP/$v.sh"
   echo "PASS bash -n $v"
@@ -24,5 +24,5 @@ done
 bash "$ROOT/tests/test-games.sh" "$TMP/gamesScript.sh" "$WIDGET" "$TMP/liveScript.sh"
 bash "$ROOT/tests/test-league-scope.sh" "$TMP/extra.sh" "$TMP/nextup.sh" "$TMP/histfull.sh"
 bash "$ROOT/tests/test-cache-meta.sh" "$TMP/standingsScript.sh"
-bash "$ROOT/tests/test-h2h.sh" "$TMP/heroOddsScript.sh"
+bash "$ROOT/tests/test-h2h.sh" "$TMP/heroOddsScript.sh" "$TMP/bannerScript.sh"
 python3 "$ROOT/tests/test-audit-improvements.py"
