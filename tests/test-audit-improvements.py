@@ -60,6 +60,20 @@ def main():
     check("I07 standings timeout", 'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s' in text)
     check("I07 teamsDb timeout", '""")every 168h json timeout 600s' in text and '-fsm 5 -o "$d/$f"' in text)
 
+    # I08 - every heavy source exposes status and the UI shows source health.
+    def source_block(name):
+        start = re.search(rf"^source {name}=", text, re.M)
+        if not start:
+            return ""
+        nxt = re.search(r"\n(?:source|let|state|on|at|every|when|screen|component)\b", text[start.end():])
+        end = start.end() + (nxt.start() if nxt else len(text) - start.end())
+        return text[start.start():end]
+
+    status_names = ["seasonAll", "scheds", "standings", "teamsDb", "extra", "liveM", "knock", "nextup", "histfull"]
+    missing_status = [name for name in status_names if " status" not in source_block(name)]
+    check("I08 source status", not missing_status, ", ".join(missing_status))
+    check("I08 health visible", all(token in text for token in ["let healthTxt", "S.degraded", "S.health", "healthLine"]))
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1

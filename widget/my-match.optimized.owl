@@ -446,7 +446,7 @@ let seasonScript="""    set -o pipefail
     cat "$tmp/season.json"
     rm -rf "$tmp"
   """
-source seasonAll=cmd("bash -c ${sh(seasonScript)}")every 12h json timeout 300s
+source seasonAll=cmd("bash -c ${sh(seasonScript)}")every 12h json timeout 300s status
 source scheds=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -477,7 +477,7 @@ source scheds=cmd("""
     [ "$(jq 'length // 0' "$tmp/rounds.json")" -gt 0 ] || exit 1
     jq -cs '{rounds: .[0], anchors: .[1]}' "$tmp/rounds.json" "$tmp/anchors.json"
     rm -rf "$tmp"
-  """)every 24h json timeout 240s
+  """)every 24h json timeout 240s status
 let standingsScript="""    set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
     cleanup() {
@@ -565,7 +565,7 @@ let standingsScript="""    set -o pipefail
     cat "$tmp/merged.json"
     rm -rf "$tmp"
   """
-source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s
+source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s status
 source teamsDb=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -651,7 +651,7 @@ source teamsDb=cmd("""
     wait
     cat "$tmp/teams.json"
     rm -rf "$tmp"
-  """)every 168h json timeout 600s
+  """)every 168h json timeout 600s status
 source extra=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -783,7 +783,7 @@ source extra=cmd("""
     wait
     cat "$tmp/extra.json"
     rm -rf "$tmp"
-  """)every 1h json timeout 150s
+  """)every 1h json timeout 150s status
 let liveScript="""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -879,7 +879,7 @@ let liveScript="""
     cat "$LAST"
     rm -rf -- "$tmp"
   """
-source liveM=cmd("bash -c ${sh(liveScript)}")every 1m json timeout 90s
+source liveM=cmd("bash -c ${sh(liveScript)}")every 1m json timeout 90s status
 source knock=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -953,7 +953,7 @@ source knock=cmd("""
     wait
     cat "$tmp/knock.json"
     rm -rf "$tmp"
-  """)every 12h json timeout 120s
+  """)every 12h json timeout 120s status
 source nextup=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -1034,7 +1034,7 @@ source nextup=cmd("""
     wait
     cat "$tmp/next.json"
     rm -rf "$tmp"
-  """)every 12h json timeout 150s
+  """)every 12h json timeout 150s status
 source histfull=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -1179,12 +1179,12 @@ source histfull=cmd("""
     fi
     cat "$tmp/hist.json"
     rm -rf "$tmp"
-  """)every 24h json timeout 240s
+  """)every 24h json timeout 240s status
 source now=clock every 15s
 source slow=clock every 1h
 source spr=file("~/.cache/espn-logos/sprite.json")json
 state lang="en"persist
-let S=lang=="fr"?{tabMine:"Mes matchs",tabRiv:"Rivaux",tabTop5:"Top 5",tabEurope:"Europe",loading:"chargement…",close:"fermer",settings:"réglages",hide:"masquer",refreshing:"actualisation… ",failP:"✗ échec · ",fail:"✗ échec",tapRefresh:"actualiser les données",noMatchTeam:"aucun match pour cette équipe",upLive:"· en direct / à venir ·",upcoming:"· à venir ·",liveWord:"en direct",liveNowB:"en direct maintenant",startingNow:"ça commence maintenant !",kickoffIn:"coup d'envoi dans ",inPrep:"dans ",kickStart:"Ça commence ",finals:"Finales",stgPO:"Barrages",stg16:"8es",stgQF:"Quarts",stgSF:"Demies",stgF:"Finale",team:"équipe",playedHdr:"J",wHdr:"V",dHdr:"N",lHdr:"D",bfHdr:"BP:BC",gdHdr:"+/-",pts:"Pts",rivSuffix:" · concurrents",tapAll:"toucher pour tout voir",seasonOver:"saison terminée",noUpcoming:"aucun match à venir",noResults:"aucun résultat",noRecent:"aucun résultat récent",chooseTeams:"Choisir mes équipes (1-5)",welcome:"Bienvenue — choisis tes équipes",myTeamsT:"Mes équipes",range:"1 minimum, 5 maximum",searchClub:"Rechercher un club ou une sélection…",maxFiveHint:"Maximum 5 — retire une équipe pour en changer",loadingTeams:"chargement des équipes…",noTeams:"aucune équipe trouvée",cancel:"Annuler",validate:"Valider",pickOne:"Choisis au moins 1 équipe",maxBtn:"Maximum 5 équipes",notifT:"Mes équipes",notifX:"Sélectionne entre 1 et 5 équipes",displaySize:"taille d'affichage",myTeams:"mes équipes",nonePick:"aucune — choisis tes équipes",editTeams:"modifier mes équipes",rivMatches:"Concurrents · matchs",fixturesLoading:"affiches à venir en chargement…",upcomingHdr:"À venir",noMatchDay:"aucun match cette journée",standingsLoading:"classements en chargement…",noStandings:"aucun classement",stOn:"classements : oui",stOff:"classements : non",top5Matches:"Top 5 · matchs",euroMatches:"Europe · matchs",bracket:"Arbre du tournoi",bracketLoading:"arbre en chargement…",leaguePhase:"phase de ligue en cours — l'arbre apparaîtra à la fin",noMatchAny:"aucun match"}:{tabMine:"My matches",tabRiv:"Rivals",tabTop5:"Top 5",tabEurope:"Europe",loading:"loading…",close:"close",settings:"settings",hide:"hide",refreshing:"refreshing… ",failP:"✗ failed · ",fail:"✗ failed",tapRefresh:"tap to refresh",noMatchTeam:"no match for this team",upLive:"· live / upcoming ·",upcoming:"· upcoming ·",liveWord:"live",liveNowB:"live now",startingNow:"starting now!",kickoffIn:"kick-off in ",inPrep:"in ",kickStart:"Starts at ",finals:"Finals",stgPO:"PO",stg16:"R16",stgQF:"QF",stgSF:"SF",stgF:"Final",team:"team",playedHdr:"MP",wHdr:"W",dHdr:"D",lHdr:"L",bfHdr:"GF:GA",gdHdr:"GD",pts:"Pts",rivSuffix:" · rivals",tapAll:"tap to see all",seasonOver:"season over",noUpcoming:"no upcoming match",noResults:"no result",noRecent:"no recent result",chooseTeams:"Choose my teams (1-5)",welcome:"Welcome — pick your teams",myTeamsT:"My teams",range:"1 min, 5 max",searchClub:"Search a club or national side…",maxFiveHint:"Max 5 — remove a team to change",loadingTeams:"loading teams…",noTeams:"no team found",cancel:"Cancel",validate:"Done",pickOne:"Pick at least 1 team",maxBtn:"Max 5 teams",notifT:"My teams",notifX:"Select 1 to 5 teams",displaySize:"display size",myTeams:"my teams",nonePick:"none — pick your teams",editTeams:"edit my teams",rivMatches:"Rivals · matches",fixturesLoading:"upcoming fixtures loading…",upcomingHdr:"Upcoming",noMatchDay:"no match this matchday",standingsLoading:"standings loading…",noStandings:"no standings",stOn:"standings: yes",stOff:"standings: no",top5Matches:"Top 5 · matches",euroMatches:"Europe · matches",bracket:"Tournament bracket",bracketLoading:"bracket loading…",leaguePhase:"league phase underway — the bracket appears at the end",noMatchAny:"no match"}
+let S=lang=="fr"?{tabMine:"Mes matchs",tabRiv:"Rivaux",tabTop5:"Top 5",tabEurope:"Europe",loading:"chargement…",close:"fermer",settings:"réglages",hide:"masquer",refreshing:"actualisation… ",failP:"✗ échec · ",fail:"✗ échec",degraded:"données dégradées",health:"santé des sources",sourceErr:"source en échec",tapRefresh:"actualiser les données",noMatchTeam:"aucun match pour cette équipe",upLive:"· en direct / à venir ·",upcoming:"· à venir ·",liveWord:"en direct",liveNowB:"en direct maintenant",startingNow:"ça commence maintenant !",kickoffIn:"coup d'envoi dans ",inPrep:"dans ",kickStart:"Ça commence ",finals:"Finales",stgPO:"Barrages",stg16:"8es",stgQF:"Quarts",stgSF:"Demies",stgF:"Finale",team:"équipe",playedHdr:"J",wHdr:"V",dHdr:"N",lHdr:"D",bfHdr:"BP:BC",gdHdr:"+/-",pts:"Pts",rivSuffix:" · concurrents",tapAll:"toucher pour tout voir",seasonOver:"saison terminée",noUpcoming:"aucun match à venir",noResults:"aucun résultat",noRecent:"aucun résultat récent",chooseTeams:"Choisir mes équipes (1-5)",welcome:"Bienvenue — choisis tes équipes",myTeamsT:"Mes équipes",range:"1 minimum, 5 maximum",searchClub:"Rechercher un club ou une sélection…",maxFiveHint:"Maximum 5 — retire une équipe pour en changer",loadingTeams:"chargement des équipes…",noTeams:"aucune équipe trouvée",cancel:"Annuler",validate:"Valider",pickOne:"Choisis au moins 1 équipe",maxBtn:"Maximum 5 équipes",notifT:"Mes équipes",notifX:"Sélectionne entre 1 et 5 équipes",displaySize:"taille d'affichage",myTeams:"mes équipes",nonePick:"aucune — choisis tes équipes",editTeams:"modifier mes équipes",rivMatches:"Concurrents · matchs",fixturesLoading:"affiches à venir en chargement…",upcomingHdr:"À venir",noMatchDay:"aucun match cette journée",standingsLoading:"classements en chargement…",noStandings:"aucun classement",stOn:"classements : oui",stOff:"classements : non",top5Matches:"Top 5 · matchs",euroMatches:"Europe · matchs",bracket:"Arbre du tournoi",bracketLoading:"arbre en chargement…",leaguePhase:"phase de ligue en cours — l'arbre apparaîtra à la fin",noMatchAny:"aucun match"}:{tabMine:"My matches",tabRiv:"Rivals",tabTop5:"Top 5",tabEurope:"Europe",loading:"loading…",close:"close",settings:"settings",hide:"hide",refreshing:"refreshing… ",failP:"✗ failed · ",fail:"✗ failed",degraded:"degraded data",health:"source health",sourceErr:"source failed",tapRefresh:"tap to refresh",noMatchTeam:"no match for this team",upLive:"· live / upcoming ·",upcoming:"· upcoming ·",liveWord:"live",liveNowB:"live now",startingNow:"starting now!",kickoffIn:"kick-off in ",inPrep:"in ",kickStart:"Starts at ",finals:"Finals",stgPO:"PO",stg16:"R16",stgQF:"QF",stgSF:"SF",stgF:"Final",team:"team",playedHdr:"MP",wHdr:"W",dHdr:"D",lHdr:"L",bfHdr:"GF:GA",gdHdr:"GD",pts:"Pts",rivSuffix:" · rivals",tapAll:"tap to see all",seasonOver:"season over",noUpcoming:"no upcoming match",noResults:"no result",noRecent:"no recent result",chooseTeams:"Choose my teams (1-5)",welcome:"Welcome — pick your teams",myTeamsT:"My teams",range:"1 min, 5 max",searchClub:"Search a club or national side…",maxFiveHint:"Max 5 — remove a team to change",loadingTeams:"loading teams…",noTeams:"no team found",cancel:"Cancel",validate:"Done",pickOne:"Pick at least 1 team",maxBtn:"Max 5 teams",notifT:"My teams",notifX:"Select 1 to 5 teams",displaySize:"display size",myTeams:"my teams",nonePick:"none — pick your teams",editTeams:"edit my teams",rivMatches:"Rivals · matches",fixturesLoading:"upcoming fixtures loading…",upcomingHdr:"Upcoming",noMatchDay:"no match this matchday",standingsLoading:"standings loading…",noStandings:"no standings",stOn:"standings: yes",stOff:"standings: no",top5Matches:"Top 5 · matches",euroMatches:"Europe · matches",bracket:"Tournament bracket",bracketLoading:"bracket loading…",leaguePhase:"league phase underway — the bracket appears at the end",noMatchAny:"no match"}
 let JP=lang=="fr"?"J":"MD"
 let agoP=lang=="fr"?"il y a ":""
 let agoS=lang=="fr"?"":" ago"
@@ -1217,6 +1217,10 @@ state topLg="ALL"persist
 state euroLg="uefa.europa"persist
 state selJ=-1
 state showTables=true persist
+let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:scheds},{n:"standings",s:standings},{n:"teamsDb",s:teamsDb},{n:"extra",s:extra},{n:"liveM",s:liveM},{n:"knock",s:knock},{n:"nextup",s:nextup},{n:"histfull",s:histfull}]
+let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
+let healthTxt=join(healthBad.map(h=>h.n+" "+(h.s.code??"?"))," · ")
+let healthLine=join(healthList.map(h=>h.n+" "+(h.s==null?"…":(h.s.ok??false)?"✓":("✗"+(h.s.code??""))))," · ")
 every 1s{if spinning{elapsed=elapsed+1}}
 on games{
 lastDur=spinning?elapsed:lastDur
@@ -1271,14 +1275,14 @@ kickId="";kickAt=0
 let favAbbrs=myTeams.map(t=>t.abbr)
 let selTeam=myTeams.find(t=>t.abbr==team)??null
 let setupNeeded=count(myTeams)==0||showTeams
-let gAdv=(games.out??[]).filter(g=>g.state!='pre'||!(extra??[]).any(e=>e.id==g.id))
-let eKeep=(extra??[]).filter(e=>!gAdv.any(g=>g.id==e.id))
-let all=flatten([gAdv,eKeep,(seasonAll??[]).filter(s=>!gAdv.any(g=>g.id==s.id)&&!eKeep.any(e=>e.id==s.id))]).filter(g=>g.state!='pre'||g.at>now-7200).sortBy(g=>g.at)
-let rounds=scheds.rounds??{}
-let anchors=scheds.anchors??{}
+let gAdv=(games.out??[]).filter(g=>g.state!='pre'||!(extra.out??[]).any(e=>e.id==g.id))
+let eKeep=(extra.out??[]).filter(e=>!gAdv.any(g=>g.id==e.id))
+let all=flatten([gAdv,eKeep,(seasonAll.out??[]).filter(s=>!gAdv.any(g=>g.id==s.id)&&!eKeep.any(e=>e.id==s.id))]).filter(g=>g.state!='pre'||g.at>now-7200).sortBy(g=>g.at)
+let rounds=scheds.out.rounds??{}
+let anchors=scheds.out.anchors??{}
 let eurBase=all.filter(g=>g.league=='uefa.europa').sortBy(g=>g.at)
 let eurIds=eurBase.map(g=>g.id)
-let tables=standings??[]
+let tables=standings.out??[]
 let live=all.filter(g=>g.state=='in')
 let base=all.filter(g=>count(myTeams)>0&&(team=="ALL"?(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):(g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((count(g.tids??[])>0&&selTeam!=null&&(selTeam.tid??"")!=""?(g.tids??[]).any(s=>s==selTeam.tid):(g.squads??[]).any(s=>s==team))&&(selTeam==null||(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c")))))
 let baseF=base
@@ -1309,8 +1313,8 @@ let kShortH=kTeamH.short??kTeamH.abbr
 let kShortA=kTeamA.short??kTeamA.abbr
 let kickTitle=kickMatch==null?"":kShortH+" ⚔️ "+kShortA
 let kickText=kickMatch==null||kickMatch.home==null||kickMatch.away==null?"":S.kickStart+fmtTime(kickMatch.at,"HH:mm")+(kickMatch.tag==null||kickMatch.tag==""?"":" · "+kickMatch.tag)
-let liveList=liveM.items??[]
-let liveAt=liveM.at??0
+let liveList=liveM.out.items??[]
+let liveAt=liveM.out.at??0
 let liveAge=liveAt>0?max(now-liveAt,0):null
 let liveSuffix=liveAge==null?"":" · live "+agoP+fmtDuration(liveAge)+agoS
 let liveWarn=liveAge!=null&&liveAge>900?" · "+(lang=="fr"?"màj ":"updated ")+agoP+fmtDuration(liveAge)+agoS:""
@@ -1366,8 +1370,8 @@ let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[])
 let modeTabs=[{id:"MINE",short:S.tabMine},{id:"RIV",short:S.tabRiv},{id:"TOP5",short:S.tabTop5},{id:"EUROPE",short:S.tabEurope}]
 let topTabs=[{id:"eng.1",short:"ENG"},{id:"esp.1",short:"ESP"},{id:"ger.1",short:"GER"},{id:"ita.1",short:"ITA"},{id:"fra.1",short:"FRA"}]
 let topLeagues=["eng.1","esp.1","ger.1","ita.1","fra.1"]
-let extraAll=extra??[]
-let nextAll=nextup??[]
+let extraAll=extra.out??[]
+let nextAll=nextup.out??[]
 let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
 let rivLgs=["fra.1","fra.2","uefa.europa","uefa.europa.conf","uefa.nations","eng.1","esp.1","ger.1","ita.1","fifa.worldq.uefa","uefa.champions"]
 let scopeOf=selTeam==null?myTeams:[selTeam]
@@ -1389,12 +1393,12 @@ let euroMatches=extraAll.filter(g=>g.league==euroLg).sortBy(g=>g.at).reverse()
 let euroNext=nextNew.filter(g=>g.league==euroLg).sortBy(g=>g.at).take(6)
 let euroList=flatten([euroNext.take(4),euroMatches.take(8)])
 let euroTables=tables.filter(u=>(u.league??"")==euroLg)
-let knockAll=knock??[]
+let knockAll=knock.out??[]
 let knockLg=knockAll.filter(g=>g.league==euroLg).sortBy(g=>g.at)
 let knockRounds=["knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
 let knockLabels=lang=="fr"?{"knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
 let curLg=view=="TOP5"?(topLg=="ALL"?null:topLg):(selTeam==null||selTeam.kind=="n"?null:selTeam.league)
-let histMap=histfull??{}
+let histMap=histfull.out??{}
 let histLg=curLg==null?[]:(get(histMap,curLg,[])??[])
 let jr=histLg.filter(g=>(g.round??0)>0).sortBy(g=>g.round)
 let maxJ=count(jr)>0?last(jr).round:null
@@ -1513,7 +1517,7 @@ Text{text:lang=="fr"?z.t:get(ENZ,z.t,z.t);style:label;color:soft}
 }
 component SetupBlock(){
 let q=lower(trim(query))
-let db=teamsDb??[]
+let db=teamsDb.out??[]
 let res=q==""?db.take(12):db.filter(t=>contains(lower(t.name),q)||contains(lower(t.short),q)||contains(lower(t.abbr),q)).take(12)
 Column{
 gap:8
@@ -1533,6 +1537,8 @@ Text{text:S.maxFiveHint;style:label;color:soft;align:center}
 }
 if teamsDb==null{
 Text{text:S.loadingTeams;style:small;color:soft}
+}else if !(teamsDb.ok??true){
+Text{text:S.sourceErr+" "+(teamsDb.code??"");style:small;color:"#ef4444";align:center}
 }else if count(res)==0{
 Text{text:S.noTeams;style:small;color:soft}
 }else{
@@ -1782,6 +1788,9 @@ Text{text:m.short;weight:1;align:center;style:label;maxLines:1;color:view==m.id?
 }
 }
 Rule{}
+if healthTxt!=""{
+Text{text:"⚠ "+S.degraded+" · "+healthTxt;style:label;color:"#ef4444";align:center;maxLines:1;onTap:screen()}
+}
 if view=="TOP5"{
 Row{
 gap:4
@@ -1946,6 +1955,9 @@ text:(spinning?S.refreshing+elapsed+"s":lastOk==true?"✓ ${max(lastDur ?? 0, 0)
 style:small;color:spinning?"#22c55e":lastOk==false?"#ef4444":soft
 align:center;maxLines:1
 }
+if healthTxt!=""{
+Text{text:"⚠ "+S.degraded+" · "+healthTxt;style:small;color:"#ef4444";align:center;maxLines:2}
+}
 Row{
 gap:6
 for m in modeTabs key m.id{
@@ -2032,6 +2044,7 @@ gap:6
 Button{text:"English";weight:1;color:lang=="en"?pop:soft;onTap:lang="en"}
 Button{text:"Français";weight:1;color:lang=="fr"?pop:soft;onTap:lang="fr"}
 }
+Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:4}
 }
 }
 if view=="MINE"{
@@ -2068,6 +2081,8 @@ for g in rivalsAll.take(team=="ALL"?15:30)key g.id{LiveGame{g:g}}
 }
 if standings==null{
 Text{text:S.standingsLoading;style:small;color:soft}
+}else if !(standings.ok??true){
+Text{text:S.sourceErr+" "+(standings.code??"");style:small;color:"#ef4444";align:center}
 }else if count(myTables)==0{
 Text{text:S.noStandings;style:small;color:soft}
 }else{
@@ -2107,6 +2122,8 @@ for g in(topLg=="ALL"?topList:topAll.take(30))key g.id{LiveGame{g:g}}
 }
 if standings==null{
 Text{text:S.standingsLoading;style:small;color:soft}
+}else if !(standings.ok??true){
+Text{text:S.sourceErr+" "+(standings.code??"");style:small;color:"#ef4444";align:center}
 }else if count(topTables)==0{
 Text{text:S.noStandings;style:small;color:soft}
 }else{
@@ -2146,6 +2163,8 @@ for g in euroMatches.take(30)key g.id{LiveGame{g:g}}
 }
 if standings==null{
 Text{text:S.standingsLoading;style:small;color:soft}
+}else if !(standings.ok??true){
+Text{text:S.sourceErr+" "+(standings.code??"");style:small;color:"#ef4444";align:center}
 }else if count(euroTables)==0{
 Text{text:S.noStandings;style:small;color:soft}
 }else{
@@ -2158,6 +2177,8 @@ Rule{}
 Text{text:S.bracket;style:label;color:pop}
 if knock==null{
 Text{text:S.bracketLoading;style:small;color:soft}
+}else if !(knock.ok??true){
+Text{text:S.sourceErr+" "+(knock.code??"");style:small;color:"#ef4444";align:center}
 }else if count(knockLg)==0{
 Text{text:S.leaguePhase;style:small;color:soft}
 }else{

@@ -15,7 +15,7 @@ fonctionnalité retirée. Le widget passe au lot **v5.10.0**.
 | I05 | Borner `upShow` dans la tuile, garder la liste complète dans l'écran | UX-01 | test statique + preview 7×12 | **Fait** |
 | I06 | Réduire le périmètre `standings` au premier lancement (Top 5 + Europe) | PROD-01, DATA-02 | test statique + extraction `bash -n` | **Fait** |
 | I07 | Aligner les timeouts `scheds`/`standings`/`teamsDb` sur le pire cas | SHELL-01, DATA-03 | test de valeurs + `bash -n` | **Fait** |
-| I08 | Ajouter `status` à toutes les sources et une santé visible | SRE-01, PROD-02, UX-03 | test de présence + `owl-check` | À faire |
+| I08 | Ajouter `status` à toutes les sources et une santé visible | SRE-01, PROD-02, UX-03 | test de présence + `owl-check` | **Fait** |
 | I09 | Remplacer le réveil `every 1s` par un `at` conditionnel | ENERGY-01 | test anti-`every 1s` + `owl-check` | À faire |
 | I10 | Ajouter la CI et le harnais de tests des améliorations | QA-01, QA-02 | workflow + exécution locale | À faire |
 
