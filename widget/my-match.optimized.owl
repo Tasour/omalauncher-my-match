@@ -1539,7 +1539,7 @@ let liveF=baseF.filter(g=>g.state=='in')
 let nextF=baseF.filter(g=>g.state=='pre')
 let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
-let tileRows=(rows??4)>=10?20:(rows??4)>=6?12:8
+let tileRows=(rows??4)>=10?60:(rows??4)>=6?12:8
 let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
@@ -2034,6 +2034,7 @@ BannerForm{t:heroMatch.away;lg:heroMatch.league}
 }
 onTap:screen()
 Column{
+scroll:true
 Row{
 gap:4
 align:center
@@ -2093,8 +2094,6 @@ Rule{}
 if view=="MINE"{
 MatchBanner{w:wide?88:48;h:wide?88:64}
 Column{
-weight:1
-scroll:true
 if games==null{
 Text{text:S.loading;style:small;color:soft}
 }else if gamesErr{
@@ -2114,8 +2113,6 @@ for g in upTile key g.id{LiveGame{g:g;compact:true}}
 }
 }else if view=="RIV"{
 Column{
-weight:1
-scroll:true
 Text{text:rivLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
 if extra==null&&nextup==null{
 Text{text:S.loading;style:small;color:soft}
@@ -2131,8 +2128,6 @@ for g in rivalsTile key g.id{LiveGame{g:g;compact:true}}
 }
 }else if view=="EUROPE"{
 Column{
-weight:1
-scroll:true
 Text{text:euroLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
 if extra==null&&nextup==null&&histfull==null{
 Text{text:S.loading;style:small;color:soft}
@@ -2173,8 +2168,6 @@ for g in euroList key g.id{LiveGame{g:g;compact:true}}
 }
 }else{
 Column{
-weight:1
-scroll:true
 Text{text:(topLg=="ALL"?topLabel:topLabel+" · "+S.tapAll)+liveWarn;style:label;color:topLg=="ALL"?soft:pop;align:center;maxLines:1;onTap:topLg="ALL"}
 if extra==null&&nextup==null&&histfull==null{
 Text{text:S.loading;style:small;color:soft}
