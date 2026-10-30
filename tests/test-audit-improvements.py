@@ -190,6 +190,11 @@ def main():
           dump.exists() and os.access(dump, os.X_OK)
           and all(name in dump_text for name in ("scheds", "teamsDb", "histfull")))
 
+    # N01 - goal alerts compare the live source's previous and current scores.
+    check("N01 goal flash",
+          "on liveM{" in text and 'notify("⚽ "' in text
+          and "int(g.home.score" in text and "!spoiler" in text and "allMine.any" in text)
+
     # N04 - spoiler-free mode hides current scores and result chips.
     check("N04 anti-spoiler",
           "state spoiler=false persist" in text and "let hide=spoiler&&" in text

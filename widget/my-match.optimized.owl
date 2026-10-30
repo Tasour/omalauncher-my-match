@@ -1511,6 +1511,15 @@ kickAt=kickSoon.at
 }
 }
 }
+on liveM{
+let before=(old??{}).items??[]
+let after=value.items??[]
+let c1=after.find(g=>allMine.any(a=>a.id==g.id)&&before.any(h=>h.id==g.id&&(int(g.home.score??"0")+int(g.away.score??"0"))>(int(h.home.score??"0")+int(h.away.score??"0"))))
+let c2=after.find(g=>g.id!=(c1==null?"":c1.id)&&allMine.any(a=>a.id==g.id)&&before.any(h=>h.id==g.id&&(int(g.home.score??"0")+int(g.away.score??"0"))>(int(h.home.score??"0")+int(h.away.score??"0"))))
+if c1!=null&&!spoiler{notify("⚽ "+(c1.home.score??"0")+"–"+(c1.away.score??"0")+(c1.detail==null?"":" · "+c1.detail),(c1.tag??"")+" · "+(c1.home.abbr??"")+" – "+(c1.away.abbr??""))}
+if c2!=null&&!spoiler{notify("⚽ "+(c2.home.score??"0")+"–"+(c2.away.score??"0")+(c2.detail==null?"":" · "+c2.detail),(c2.tag??"")+" · "+(c2.home.abbr??"")+" – "+(c2.away.abbr??""))}
+}
+
 at h12At{
 let m=h12Match
 let unseen=h12Id!=""&&!nextDone.any(d=>d==h12Id)
