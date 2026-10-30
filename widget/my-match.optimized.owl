@@ -2494,9 +2494,11 @@ for st in knockRounds key st{
 let sm=knockLg.filter(g=>(g.stage??"")==st)
 if count(sm)>0{
 Text{text:"${get(knockLabels, st, st)} · ${count(sm)}";style:small;color:soft}
-for g in sm key g.id{LiveGame{g:g}}
+for g in sm key g.id{
+LiveGame{g:g}
 if g.aggH!=null&&g.aggA!=null{
 Text{text:(lang=="fr"?"cumul ":"agg ")+g.aggH+"–"+g.aggA+(g.aggDone?"":" …");style:label;color:soft;align:center;maxLines:1}
+}
 }
 }
 }
