@@ -36,7 +36,7 @@ assert_match() {
 grep -q 'has("events") or has("leagues")' "$GAMES" || fail "games fetch validates the ESPN response"
 grep -q 'SIG=.*WANTLG' "$GAMES" || fail "SIG includes WANTLG"
 grep -q '! -s "$f"' "$GAMES" || fail "empty monthly cache entries are refetched"
-grep -q 'myTeams.all(t=>(t.league??"")!="")' "$WIDGET" || fail "favLg falls back when a team has no league"
+grep -Fq ',t.leagues??[],[t.league]' "$WIDGET" || fail "favLg falls back when a team has no league"
 grep -q '+sh(favStr)+' "$WIDGET" || fail "favStr goes through sh()"
 grep -q '+sh(favLg)+' "$WIDGET" || fail "favLg goes through sh()"
 pass "static guards"

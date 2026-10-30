@@ -1597,6 +1597,8 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
     ID="""+sh(heroMatch==null?"":(heroMatch.id??""))+""";
     AT="""+sh(heroMatch==null?"0":(heroMatch.at??0))+""";
     ST="""+sh(heroMatch==null?"":(heroMatch.state??""))+""";
+    HID="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.tid??"")))+""";
+    HABBR="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.abbr??"")))+""";
     if [ "$ST" != "pre" ] || [ -z "$LG" ] || [ -z "$ID" ]; then printf 'null'; exit 0; fi
     RAW=${ID#*:}
     C=~/.cache/espn-odds
@@ -1608,9 +1610,9 @@ let heroOddsScript="""    LG="""+sh(heroMatch==null?"":(heroMatch.league??""))+"
     if [ -s "$F" ]; then
       TS=$(jq -r '.ts // 0' "$F" 2>/dev/null)
       CA=$(jq -r '.at // 0' "$F" 2>/dev/null)
-      if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$CA" != "0" ] && [ $((NOW-TS)) -lt "$TTL" ]; then cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"; cat "$F"; exit 0; fi
+      if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$CA" != "0" ] && [ $((NOW-TS)) -lt "$TTL" ] && [ "$(jq -r '.hv // 0' "$F" 2>/dev/null)" = "1" ]; then cp "$F" "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"; cat "$F"; exit 0; fi
     fi
-    OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O}')
+    OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" --arg hid "$HID" --arg habbr "$HABBR" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O, hv: 1, h2h: (([.seasonseries[]? | select((.type? // "") == "head-to-head")][0]) as $s | if $s == null then null else (($s.events // []) | length) as $n | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)] | length) as $w | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)!=$hid) and ((.team.abbreviation? // "")!=$habbr))) | .winner] | any)] | length) as $l | {n: $n, w: $w, d: ($n - $w - $l), l: $l} end)}')
     if [ -n "$OUT" ] && [ "$OUT" != "null" ]; then
       printf '%s\n' "$OUT" > "$F.tmp" && mv "$F.tmp" "$F"
       printf '%s\n' "$OUT" > "$C/current.tmp" && mv "$C/current.tmp" "$C/current.json"
@@ -1631,6 +1633,8 @@ let heroTag=heroMatch==null||heroMatch.tag==null||heroMatch.tag==""?"":heroMatch
 let heroDay=heroMatch==null||heroMatch.state=="in"?"":fmtTime(heroAt,"d MMM",null,lang)
 let heroTagLine=heroDay==""?heroTag:(heroTag==""?heroDay:heroTag+" · "+heroDay)
 let heroDown=heroMatch==null?"":heroMatch.state=="in"?S.liveNowB:heroAt-now<0?S.liveNowB:heroAt-now<60?S.startingNow:S.kickoffIn+fmtDuration(heroAt-now)
+let heroOddObj=heroMatch!=null&&(oddsNow??{}).id==heroMatch.id?oddsNow:(heroMatch!=null&&(heroOdds??{}).id==heroMatch.id?heroOdds:null)
+let heroH2H=heroOddObj!=null&&heroOddObj.h2h!=null?(lang=="fr"?"H2H · "+heroOddObj.h2h.w+"V "+heroOddObj.h2h.d+"N "+heroOddObj.h2h.l+"D":"H2H · "+heroOddObj.h2h.w+"W "+heroOddObj.h2h.d+"D "+heroOddObj.h2h.l+"L"):""
 let soft=mix(muted,foreground,0.5)
 let pop=mix(accent,foreground,0.4)
 let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[]).any(tm=>tm.ours!=null&&myTeams.any(t=>t.kind==(u.league=="uefa.nations"||u.league=="fifa.worldq.uefa"||u.league=="fifa.friendly"?"n":"c")&&t.abbr==tm.ours)))
@@ -2039,6 +2043,9 @@ BannerOdd{l:"1";v:oh;tone:hTone}
 BannerOdd{l:"N";v:odr;tone:dTone}
 BannerOdd{l:"2";v:oa;tone:aTone}
 }
+}
+if heroH2H!=""{
+Text{text:heroH2H;style:label;color:soft;align:center;maxLines:1}
 }
 }
 Column{weight:1;gap:1;align:center

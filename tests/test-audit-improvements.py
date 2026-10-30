@@ -190,6 +190,11 @@ def main():
           dump.exists() and os.access(dump, os.X_OK)
           and all(name in dump_text for name in ("scheds", "teamsDb", "histfull")))
 
+    # N07 - the hero card shows the last head-to-head form.
+    check("N07 head-to-head",
+          "HID=" in text and "h2h: (([.seasonseries" in text
+          and "heroH2H" in text and '"H2H · "' in text)
+
     # N01 - goal alerts compare the live source's previous and current scores.
     check("N01 goal flash",
           "on liveM{" in text and 'notify("⚽ "' in text

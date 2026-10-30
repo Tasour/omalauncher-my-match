@@ -40,6 +40,12 @@ values = {
     "sh(favTid)": "${TEST_FAVTID}",
     "sh(favNoTid)": "${TEST_FAVNOTID}",
     "sh(favLg)": "${TEST_FAVLG}",
+    'sh(heroMatch==null?"":(heroMatch.league??""))': "${TEST_HERO_LG}",
+    'sh(heroMatch==null?"":(heroMatch.id??""))': "${TEST_HERO_ID}",
+    'sh(heroMatch==null?"0":(heroMatch.at??0))': "${TEST_HERO_AT}",
+    'sh(heroMatch==null?"":(heroMatch.state??""))': "${TEST_HERO_ST}",
+    'sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.tid??"")))': "${TEST_HERO_HID}",
+    'sh(heroMatch==null?"":(heroMatch.home==null?"":(heroMatch.home.abbr??"")))': "${TEST_HERO_HABBR}",
 }
 out = chunks[0]
 for expr, chunk in zip(exprs, chunks[1:]):

@@ -38,7 +38,7 @@ Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-
 ## Structure
 
 ```
-docs/        audit initial, cycle en V, audit du widget, notice de données, modèle CI
+docs/        audits, cycle en V, notice de données, modèle CI, propositions de features
 widget/      my-match.owl original + version optimisée
 measurements/ avant/après (CPU, fps, réseau, batterie)
 scripts/     mesure, CI, extraction des scripts du widget
@@ -73,6 +73,10 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] Réglages « à propos / données » : attribution ESPN, diagnostic copiable, effacement des caches en deux temps
 - [x] I30 : extracteur `scripts/dump-widget-scripts.sh` (revue/shellcheck, mono-fichier conservé)
 - [ ] I18 : listes lazy (refactor d'écran + validation device)
+- [x] N01 : Goal Flash — notification à chaque but de mes équipes
+- [x] N04 : mode anti-spoiler (scores et pastilles V/N/D masqués)
+- [x] N07 : forme H2H des 5 dernières confrontations dans la carte du prochain match
+- [ ] N02–N24 : voir [`docs/features-proposals.md`](docs/features-proposals.md)
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

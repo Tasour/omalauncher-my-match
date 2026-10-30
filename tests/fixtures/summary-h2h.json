@@ -1,0 +1,122 @@
+{
+  "header": {
+    "competitions": [
+      {
+        "date": "2026-11-01T19:00:00Z",
+        "competitors": [
+          {
+            "homeAway": "home",
+            "team": {
+              "id": "6994",
+              "abbreviation": "GRE"
+            }
+          },
+          {
+            "homeAway": "away",
+            "team": {
+              "id": "3170",
+              "abbreviation": "DIJO"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "seasonseries": [
+    {
+      "type": "head-to-head",
+      "events": [
+        {
+          "competitors": [
+            {
+              "team": {
+                "id": "6994",
+                "abbreviation": "GRE"
+              },
+              "winner": true
+            },
+            {
+              "team": {
+                "id": "3170",
+                "abbreviation": "DIJO"
+              },
+              "winner": false
+            }
+          ]
+        },
+        {
+          "competitors": [
+            {
+              "team": {
+                "id": "6994",
+                "abbreviation": "GRE"
+              },
+              "winner": true
+            },
+            {
+              "team": {
+                "id": "3170",
+                "abbreviation": "DIJO"
+              },
+              "winner": false
+            }
+          ]
+        },
+        {
+          "competitors": [
+            {
+              "team": {
+                "id": "6994",
+                "abbreviation": "GRE"
+              },
+              "winner": false
+            },
+            {
+              "team": {
+                "id": "3170",
+                "abbreviation": "DIJO"
+              },
+              "winner": false
+            }
+          ]
+        },
+        {
+          "competitors": [
+            {
+              "team": {
+                "id": "6994",
+                "abbreviation": "GRE"
+              },
+              "winner": false
+            },
+            {
+              "team": {
+                "id": "3170",
+                "abbreviation": "DIJO"
+              },
+              "winner": true
+            }
+          ]
+        },
+        {
+          "competitors": [
+            {
+              "team": {
+                "id": "6994",
+                "abbreviation": "GRE"
+              },
+              "winner": true
+            },
+            {
+              "team": {
+                "id": "3170",
+                "abbreviation": "DIJO"
+              },
+              "winner": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

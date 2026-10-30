@@ -62,6 +62,16 @@ case "$url" in
           [ -n "$body" ] || body='{"events":[]}'
         fi
         ;;
+      */summary*)
+        league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/summary.*#\1#p')
+        if [ "${MOCK_INVALID:-0}" = 1 ]; then
+          body='{"error":"rate limited"}'
+        else
+          f="${FIXTURES:-}/$league.summary.json"
+          [ -n "${FIXTURES:-}" ] && [ ! -f "$f" ] && f="${FIXTURES:-}/summary-h2h.json"
+          if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{}'; fi
+        fi
+        ;;
       */teams|*/teams'?'*)
         league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/teams.*#\1#p')
         if [ "${MOCK_MODE:-}" = "trunc" ]; then
