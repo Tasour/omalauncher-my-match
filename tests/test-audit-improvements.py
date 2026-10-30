@@ -74,6 +74,9 @@ def main():
     check("I08 source status", not missing_status, ", ".join(missing_status))
     check("I08 health visible", all(token in text for token in ["let healthTxt", "S.degraded", "S.health", "healthLine"]))
 
+    # I09 - the spinner no longer wakes the widget every second while idle.
+    check("I09 conditional spinner tick", "every 1s" not in text and "at spinAt{" in text and "spinAt=now+1" in text)
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1

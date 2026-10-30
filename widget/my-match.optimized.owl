@@ -1200,6 +1200,7 @@ state showTeams=false
 state secClosed=[]persist
 state spinning=false
 state spinUntil=0
+state spinAt=0
 state elapsed=0
 state lastDur=-1 persist
 state lastOk=null
@@ -1221,13 +1222,14 @@ let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:sc
 let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
 let healthTxt=join(healthBad.map(h=>h.n+" "+(h.s.code??"?"))," · ")
 let healthLine=join(healthList.map(h=>h.n+" "+(h.s==null?"…":(h.s.ok??false)?"✓":("✗"+(h.s.code??""))))," · ")
-every 1s{if spinning{elapsed=elapsed+1}}
+at spinAt{if spinning{elapsed=elapsed+1;spinAt=now+1}else{spinAt=0}}
 on games{
 lastDur=spinning?elapsed:lastDur
 lastOk=(games.ok??false)
 lastAt=(games.ok??false)?now:lastAt
 spinning=false
 spinUntil=0
+spinAt=0
 if (games.ok??false){
 if soon12!=null&&!nextDone.any(d=>d==soon12.id){
 h12Id=soon12.id
@@ -1239,7 +1241,7 @@ kickAt=kickSoon.at
 }
 }
 }
-at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0}
+at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0;spinAt=0}
 on showTeams{draft=value?myTeams:draft;query=value?"":query}
 when team!="ALL"&&count(myTeams)>0&&(myTeams.find(t=>t.abbr==team)??null)==null{team="ALL"}
 on games first{
@@ -1991,7 +1993,7 @@ FormStrip{t:t;px:count(myTeams)>3?11:15}
 }
 Canvas{
 width:52;height:52
-onTap:{refresh();spinning=true;elapsed=0;lastOk=null;spinUntil=now+245}
+onTap:{refresh();spinning=true;elapsed=0;lastOk=null;spinUntil=now+245;spinAt=now+1}
 let mid=26
 rect(1,1,50,50,radius:10,fill:spinning?alpha("#22c55e",0.12):rgb(0,0,0,0),stroke:spinning?"#22c55e":border,width:1)
 if spinning{
