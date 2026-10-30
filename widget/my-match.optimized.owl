@@ -1052,7 +1052,7 @@ source knock=cmd("""
       d=$2
       tag=$(tagof "$lg")
       if r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) && [ -n "$r" ]; then
-        printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .season.slug as $round | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: $round, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
+        printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" '($want | split(",") | map(select(. != ""))) as $wl | def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .season.slug as $round | .competitions[0] as $c | {id: ($lg + ":" + (.id | tostring)), league: $lg, tag: $tag, stage: $round, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T), aggH: (($c.competitors[] | select(.homeAway == "home") | (.team.id | tostring)) as $hid | ([$c.series.competitors[]? | select(.id == $hid) | .aggregateScore] | .[0] // null)), aggA: (($c.competitors[] | select(.homeAway == "away") | (.team.id | tostring)) as $aid | ([$c.series.competitors[]? | select(.id == $aid) | .aggregateScore] | .[0] // null)), aggDone: ($c.series.completed // false)}' > "$tmp/$lg-$d.jsonl" && echo ok >> "$tmp/ok.log"
       fi
     }
     n=0
@@ -2495,6 +2495,9 @@ let sm=knockLg.filter(g=>(g.stage??"")==st)
 if count(sm)>0{
 Text{text:"${get(knockLabels, st, st)} · ${count(sm)}";style:small;color:soft}
 for g in sm key g.id{LiveGame{g:g}}
+if g.aggH!=null&&g.aggA!=null{
+Text{text:(lang=="fr"?"cumul ":"agg ")+g.aggH+"–"+g.aggA+(g.aggDone?"":" …");style:label;color:soft;align:center;maxLines:1}
+}
 }
 }
 }

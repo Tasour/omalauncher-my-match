@@ -92,6 +92,8 @@ jq -e 'type == "array" and length > 0' "$TMP/knock.json" >/dev/null 2>&1 ||
   fail "knock produced no matches"
 jq -e 'any(.[]; .league == "uefa.champions" and .tag == "C1" and (.home.abbr | length) > 0 and (.away.abbr | length) > 0)' \
   "$TMP/knock.json" >/dev/null 2>&1 || fail "knock match shape is incomplete"
+jq -e 'any(.[]; .id == "uefa.champions:ucl-post-1" and .aggH == 3 and .aggA == 1 and .aggDone == true)' \
+  "$TMP/knock.json" >/dev/null 2>&1 || fail "knock two-leg aggregate is missing"
 meta_ok "$HOME/.cache/espn-knock.json.meta" || fail "knock cache lacks metadata"
 KNOCK_AT=$(jq -r '.at' "$HOME/.cache/espn-knock.json.meta")
 ORIG_FIXTURES="$FIXTURES"

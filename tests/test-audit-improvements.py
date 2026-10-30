@@ -141,6 +141,9 @@ def main():
     check("I17 match status wording",
           'postponed:"reporté"' in text and 'let special=contains(gdet' in text
           and 'g.at>now-7200||contains(lower(g.detail' in text)
+    check("I17 two-leg aggregate",
+          "aggH:" in text and "aggDone:" in text and 'lang=="fr"?"cumul ":"agg "' in text)
+
     # I19 - tables compose only when asked for (persisted choice).
     check("I19 tables on demand", "state showTables=false persist" in text)
     # I20 - crest images carry an accessible name.
