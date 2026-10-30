@@ -70,6 +70,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] I31 (partiel) : langue initiale depuis Android ; réglages secondaires persistés
 - [x] I32 : LICENSE MIT + notice de données/attribution ESPN
 - [x] I33 (partiel) : preuves hors appareil + protocole ; décharge device non exécutée
+- [x] Réglages « à propos / données » : attribution ESPN, diagnostic copiable, effacement des caches en deux temps
 - [ ] I18 : listes lazy (refactor d'écran) · I30 : extraction des scripts
 - [ ] Mesures device v5.10.0 + test de décharge
 

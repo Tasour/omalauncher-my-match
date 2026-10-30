@@ -72,6 +72,13 @@ suit maintenant la hauteur en cellules : 8 (petite), 12 (moyenne), 60 (grande,
 liste scrollable). Le compteur `+N` ne reste que si le plafond est atteint ; il
 ouvre l'écran complet, qui garde toutes les rencontres.
 
+## Réglages « à propos / données » (2026-10-30)
+
+Les réglages affichent l'attribution ESPN, un bouton **copier le diagnostic**
+(`copy()` de `healthLine`) et un effacement des caches en deux temps
+(`clearCaches` → confirmation → `run("rm -rf ~/.cache/espn-*")` + `refresh()`).
+Cela ferme PROD-04 et donne une action de confidentialité visible (PRIV-02).
+
 ## Backlog restant
 
 ### Fiabilité et données

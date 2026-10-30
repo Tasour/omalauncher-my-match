@@ -167,6 +167,11 @@ def main():
           (ROOT / "LICENSE").exists() and (ROOT / "docs" / "data-notice.md").exists())
     check("I33 measurement report", (ROOT / "docs" / "measurements-v5.10.0.md").exists())
 
+    # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
+    check("I32 about and privacy UI",
+          "S.about" in text and 'copy("my-match v5.11.0' in text
+          and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)
