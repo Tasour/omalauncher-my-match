@@ -22,7 +22,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 - Audit multi-agents initial : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
 - Audit multi-expert 360° v5.9.8 (28/10/2026) : [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) — 17 expertises, 66 constats, cycle en V, RTM, registre des features et de validation.
 - Mesures brutes : [`measurements/`](measurements/).
-- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.13.0).
+- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.14.0).
 
 ## Audits datés et traçabilité
 
@@ -78,6 +78,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] N07 : forme H2H des 5 dernières confrontations dans la carte du prochain match
 - [x] 20 features F01–F20 : rappels intelligents, digests, matchday/compact, aujourd'hui, cotes/forme, partage, accent équipe, daltonien, révélation, préchargement, dédup, AET/PEN, calendrier, dernier H2H
 - [x] Fiche match : stade/arbitre, stats, temps forts, compositions, actus ESPN
+- [x] Refonte ergonomique v5.14.0 : réglages en vue dédiée et sections, en-tête compact, libellés courts, lien Fiche dans la carte
 - [ ] N02–N24 : voir [`docs/features-proposals.md`](docs/features-proposals.md)
 - [ ] Mesures device v5.10.0 + test de décharge
 

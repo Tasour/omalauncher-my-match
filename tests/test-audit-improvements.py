@@ -183,7 +183,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.about" in text and 'copy("my-match v5.13.0' in text
+          "S.apropos" in text and 'copy("my-match v5.14.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -231,6 +231,14 @@ def main():
     check("F08 today filter", "state todayOnly=false persist" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Ergonomics: settings is a dedicated view with sections and a compact header.
+    check("ergonomic settings",
+          "S.general" in text and "S.affichage" in text and "S.rappels" in text
+          and "S.partage" in text and "S.donnees" in text and "S.apropos" in text
+          and "statusTxt" in text and "Button{text:showSettings?S.close:S.settings" in text
+          and text.count("if !showSettings{") >= 2)
+    check("fiche link in hero", "onTap:{showDetail=!showDetail;screen()}" in text and "S.detail" in text)
 
     # F01-F05: notification controls.
     check("F01 reminder lead", "state leadH=12 persist" in text and "leadH*3600" in text and "S.lead" in text)

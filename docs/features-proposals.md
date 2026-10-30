@@ -3,6 +3,14 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Refonte ergonomique — v5.14.0
+
+Réglages en vue dédiée, découpés en **Général / Affichage / Rappels / Partage /
+Données / À propos** ; interrupteurs compacts ligne par ligne, en-tête avec
+statut lisible et bouton fermer, libellés raccourcis, lien **Fiche** dans la
+carte du match. Les tests `ergonomic settings` et `fiche link in hero` gardent
+la structure.
+
 ## Fait — Fiche match (2026-10-30)
 
 Panneau **« fiche match »** sous la carte du prochain match (écran, MINE) :
