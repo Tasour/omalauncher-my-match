@@ -50,6 +50,9 @@ run_games || fail "games should succeed with the full league list"
 assert_match "full list finds LYON" "LYON"
 jq -e '.v == 1 and .exp > .at' "$HOME/.cache/espn-games.json.meta" >/dev/null 2>&1 ||
   fail "games cache lacks metadata"
+if find "$HOME/.cache/espn-logos/soccer" -name '.*.tmp' -o -name '.*.lock' 2>/dev/null | grep -q .; then
+  fail "logo downloads left a temp file or lock"
+fi
 pass "full list finds LYON"
 
 # --- dynamic league list -----------------------------------------------------

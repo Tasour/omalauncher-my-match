@@ -60,6 +60,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] Revue experte v5.10.0 (UI/UX, OWL, sécurité/SRE) et correctifs associés
 - [x] I11 : couverture rivaux/historique dérivée des équipes suivies (plus de liste blanche de ligues)
 - [x] I12 : métadonnées de cache (schéma/version/TTL/expiration) et validation à la lecture
+- [x] I13 : téléchargements d'écussons atomiques et verrouillés (temp privé + lock par fichier)
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

@@ -62,7 +62,11 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   `fetchedAt` non rafraîchi sur un simple repli cache. Tests
   `tests/test-cache-meta.sh` (migration, repli, expiration) + assertions dans
   `test-games.sh`/`test-league-scope.sh`.
-- `I13` Rendre les téléchargements de logos atomiques et verrouillés (SHELL-02, SHELL-04).
+- **Fait — I13** Téléchargements d'écussons atomiques et verrouillés
+  (SHELL-02, SHELL-04) : fichier temporaire privé `.$f.$$.tmp`, verrou
+  `mkdir .$f.lock` par écusson, `mv` atomique après validation, purge des
+  verrous/temp de plus de 15 min ; 7 blocs alignés, test statique + contrôle
+  « aucun temp/lock laissé » dans `test-games.sh`.
 - `I14` Gérer 429/5xx/offline avec jitter et `Retry-After` (SRE-02, QA-03).
 - `I15` Rendre `liveM` conditionnel hors fenêtre de match (ENERGY-02).
 - `I16` Remplacer les journées estimées par les rounds ESPN quand disponibles (FOOT-02).

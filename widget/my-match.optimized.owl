@@ -144,6 +144,8 @@ let gamesScript="""    set -o pipefail
     printf '%s' "$SIG" > "$CACHE_SIG"
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
     [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
     find "$d" -maxdepth 1 -name '*.png' -mtime +30 -delete
@@ -152,7 +154,13 @@ let gamesScript="""    set -o pipefail
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/games.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -443,6 +451,8 @@ let seasonScript="""    set -o pipefail
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
     [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
     find "$d" -maxdepth 1 -name '*.png' -mtime +30 -delete
@@ -451,7 +461,13 @@ let seasonScript="""    set -o pipefail
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/season.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -695,13 +711,21 @@ source teamsDb=cmd("""
     # dossier partage (sprite reconstruit par games apres validation).
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     e=~/.cache/espn-logos/empty.png
     [ -s "$e" ] || printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' | base64 -d > "$e"
     n=0
     for f in $(jq -r '.[].logo | select(. != "")' "$tmp/teams.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 3 -fsm 6 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 3 -fsm 6 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -856,11 +880,19 @@ source extra=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
     for f in $(jq -r '.[].teams[].logo | select(. != "")' "$tmp/extra.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -1048,11 +1080,19 @@ source knock=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/knock.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -1156,11 +1196,19 @@ source nextup=cmd("""
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/next.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi
@@ -1315,11 +1363,19 @@ source histfull=cmd("""
     wait
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
+    find "$d" -maxdepth 1 -name '.*.lock' -mmin +15 -exec rmdir {} + 2>/dev/null
+    find "$d" -maxdepth 1 -name '.*.tmp' -mmin +15 -delete 2>/dev/null
     n=0
     for f in $(jq -r '.[].home.logo, .[].away.logo | select(. != null and . != "")' "$tmp/base.json" | sort -u); do
       if [ ! -s "$d/$f" ]; then
         p=$(echo "$f" | tr '-' '/')
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        dltmp="$d/.$f.$$.tmp"; dlock="$d/.$f.lock"
+        if mkdir "$dlock" 2>/dev/null; then
+          if [ ! -s "$d/$f" ]; then
+            curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 15 -o "$dltmp" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null && [ -s "$dltmp" ] && mv "$dltmp" "$d/$f" || rm -f "$dltmp"
+          fi
+          rmdir "$dlock"
+        fi &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi

@@ -84,7 +84,7 @@ def main():
     check("I07 standings timeout",
           'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 300s status' in text)
     check("I07 teamsDb timeout",
-          'every 168h json timeout 900s status' in text and '--connect-timeout 3 -fsm 6 -o "$d/$f"' in text)
+          'every 168h json timeout 900s status' in text and '--connect-timeout 3 -fsm 6 -o "$dltmp"' in text)
 
     # I11 - rivals and history follow the selected team's league, not a whitelist.
     check("I11 no rival whitelist", "rivLgs" not in text and '"fifa.friendly"' in text)
@@ -111,6 +111,11 @@ def main():
     check("I12 games and season caches",
           "CACHE=~/.cache/espn-games.json" in text and 'cmark "$CACHE" 604800' in text
           and 'cmark "$cache" 2592000' in text)
+
+    # I13 - crests download to a private temp file under a per-file lock.
+    check("I13 atomic crest downloads",
+          '-o "$d/$f"' not in text and text.count('mkdir "$dlock"') == 7
+          and text.count('mv "$dltmp" "$d/$f"') == 7 and ".*.lock' -mmin +15" in text)
 
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
