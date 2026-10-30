@@ -21,6 +21,7 @@ export TEST_FAVNOTID=""
 export MOCK_LOG="$TMP/curl.log"
 
 pass() { printf 'PASS %s\n' "$1"; }
+meta_ok() { [ -s "$1" ] && jq -e '.v == 1 and .ttl > 0 and .exp > .at' "$1" >/dev/null 2>&1; }
 fail() {
   printf 'FAIL %s\n' "$1"
   tail -8 "$TMP"/*.err 2>/dev/null || true
@@ -30,16 +31,21 @@ fail() {
 bash "$EXTRA" >"$TMP/extra.json" 2>"$TMP/extra.err" || fail "extra should succeed with a fixture"
 jq -e 'any(.[]; .league == "ned.1" and .tag == "NED" and .state != "pre")' "$TMP/extra.json" >/dev/null 2>&1 ||
   fail "extra follows a Dutch club into ned.1"
+meta_ok "$HOME/.cache/espn-extra-base.json.meta" || fail "extra base cache lacks metadata"
+meta_ok "$HOME/.cache/espn-extra.json.meta" || fail "extra output cache lacks metadata"
 pass "extra follows a Dutch club into ned.1"
 
 bash "$NEXT" >"$TMP/next.json" 2>"$TMP/next.err" || fail "nextup should succeed with a fixture"
 jq -e 'any(.[]; .league == "ned.1" and .tag == "NED" and .state == "pre")' "$TMP/next.json" >/dev/null 2>&1 ||
   fail "nextup follows a Dutch club into ned.1"
+meta_ok "$HOME/.cache/espn-nextup.json.meta" || fail "nextup cache lacks metadata"
 pass "nextup follows a Dutch club into ned.1"
 
 bash "$HIST" >"$TMP/hist.json" 2>"$TMP/hist.err" || fail "histfull should succeed with a fixture"
 jq -e 'has("ned.1")' "$TMP/hist.json" >/dev/null 2>&1 ||
   fail "histfull follows a Dutch club into ned.1"
+meta_ok "$HOME/.cache/espn-hist-base.json.meta" || fail "hist base cache lacks metadata"
+meta_ok "$HOME/.cache/espn-history.json.meta" || fail "hist output cache lacks metadata"
 pass "histfull follows a Dutch club into ned.1"
 
 : >"$MOCK_LOG"

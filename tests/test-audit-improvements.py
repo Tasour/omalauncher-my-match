@@ -104,6 +104,14 @@ def main():
     check("I11 rivals next excludes my teams",
           "!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))" in text)
 
+    # I12 - aggregate caches carry schema/version/TTL/expiry metadata.
+    check("I12 cache metadata helpers",
+          text.count("cvalid()") >= 6 and text.count("cmark ") >= 10 and 'cstale "$cache"' in text)
+    check("I12 cache expiry", '"exp":%s' in text and "cstale ~/.cache/espn-extra.json" in text)
+    check("I12 games and season caches",
+          "CACHE=~/.cache/espn-games.json" in text and 'cmark "$CACHE" 604800' in text
+          and 'cmark "$cache" 2592000' in text)
+
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):
         start = re.search(rf"^source {name}=", text, re.M)

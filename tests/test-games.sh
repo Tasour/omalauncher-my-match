@@ -48,6 +48,8 @@ export TEST_FAVNOTID=""
 export TEST_FAVLG=""
 run_games || fail "games should succeed with the full league list"
 assert_match "full list finds LYON" "LYON"
+jq -e '.v == 1 and .exp > .at' "$HOME/.cache/espn-games.json.meta" >/dev/null 2>&1 ||
+  fail "games cache lacks metadata"
 pass "full list finds LYON"
 
 # --- dynamic league list -----------------------------------------------------

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Offline curl for the widget tests. Only the ESPN scoreboard endpoints matter.
+# Offline curl for the widget tests. Only the ESPN endpoints matter.
 out=""
 url=""
 while [ $# -gt 0 ]; do
@@ -14,13 +14,26 @@ done
 case "$url" in
   *a.espncdn.com*) exit 1 ;;
   *site.api.espn.com*)
-    league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/scoreboard.*#\1#p')
-    if [ "${MOCK_INVALID:-0}" = 1 ]; then
-      body='{"error":"rate limited"}'
-    else
-      f="${FIXTURES:-}/$league.json"
-      if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"events":[]}'; fi
-    fi
+    case "$url" in
+      */standings*)
+        league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/standings.*#\1#p')
+        if [ "${MOCK_INVALID:-0}" = 1 ]; then
+          body='{"error":"rate limited"}'
+        else
+          f="${FIXTURES:-}/$league.standings.json"
+          if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"children":[]}'; fi
+        fi
+        ;;
+      *)
+        league=$(printf '%s' "$url" | sed -n 's#.*/soccer/\([^/]*\)/scoreboard.*#\1#p')
+        if [ "${MOCK_INVALID:-0}" = 1 ]; then
+          body='{"error":"rate limited"}'
+        else
+          f="${FIXTURES:-}/$league.json"
+          if [ -n "${FIXTURES:-}" ] && [ -f "$f" ]; then body=$(cat "$f"); else body='{"events":[]}'; fi
+        fi
+        ;;
+    esac
     if [ -n "$out" ]; then printf '%s' "$body" >"$out"; else printf '%s' "$body"; fi
     exit 0
     ;;

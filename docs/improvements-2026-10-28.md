@@ -56,7 +56,12 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   `supportedLeagues` unique source, `extra`/`nextup`/`histfull` reçoivent
   `WANTLG` via `sh(favLg)`, tags NED/POR/TUR…, test `tests/test-league-scope.sh`
   (un club néerlandais remonte dans les trois sources ; `foo.1` est ignoré).
-- `I12` Ajouter schéma/version/TTL aux caches et validation à la lecture (DATA-04).
+- **Fait — I12** Schéma/version/TTL/expiration des caches (DATA-04) : sidecar
+  `.meta` `{v,at,ttl,exp}` pour games, season, standings, teams, extra, nextup,
+  knock, history ; migration des anciens caches, fallback refusé si expiré,
+  `fetchedAt` non rafraîchi sur un simple repli cache. Tests
+  `tests/test-cache-meta.sh` (migration, repli, expiration) + assertions dans
+  `test-games.sh`/`test-league-scope.sh`.
 - `I13` Rendre les téléchargements de logos atomiques et verrouillés (SHELL-02, SHELL-04).
 - `I14` Gérer 429/5xx/offline avec jitter et `Retry-After` (SRE-02, QA-03).
 - `I15` Rendre `liveM` conditionnel hors fenêtre de match (ENERGY-02).

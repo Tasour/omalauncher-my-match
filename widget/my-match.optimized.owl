@@ -117,14 +117,20 @@ let gamesScript="""    set -o pipefail
     # frais par-dessus le dernier bon resultat : le frais gagne en cas de
     # doublon, le cache comble les ids absents (purge : passe de +7j, scores
     # en direct perimes, "a venir" deja commence). Ecriture atomique.
-    cache=~/.cache/espn-games.json
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
+    CACHE=~/.cache/espn-games.json
     CACHE_SIG=~/.cache/espn-games.sig
-    [ "$(cat "$CACHE_SIG" 2>/dev/null)" = "$SIG" ] || cache=""
+    OLD="$CACHE"
+    if [ "$(cat "$CACHE_SIG" 2>/dev/null)" != "$SIG" ] || ! cvalid "$CACHE" || cstale "$CACHE" || ! jq -e 'type == "array"' "$CACHE" >/dev/null 2>&1; then OLD=/dev/null; fi
     now=$(date +%s)
     cat "$tmp"/*.jsonl 2>/dev/null | jq -sc 'unique_by(.id) | sort_by(.at)' > "$tmp/fresh.json"
-    if [ -s "$cache" ] || [ "$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)" -gt 0 ]; then
-      if [ -s "$cache" ]; then
-        jq -sc --argjson now "$now" '.[0] as $f | .[1] as $c | ($f // []) + ([($c // [])[] | select(.at != null and .at > ($now - 604800) and .state != "in" and (.state != "pre" or .at > ($now - 7200)))]) | unique_by(.id) | sort_by(.at)' "$tmp/fresh.json" "$cache" > "$tmp/games.json"
+    FRESH=$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)
+    if [ -s "$OLD" ] || [ "$FRESH" -gt 0 ]; then
+      if [ -s "$OLD" ]; then
+        jq -sc --argjson now "$now" '.[0] as $f | .[1] as $c | ($f // []) + ([($c // [])[] | select(.at != null and .at > ($now - 604800) and .state != "in" and (.state != "pre" or .at > ($now - 7200)))]) | unique_by(.id) | sort_by(.at)' "$tmp/fresh.json" "$OLD" > "$tmp/games.json"
       else
         cp "$tmp/fresh.json" "$tmp/games.json"
       fi
@@ -133,7 +139,8 @@ let gamesScript="""    set -o pipefail
       exit 1
     fi
     [ "$(jq 'length // 0' "$tmp/games.json")" -gt 0 ] || { rm -rf -- "$tmp"; exit 1; }
-    cp "$tmp/games.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+    cp "$tmp/games.json" "$CACHE.tmp" && mv "$CACHE.tmp" "$CACHE"
+    [ "$FRESH" -gt 0 ] && cmark "$CACHE" 604800
     printf '%s' "$SIG" > "$CACHE_SIG"
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
@@ -388,10 +395,15 @@ let seasonScript="""    set -o pipefail
     # Saison entiere : mois courant toujours rafraichi, mois deja recuperes
     # (meme sans match pour mes equipes) sautes, echecs retentes au run suivant.
     # Les mois futurs restent couverts par games (+/-90 j) une fois proches.
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-season.json
     CUR=$(date +%Y%m)
     sig=$(printf '%s|%s' "$WANTID" "$WANT" | sha256sum | cut -d' ' -f1)
-    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"sig":"","lms":[],"items":[]}' > "$cache"
+    OLD="$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then OLD=/dev/null; printf '{"sig":"","lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; fi
     if ! jq -e --arg sig "$sig" '.sig == $sig' "$cache" >/dev/null 2>&1; then
       jq -c --arg sig "$sig" '{sig: $sig, lms: [], items: (.items // [])}' "$cache" > "$cache.tmp" 2>/dev/null && mv "$cache.tmp" "$cache" || printf '{"sig":"%s","lms":[],"items":[]}' "$sig" > "$cache"
     fi
@@ -416,11 +428,13 @@ let seasonScript="""    set -o pipefail
       | ([$old[] | select(.id != null and ((.league // "") + ":" + (.month // "")) as $lm | ($flms | index($lm)) == null)] | unique_by(.id)) as $kept
       | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep or ((.league == "nor.1" or .league == "swe.1") and (.month // "0") >= $calkeep)))) as $items
       | {cache: {sig: $sig, lms: (($lms + $ok) | unique), items: $items}, out: ($items | sort_by(.at))}
-    ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    ' "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)
     if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
       jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 2592000
       jq -c '.out' "$tmp/merged.json" > "$tmp/season.json"
-    elif [ "$(jq '.items | length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+    elif cvalid "$cache" && ! cstale "$cache" && [ "$(jq '.items | length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
       jq -c '.items | sort_by(.at)' "$cache" > "$tmp/season.json" 2>/dev/null || { rm -rf "$tmp"; exit 1; }
       [ "$(jq 'length // 0' "$tmp/season.json")" -gt 0 ] || { rm -rf "$tmp"; exit 1; }
     else
@@ -566,12 +580,19 @@ let standingsScript="""    set -o pipefail
     jq -sc '.' "$tmp"/t-*.jsonl > "$tmp/tables.json" 2>/dev/null || echo '[]' > "$tmp/tables.json"
     # Fusion anti-trous : le frais gagne par (ligue, groupe), le dernier bon
     # resultat comble les ligues absentes (fetch partiel). Sans cache, echec.
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-standings.json
-    [ -s "$cache" ] || echo '[]' > "$cache"
-    jq -cs '.[1] as $old | (.[0] // []) as $fu | ([($fu[]) | select(.league != null) | {key: ((.league // "") + ":" + (.group // "")), value: .}] | from_entries) as $fm | $fu + ([($old // [])[]] | map(select($fm[((.league // "") + ":" + (.group // ""))] == null)))' "$tmp/tables.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    OLD="$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
+    jq -cs '.[1] as $old | (.[0] // []) as $fu | ([($fu[]) | select(.league != null) | {key: ((.league // "") + ":" + (.group // "")), value: .}] | from_entries) as $fm | $fu + ([($old // [])[]] | map(select($fm[((.league // "") + ":" + (.group // ""))] == null)))' "$tmp/tables.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/tables.json" 2>/dev/null || echo 0)
     if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
       cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
-    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 604800
+    elif cvalid "$cache" && ! cstale "$cache" 604800 && [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
       cp "$cache" "$tmp/merged.json"
     else
       rm -rf "$tmp"
@@ -651,13 +672,20 @@ source teamsDb=cmd("""
     done
     wait
     cat "$tmp"/t-*.jsonl 2>/dev/null | jq -cs 'map(select((.abbr // "") != "" and .name != null)) | group_by(.key) | map(max_by(if .league == "fifa.friendly" then 0 elif .league == "fifa.worldq.uefa" then 1 else 2 end))' > "$tmp/teams.json" 2>/dev/null || echo '[]' > "$tmp/teams.json"
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-teams.json
-    [ -s "$cache" ] || echo '[]' > "$cache"
+    OLD="$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
+    FRESH=$(jq 'length // 0' "$tmp/teams.json" 2>/dev/null || echo 0)
     if [ "$(jq 'length // 0' "$tmp/teams.json")" -gt 0 ]; then
-      jq -cs '.[0] as $new | .[1] as $old | ([$new[] | {key: .key, value: .}] | from_entries) as $m | $new + ([$old[] | select($m[.key] == null)])' "$tmp/teams.json" "$cache" > "$tmp/merged.json" 2>/dev/null || cp "$tmp/teams.json" "$tmp/merged.json"
+      jq -cs '.[0] as $new | .[1] as $old | ([$new[] | {key: .key, value: .}] | from_entries) as $m | $new + ([$old[] | select($m[.key] == null)])' "$tmp/teams.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || cp "$tmp/teams.json" "$tmp/merged.json"
       cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 2592000
       cp "$tmp/merged.json" "$tmp/teams.json"
-    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || echo 0)" -gt 0 ]; then
+    elif cvalid "$cache" && ! cstale "$cache" 2592000 && [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || echo 0)" -gt 0 ]; then
       cp "$cache" "$tmp/teams.json"
     else
       rm -rf -- "$tmp"
@@ -748,10 +776,14 @@ source extra=cmd("""
     MONTHS5=$(for off in 0 30 60 90 120; do date -d "$off day ago" +%Y%m; done | sort -u)
     MONTHS2=$(for off in 0 30; do date -d "$off day ago" +%Y%m; done | sort -u)
     # Mois passes deja en cache : immuables, on ne refetch que le courant.
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-extra-base.json
     CUR=$(date +%Y%m)
     KEEPM=$(date -d "120 day ago" +%Y%m)
-    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"lms":[],"items":[]}' > "$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then printf '{"lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; cmark "$cache" 2592000; fi
     for lg in $LEAGUES; do
       case " $RR " in *" $lg "*) MS="$MONTHS5";; *) MS="$MONTHS2";; esac
       for m in $MS; do
@@ -773,10 +805,12 @@ source extra=cmd("""
       | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep))) as $items
       | {cache: {lms: (($lms + ($flms | map(select((split(":")[1] // "0") < $cur)))) | unique | map(select((split(":")[1] // "0") >= $keep))), items: $items}, out: ($items | sort_by(.at))}
     ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)
     if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
       jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 2592000
       jq -c '.out' "$tmp/merged.json" > "$tmp/baseraw.json"
-    elif [ -s ~/.cache/espn-extra.json ]; then
+    elif cvalid ~/.cache/espn-extra.json && ! cstale ~/.cache/espn-extra.json 604800 && [ -s ~/.cache/espn-extra.json ]; then
       cat ~/.cache/espn-extra.json
       rm -rf "$tmp"
       exit 0
@@ -811,7 +845,8 @@ source extra=cmd("""
     jq -cs '.[1] as $r | .[0] | map(. + {round: ($r[.id] // null)}) | sort_by(.at) | reverse' "$tmp/base.json" "$tmp/roundmap.json" > "$tmp/extra.json"
     if [ "$(jq 'length // 0' "$tmp/extra.json")" -gt 0 ]; then
       cp "$tmp/extra.json" ~/.cache/espn-extra.json.tmp && mv ~/.cache/espn-extra.json.tmp ~/.cache/espn-extra.json
-    elif [ -s ~/.cache/espn-extra.json ]; then
+      [ "$FRESH" -gt 0 ] && cmark ~/.cache/espn-extra.json 86400
+    elif cvalid ~/.cache/espn-extra.json && ! cstale ~/.cache/espn-extra.json 604800 && [ -s ~/.cache/espn-extra.json ]; then
       cat ~/.cache/espn-extra.json
       rm -rf "$tmp"
       exit 0
@@ -995,13 +1030,20 @@ source knock=cmd("""
     # Fusion anti-trous : le frais gagne par id, le cache comble les tours
     # absents ; on ne garde que la saison en cours (pas l'arbre precedent).
     keep=$(date -d "$S-09-01" +%s)
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-knock.json
-    [ -s "$cache" ] || echo '[]' > "$cache"
-    jq -cs --argjson keep "$keep" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) >= $keep and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/knock.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    OLD="$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
+    jq -cs --argjson keep "$keep" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) >= $keep and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/knock.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/knock.json" 2>/dev/null || echo 0)
     if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
       cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 604800
       cp "$tmp/merged.json" "$tmp/knock.json"
-    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+    elif cvalid "$cache" && ! cstale "$cache" 604800 && [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
       cp "$cache" "$tmp/knock.json"
     fi
     d=~/.cache/espn-logos/soccer
@@ -1096,14 +1138,21 @@ source nextup=cmd("""
     # Fusion anti-trous : le frais gagne par id, le cache comble les ligues
     # absentes ; on purge les affiches passees de plus d'un jour (jouees).
     now=$(date +%s)
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-nextup.json
-    [ -s "$cache" ] || echo '[]' > "$cache"
-    jq -cs --argjson cut "$((now - 86400))" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) > $cut and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/next.json" "$cache" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    OLD="$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e 'type == "array"' "$cache" >/dev/null 2>&1; then OLD=/dev/null; fi
+    jq -cs --argjson cut "$((now - 86400))" '.[1] as $old | (.[0] // []) as $fu | ([$fu[] | .id] | unique) as $fresh | ($fu + ([($old // [])[]] | map(.id as $id | select($id != null and (.at // 0) > $cut and ($fresh | index($id)) == null)))) | unique_by(.id) | sort_by(.at)' "$tmp/next.json" "$OLD" > "$tmp/merged.json" 2>/dev/null || printf '[]' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/next.json" 2>/dev/null || echo 0)
     if [ "$(jq 'length // 0' "$tmp/merged.json")" -gt 0 ]; then
       cp "$tmp/merged.json" "$cache.tmp" && mv "$cache.tmp" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 86400
       cp "$tmp/merged.json" "$tmp/next.json"
-    elif [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
-      cp "$cache" "$tmp/next.json"
+    elif cvalid "$cache" && ! cstale "$cache" && [ -s "$cache" ] && [ "$(jq 'length // 0' "$cache" 2>/dev/null || printf 0)" -gt 0 ]; then
+      jq -c --argjson cut "$((now - 86400))" 'map(select((.at // 0) > $cut))' "$cache" > "$tmp/next.json"
     fi
     d=~/.cache/espn-logos/soccer
     mkdir -p "$d"
@@ -1191,9 +1240,13 @@ source histfull=cmd("""
     for m in 08 09 10 11 12; do SEASON="$SEASON $S$m"; done
     for m in 01 02 03 04 05 06 07; do SEASON="$SEASON $E$m"; done
     # Mois passes deja en cache : immuables, on ne refetch que courant + futur.
+    CV=1
+    cvalid() { [ -s "$1" ] && [ -s "$1.meta" ] && [ "$(jq -r '.v // 0' "$1.meta" 2>/dev/null)" = "$CV" ]; }
+    cstale() { [ "$(jq -r '.exp // 0' "$1.meta" 2>/dev/null || echo 0)" -le "$(date +%s)" ]; }
+    cmark() { ttl=${2:-604800}; now=$(date +%s); printf '{"v":%s,"at":%s,"ttl":%s,"exp":%s}' "$CV" "$now" "$ttl" "$((now+ttl))" > "$1.meta.$$.tmp" && mv "$1.meta.$$.tmp" "$1.meta"; }
     cache=~/.cache/espn-hist-base.json
     CUR=$(date +%Y%m)
-    jq -e '.lms and .items' "$cache" >/dev/null 2>&1 || printf '{"lms":[],"items":[]}' > "$cache"
+    if ! cvalid "$cache" || cstale "$cache" || ! jq -e '.lms and .items' "$cache" >/dev/null 2>&1; then printf '{"lms":[],"items":[]}' > "$cache.tmp" && mv "$cache.tmp" "$cache"; cmark "$cache" 2592000; fi
     for lg in $RR; do
       for m in $SEASON; do
         if [ "$m" -ge "$CUR" ] || ! jq -e --arg k "$lg:$m" '.lms | index($k) != null' "$cache" >/dev/null 2>&1; then
@@ -1213,10 +1266,12 @@ source histfull=cmd("""
       | ((($fu + $kept) | unique_by(.id)) | map(select((.month // "0") >= $keep))) as $items
       | {cache: {lms: (($lms + ($flms | map(select((split(":")[1] // "0") < $cur)))) | unique | map(select((split(":")[1] // "0") >= $keep))), items: $items}, out: ($items | sort_by(.at))}
     ' "$cache" > "$tmp/merged.json" 2>/dev/null || printf '{"out":[]}' > "$tmp/merged.json"
+    FRESH=$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)
     if [ "$(jq '.out | length // 0' "$tmp/merged.json" 2>/dev/null || printf 0)" -gt 0 ]; then
       jq -c '.cache' "$tmp/merged.json" > "$tmp/cache.json" && mv "$tmp/cache.json" "$cache"
+      [ "$FRESH" -gt 0 ] && cmark "$cache" 2592000
       jq -c '.out' "$tmp/merged.json" > "$tmp/baseraw.json"
-    elif [ -s ~/.cache/espn-history.json ]; then
+    elif cvalid ~/.cache/espn-history.json && ! cstale ~/.cache/espn-history.json 2592000 && [ -s ~/.cache/espn-history.json ]; then
       cat ~/.cache/espn-history.json
       rm -rf "$tmp"
       exit 0
@@ -1274,7 +1329,8 @@ source histfull=cmd("""
     jq -cs '.[1] as $r | .[0] | map(. + {round: ($r[.id] // null)}) | sort_by(.league) | group_by(.league) | map({key: .[0].league, value: (sort_by(.at) | reverse)}) | from_entries' "$tmp/base.json" "$tmp/roundmap.json" > "$tmp/hist.json"
     if [ "$(jq 'keys | length' "$tmp/hist.json")" -gt 0 ]; then
       cp "$tmp/hist.json" ~/.cache/espn-history.json.tmp && mv ~/.cache/espn-history.json.tmp ~/.cache/espn-history.json
-    elif [ -s ~/.cache/espn-history.json ]; then
+      [ "$FRESH" -gt 0 ] && cmark ~/.cache/espn-history.json 2592000
+    elif cvalid ~/.cache/espn-history.json && ! cstale ~/.cache/espn-history.json 2592000 && [ -s ~/.cache/espn-history.json ]; then
       cat ~/.cache/espn-history.json
       rm -rf "$tmp"
       exit 0

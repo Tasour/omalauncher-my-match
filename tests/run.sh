@@ -23,4 +23,5 @@ done
 
 bash "$ROOT/tests/test-games.sh" "$TMP/gamesScript.sh" "$WIDGET" "$TMP/liveScript.sh"
 bash "$ROOT/tests/test-league-scope.sh" "$TMP/extra.sh" "$TMP/nextup.sh" "$TMP/histfull.sh"
+bash "$ROOT/tests/test-cache-meta.sh" "$TMP/standingsScript.sh"
 python3 "$ROOT/tests/test-audit-improvements.py"

@@ -59,6 +59,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] Lot v5.10.0 (I01–I10) : durcissement curl, IP LAN retirée, i18n, `showTables` persisté, tuile bornée, périmètre `standings` réduit, timeouts alignés, `status` + santé visible, spinner conditionnel, harnais CI portable
 - [x] Revue experte v5.10.0 (UI/UX, OWL, sécurité/SRE) et correctifs associés
 - [x] I11 : couverture rivaux/historique dérivée des équipes suivies (plus de liste blanche de ligues)
+- [x] I12 : métadonnées de cache (schéma/version/TTL/expiration) et validation à la lecture
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

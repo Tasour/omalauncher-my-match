@@ -1,0 +1,41 @@
+{
+  "children": [
+    {
+      "name": "League Table",
+      "standings": {
+        "entries": [
+          {
+            "team": {"id": "167", "abbreviation": "LYON", "shortDisplayName": "Lyon"},
+            "stats": [
+              {"name": "rank", "value": 3},
+              {"name": "gamesPlayed", "value": 10},
+              {"name": "wins", "value": 6},
+              {"name": "ties", "value": 2},
+              {"name": "losses", "value": 2},
+              {"name": "pointsFor", "value": 18},
+              {"name": "pointsAgainst", "value": 9},
+              {"name": "pointDifferential", "value": 9},
+              {"name": "points", "value": 20}
+            ],
+            "note": {"description": "Champions League"}
+          },
+          {
+            "team": {"id": "999", "abbreviation": "NIC", "shortDisplayName": "Nice"},
+            "stats": [
+              {"name": "rank", "value": 7},
+              {"name": "gamesPlayed", "value": 10},
+              {"name": "wins", "value": 3},
+              {"name": "ties", "value": 3},
+              {"name": "losses", "value": 4},
+              {"name": "pointsFor", "value": 10},
+              {"name": "pointsAgainst", "value": 12},
+              {"name": "pointDifferential", "value": -2},
+              {"name": "points", "value": 12}
+            ],
+            "note": {"description": ""}
+          }
+        ]
+      }
+    }
+  ]
+}
