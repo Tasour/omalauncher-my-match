@@ -69,7 +69,7 @@ def main():
 
     # I05 - the tile list is bounded, the full screen keeps everything.
     check("I05 tile bounded",
-          "let tileRows=(rows??4)>=10?60:(rows??4)>=6?12:8" in text
+          "tileRows=compactMode?5" in text
           and "let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)" in text
           and "for g in upTile key g.id" in text
           and "for g in upShow key g.id" not in text)
@@ -165,7 +165,10 @@ def main():
     # I24 - the tile minimum fits the header and five teams.
     check("I24 tile minimum", "minSize:5x4" in text)
     # I25 - one membership scan; base derives from allMine.
-    check("I25 single membership predicate", text.count("let allMine=") == 1 and 'let base=team=="ALL"?allMine' in text)
+    check("I25 single membership predicate",
+          text.count("let allMine=") == 1
+          and 'let baseRaw=team=="ALL"?allMine' in text
+          and "let base=todayOnly?baseRaw.filter" in text)
     # I26 - stable list keys.
     check("I26 stable keys",
           "for t in myTeams key t.key{" in text
