@@ -89,7 +89,8 @@ def main():
 
     check("I11 multi-league teams",
           "leagues: $lgs" in text and "t.leagues" in text
-          and "on teamsDb first" in text and "league:(db.find" in text)
+          and "on teamsDb first" in text and "league:(db.find" in text
+          and "(teamsDb.out??[]).filter(d=>d.key==" in text)
 
     # I11 - rivals and history follow the selected team's league, not a whitelist.
     check("I11 no rival whitelist", "rivLgs" not in text and '"fifa.friendly"' in text)
@@ -108,6 +109,9 @@ def main():
           and "supportedLeagues.any(x=>x==l)" in text)
     check("I11 rivals next excludes my teams",
           "!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))" in text)
+
+    check("I11 selected team keeps all results",
+          'team!="ALL"?pastA.sortBy' in text and "let shown1=baseF" in text)
 
     # I12 - aggregate caches carry schema/version/TTL/expiry metadata.
     check("I12 cache metadata helpers",

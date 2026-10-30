@@ -6,7 +6,7 @@ requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favNoTid=join(myTeams.map(t=>(t.tid??"")==""?(t.abbr??""):"").filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
-let favLg=count(myTeams)>0?join(unique(flatten(myTeams.map(t=>count(t.leagues??[])>0?t.leagues:[t.league]))).filter(l=>l!=null&&l!=""&&!contains(l,",")&&!contains(l,"\n")&&!contains(l,"\r")),","):""
+let favLg=count(myTeams)>0?join(unique(flatten(myTeams.map(t=>flatten([(teamsDb.out??[]).filter(d=>d.key==(t.key??((t.abbr??"")+":"+(t.kind??"c")))).map(d=>d.leagues??[]).first??[],t.leagues??[],[t.league]])))).filter(l=>l!=null&&l!=""&&!contains(l,",")&&!contains(l,"\n")&&!contains(l,"\r")),","):""
 let gamesScript="""    set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
     cleanup() {
@@ -1576,7 +1576,7 @@ let liveAge=liveAt>0?max(now-liveAt,0):null
 let liveSuffix=liveAge==null?"":" · live "+agoP+fmtDuration(liveAge)+agoS
 let liveWarn=liveAge!=null&&liveAge>900?" · "+(lang=="fr"?"màj ":"updated ")+agoP+fmtDuration(liveAge)+agoS:""
 let total=count(baseF)
-let pastTake=count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at)
+let pastTake=team!="ALL"?pastA.sortBy(g=>-g.at):(count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at))
 let wide=max(max(screenWidth??0,tileWidth??0),240)>=280
 let fz=uiSize=="S"?12:uiSize=="L"?15:uiSize=="XL"?17:13
 let heroH=heroMatch==null||heroMatch.home==null?"":(myTeams.find(t=>t.abbr==heroMatch.home.abbr).short??(wide?(heroMatch.home.name??heroMatch.home.abbr):heroMatch.home.abbr))
