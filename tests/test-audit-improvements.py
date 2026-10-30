@@ -51,6 +51,10 @@ def main():
     # I05 - the tile list is bounded, the full screen keeps everything.
     check("I05 tile bounded", "let upTile=" in text and "for g in upTile key g.id" in text and "for g in upShow key g.id" not in text)
 
+    # I06 - a first launch without teams does not fetch every standings table.
+    first_scope = "TABLES=\"eng.1 esp.1 ger.1 ita.1 fra.1 uefa.champions uefa.europa uefa.europa.conf\""
+    check("I06 standings first launch", first_scope in text and 'TABLES="$TABLESALL"' not in text)
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1
