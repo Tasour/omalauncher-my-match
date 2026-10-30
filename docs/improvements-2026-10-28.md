@@ -71,7 +71,10 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   `Retry-After` respecté par curl, `--retry-connrefused`, `--retry-max-time`
   borné, jitter 0-2 s par source (`/dev/urandom`) (SRE-02) ; fixtures de panne
   `MOCK_MODE=429/500/offline/trunc` et repli cache testé (QA-03).
-- `I15` Rendre `liveM` conditionnel hors fenêtre de match (ENERGY-02).
+- **Fait — I15** `liveM` conditionnel (ENERGY-02) : `liveWin` (match en direct
+  ou coup d'envoi à ±2 h) choisit `liveCmd` ; hors fenêtre la source n'exécute
+  qu'un `printf` JSON minimal (plus de shell/jq/lecture de caches chaque
+  minute), et le passage dans la fenêtre change la commande → run immédiat.
 - `I16` Remplacer les journées estimées par les rounds ESPN quand disponibles (FOOT-02).
 - `I17` Gérer reports/annulations et agrégats aller-retour (FOOT-03, FOOT-04).
 

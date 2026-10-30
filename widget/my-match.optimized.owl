@@ -1018,7 +1018,10 @@ let liveScript="""
     cat "$LAST"
     rm -rf -- "$tmp"
   """
-source liveM=cmd("bash -c ${sh(liveScript)}")every 1m json timeout 90s status
+source now=clock every 15s
+let liveWin=count(myTeams)>0&&flatten([games.out??[],extra.out??[],seasonAll.out??[]]).any(g=>g.state=="in"||(g.state=="pre"&&g.at>now-7200&&g.at<now+7200))
+let liveCmd=liveWin?"bash -c "+sh(liveScript):"printf '{\"items\":[],\"at\":0}'"
+source liveM=cmd(liveCmd) every 1m json timeout 90s status
 source knock=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -1407,7 +1410,6 @@ source histfull=cmd("""
     cat "$tmp/hist.json"
     rm -rf "$tmp"
   """)every 24h json timeout 300s status
-source now=clock every 15s
 source slow=clock every 1h
 source spr=file("~/.cache/espn-logos/sprite.json")json
 state lang="en"persist

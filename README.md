@@ -62,6 +62,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] I12 : métadonnées de cache (schéma/version/TTL/expiration) et validation à la lecture
 - [x] I13 : téléchargements d'écussons atomiques et verrouillés (temp privé + lock par fichier)
 - [x] I14 : backoff/Retry-After, jitter par source et fixtures 429/5xx/offline/tronqué
+- [x] I15 : `liveM` conditionnel hors fenêtre de match (plus de shell/jq chaque minute)
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité
