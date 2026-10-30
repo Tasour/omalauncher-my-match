@@ -124,13 +124,14 @@ def main():
           len(active_retries) >= 10
           and all("--retry-delay 0" in line and "--retry-connrefused" in line for line in active_retries)
           and text.count("--retry-max-time") >= len(active_retries))
-    check("I14 request jitter", text.count("od -An -N1 -tu1 /dev/urandom") == 10)
+    check("I14 request jitter", text.count("od -An -N1 -tu1 /dev/urandom") == 9)
 
     # I15 - live polling only carries the heavy script while a match window is open.
     live_idx = text.find("let liveWin=")
     check("I15 conditional live source",
           live_idx > 0 and text.find("source now=clock", 0, live_idx) > 0
           and "let liveCmd=liveWin?" in text and "source liveM=cmd(liveCmd)" in text
+          and "source liveIdx=file(" in text and "now-10800" in text
           and '"printf ' in text and '\\"items\\":[],\\"at\\":0' in text)
 
     # I08 - every heavy source exposes status and the UI shows source health.

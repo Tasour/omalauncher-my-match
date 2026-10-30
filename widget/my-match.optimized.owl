@@ -131,7 +131,7 @@ let gamesScript="""    set -o pipefail
     FRESH=$(jq 'length // 0' "$tmp/fresh.json" 2>/dev/null || echo 0)
     if [ -s "$OLD" ] || [ "$FRESH" -gt 0 ]; then
       if [ -s "$OLD" ]; then
-        jq -sc --argjson now "$now" '.[0] as $f | .[1] as $c | ($f // []) + ([($c // [])[] | select(.at != null and .at > ($now - 604800) and .state != "in" and (.state != "pre" or .at > ($now - 7200)))]) | unique_by(.id) | sort_by(.at)' "$tmp/fresh.json" "$OLD" > "$tmp/games.json"
+        jq -sc --argjson now "$now" '.[0] as $f | .[1] as $c | ($f // []) + ([($c // [])[] | select(.at != null and .at > ($now - 604800) and .state != "in" and (.state != "pre" or .at > ($now - 10800)))]) | unique_by(.id) | sort_by(.at)' "$tmp/fresh.json" "$OLD" > "$tmp/games.json"
       else
         cp "$tmp/fresh.json" "$tmp/games.json"
       fi
@@ -918,7 +918,6 @@ let liveScript="""
       exit $rc
     }
     trap cleanup EXIT INT TERM
-    j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     now=$(date +%s)
     IDX=~/.cache/espn-live-index.json
     LAST=~/.cache/espn-live.json
@@ -1019,7 +1018,8 @@ let liveScript="""
     rm -rf -- "$tmp"
   """
 source now=clock every 15s
-let liveWin=count(myTeams)>0&&flatten([games.out??[],extra.out??[],seasonAll.out??[]]).any(g=>g.state=="in"||(g.state=="pre"&&g.at>now-7200&&g.at<now+7200))
+source liveIdx=file("~/.cache/espn-live-index.json")json
+let liveWin=count(myTeams)>0&&(flatten([games.out??[],extra.out??[]]).any(g=>g.at!=null&&(g.state=="in"||(g.state=="pre"&&g.at>now-10800&&g.at<=now+120)))||(liveIdx??[]).any(g=>g.at!=null&&(g.state=="in"||(g.state=="pre"&&g.at>now-10800&&g.at<=now+120))))
 let liveCmd=liveWin?"bash -c "+sh(liveScript):"printf '{\"items\":[],\"at\":0}'"
 source liveM=cmd(liveCmd) every 1m json timeout 90s status
 source knock=cmd("""

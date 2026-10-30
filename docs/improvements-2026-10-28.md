@@ -47,6 +47,16 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
   peuvent plus échouer sur `main`), port du serveur aligné sur 1764.
 - **I10** : `tests/__pycache__` ignoré.
 
+## Revue experte lot 2 (I11–I15)
+
+- **I15** : fenêtre alignée sur le script live (`now-3h .. now+2min`) au lieu de
+  ±2 h, index live en cache (`liveIdx`) pour démarrer même pendant le chargement
+  de `games`/`extra`, purge des matchs `pre` retardés portée à 3 h.
+- **I14** : jitter conservé sur les sources réseau, retiré de `liveM` pour ne pas
+  retarder les scores en direct.
+- **I13** : test de téléchargement réel (faux curl `MOCK_LOGO=1`), verrou/temp
+  périmés purgés et absence de résidu vérifiée.
+
 ## Backlog restant
 
 ### Fiabilité et données

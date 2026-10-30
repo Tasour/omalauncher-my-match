@@ -13,7 +13,13 @@ done
 [ -n "${MOCK_LOG:-}" ] && printf '%s\n' "$url" >>"$MOCK_LOG"
 [ "${MOCK_MODE:-}" = "offline" ] && exit 7
 case "$url" in
-  *a.espncdn.com*) exit 1 ;;
+  *a.espncdn.com*)
+    if [ "${MOCK_LOGO:-0}" = 1 ]; then
+      if [ -n "$out" ]; then printf 'png' >"$out"; else printf 'png'; fi
+      exit 0
+    fi
+    exit 1
+    ;;
   *site.api.espn.com*)
     case "${MOCK_MODE:-}" in
       429|500|503)

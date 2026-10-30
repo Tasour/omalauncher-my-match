@@ -55,6 +55,21 @@ if find "$HOME/.cache/espn-logos/soccer" -name '.*.tmp' -o -name '.*.lock' 2>/de
 fi
 pass "full list finds LYON"
 
+# --- atomic crest download --------------------------------------------------
+export MOCK_LOGO=1
+LOGO="$HOME/.cache/espn-logos/soccer"
+rm -rf "$LOGO"
+mkdir -p "$LOGO/.stale.lock"
+touch -d '20 minutes ago' "$LOGO/.stale.lock"
+printf 'x' >"$LOGO/.stale.tmp"
+touch -d '20 minutes ago' "$LOGO/.stale.tmp"
+run_games || fail "games should download a crest"
+find "$LOGO" -name '*.png' | grep -q . || fail "crest was not stored"
+find "$LOGO" \( -name '.*.tmp' -o -name '.*.lock' \) | grep -q . &&
+  fail "temp file or lock left after a crest download"
+unset MOCK_LOGO
+pass "crests download atomically"
+
 # --- dynamic league list -----------------------------------------------------
 export TEST_FAVLG="fra.1"
 run_games || fail "games should succeed with the dynamic list"
