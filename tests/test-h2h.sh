@@ -43,6 +43,8 @@ bash "$BANNER" >/dev/null 2>"$TMP/banner.err" || fail "banner logo source failed
   fail "away banner logo was not downloaded"
 pass "banner logos are cached at high resolution"
 
+jq -e '.sv == 2 and .info.venue == "Stade des Alpes" and (.stats|length) == 2 and (.events|length) == 3 and (.lineups|length) == 2 and (.news|length) == 1' "$TMP/out.json" >/dev/null 2>&1 ||
+  fail "match centre fields are incomplete"
 pass "head-to-head form is 3W 1D 1L over 5"
 
 printf 'ALL H2H TESTS PASSED\n'

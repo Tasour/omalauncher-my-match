@@ -130,5 +130,135 @@
         }
       ]
     }
-  ]
+  ],
+  "gameInfo": {
+    "venue": {
+      "fullName": "Stade des Alpes",
+      "address": {
+        "city": "Grenoble"
+      }
+    },
+    "attendance": 12345,
+    "referee": {
+      "displayName": "M. Arbitre"
+    }
+  },
+  "boxscore": {
+    "teams": [
+      {
+        "team": {
+          "abbreviation": "GRE"
+        },
+        "homeAway": "home",
+        "statistics": [
+          {
+            "label": "Possession",
+            "displayValue": "54%"
+          },
+          {
+            "label": "Shots",
+            "displayValue": "12"
+          }
+        ]
+      },
+      {
+        "team": {
+          "abbreviation": "DIJO"
+        },
+        "homeAway": "away",
+        "statistics": [
+          {
+            "label": "Possession",
+            "displayValue": "46%"
+          },
+          {
+            "label": "Shots",
+            "displayValue": "8"
+          }
+        ]
+      }
+    ]
+  },
+  "commentary": [
+    {
+      "time": {
+        "displayValue": "12'"
+      },
+      "play": {
+        "type": {
+          "type": "goal"
+        }
+      },
+      "text": "Goal! Grenoble 1, Dijon 0."
+    },
+    {
+      "time": {
+        "displayValue": "40'"
+      },
+      "play": {
+        "type": {
+          "type": "yellow-card"
+        }
+      },
+      "text": "Yellow card for Dijon."
+    },
+    {
+      "time": {
+        "displayValue": "62'"
+      },
+      "play": {
+        "type": {
+          "type": "substitution"
+        }
+      },
+      "text": "Substitution, Grenoble."
+    }
+  ],
+  "rosters": [
+    {
+      "team": {
+        "abbreviation": "GRE"
+      },
+      "formation": "4-3-3",
+      "roster": [
+        {
+          "starter": true,
+          "jersey": "1",
+          "athlete": {
+            "displayName": "Gardien GRE"
+          }
+        },
+        {
+          "starter": true,
+          "jersey": "9",
+          "athlete": {
+            "displayName": "Buteur GRE"
+          }
+        }
+      ]
+    },
+    {
+      "team": {
+        "abbreviation": "DIJO"
+      },
+      "formation": "4-4-2",
+      "roster": [
+        {
+          "starter": true,
+          "jersey": "1",
+          "athlete": {
+            "displayName": "Gardien DIJO"
+          }
+        }
+      ]
+    }
+  ],
+  "news": {
+    "articles": [
+      {
+        "headline": "Un titre",
+        "description": "Une description"
+      }
+    ]
+  }
 }

@@ -77,6 +77,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] N04 : mode anti-spoiler (scores et pastilles V/N/D masqués)
 - [x] N07 : forme H2H des 5 dernières confrontations dans la carte du prochain match
 - [x] 20 features F01–F20 : rappels intelligents, digests, matchday/compact, aujourd'hui, cotes/forme, partage, accent équipe, daltonien, révélation, préchargement, dédup, AET/PEN, calendrier, dernier H2H
+- [x] Fiche match : stade/arbitre, stats, temps forts, compositions, actus ESPN
 - [ ] N02–N24 : voir [`docs/features-proposals.md`](docs/features-proposals.md)
 - [ ] Mesures device v5.10.0 + test de décharge
 

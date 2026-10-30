@@ -3,6 +3,15 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Fait — Fiche match (2026-10-30)
+
+Panneau **« fiche match »** sous la carte du prochain match (écran, MINE) :
+stade/ville/affluence/arbitre, statistiques (matchs joués ou en direct),
+temps forts (buts, cartons, remplacements), compositions et actus ESPN.
+Réutilise le `summary` déjà chargé pour les cotes/H2H (schéma 2, cache
+invalidé une fois). Tests : `match centre` statique + assertions du fixture
+`summary-h2h.json` (info/stats/events/lineups/news).
+
 ## Fait — lot F01–F20 (2026-10-30)
 
 | ID | Feature | Test |

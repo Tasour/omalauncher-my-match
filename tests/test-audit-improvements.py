@@ -198,6 +198,8 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    check("match centre", "state showDetail=false" in text and "S.detail" in text and "heroH2HObj.info" in text and "S.statsT" in text and "S.timeline" in text and "S.lineupsT" in text and "S.newsT" in text)
+
     check("H2H instant cache", "source h2hNow=file(" in text and "heroH2HObj" in text and "heroMatch.id?h2hNow" in text)
 
     check("prefetch source", "let prefetchScript=" in text and "source prefetch=" in text and "prefetchArg" in text)
