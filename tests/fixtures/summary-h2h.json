@@ -46,7 +46,8 @@
               "score": "1",
               "homeAway": "away"
             }
-          ]
+          ],
+          "date": "2023-03-04T18:00:00Z"
         },
         {
           "competitors": [
@@ -56,7 +57,8 @@
                 "abbreviation": "GRE"
               },
               "winner": true,
-              "homeAway": "home"
+              "homeAway": "home",
+              "score": "2"
             },
             {
               "team": {
@@ -64,9 +66,11 @@
                 "abbreviation": "DIJO"
               },
               "winner": false,
-              "homeAway": "away"
+              "homeAway": "away",
+              "score": "1"
             }
-          ]
+          ],
+          "date": "2023-04-04T18:00:00Z"
         },
         {
           "competitors": [
@@ -76,7 +80,8 @@
                 "abbreviation": "GRE"
               },
               "winner": false,
-              "homeAway": "home"
+              "homeAway": "home",
+              "score": "3"
             },
             {
               "team": {
@@ -84,9 +89,11 @@
                 "abbreviation": "DIJO"
               },
               "winner": false,
-              "homeAway": "away"
+              "homeAway": "away",
+              "score": "0"
             }
-          ]
+          ],
+          "date": "2023-05-04T18:00:00Z"
         },
         {
           "competitors": [
@@ -96,7 +103,8 @@
                 "abbreviation": "GRE"
               },
               "winner": false,
-              "homeAway": "home"
+              "homeAway": "home",
+              "score": "1"
             },
             {
               "team": {
@@ -104,9 +112,11 @@
                 "abbreviation": "DIJO"
               },
               "winner": true,
-              "homeAway": "away"
+              "homeAway": "away",
+              "score": "1"
             }
-          ]
+          ],
+          "date": "2023-06-04T18:00:00Z"
         },
         {
           "competitors": [
@@ -116,7 +126,8 @@
                 "abbreviation": "GRE"
               },
               "winner": true,
-              "homeAway": "home"
+              "homeAway": "home",
+              "score": "2"
             },
             {
               "team": {
@@ -124,9 +135,11 @@
                 "abbreviation": "DIJO"
               },
               "winner": false,
-              "homeAway": "away"
+              "homeAway": "away",
+              "score": "0"
             }
-          ]
+          ],
+          "date": "2023-07-04T18:00:00Z"
         }
       ]
     }
@@ -260,5 +273,35 @@
         "description": "Une description"
       }
     ]
-  }
+  },
+  "odds": [
+    {
+      "moneyline": {
+        "home": {
+          "open": {
+            "odds": "+150"
+          },
+          "close": {
+            "odds": "+120"
+          }
+        },
+        "draw": {
+          "open": {
+            "odds": "+240"
+          },
+          "close": {
+            "odds": "+230"
+          }
+        },
+        "away": {
+          "open": {
+            "odds": "+180"
+          },
+          "close": {
+            "odds": "+200"
+          }
+        }
+      }
+    }
+  ]
 }

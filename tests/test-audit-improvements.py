@@ -228,11 +228,24 @@ def main():
     # F06-F10: display controls.
     check("F06 matchday mode", "state matchdayMode=false persist" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
     check("F07 compact mode", "state compactMode=false persist" in text and "compactMode?5" in text and "S.compact" in text)
-    check("F08 today filter", "state todayOnly=false persist" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
+    check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
 
+    # Regression: a day/today filter must never silently hide every fixture.
+    check("fixtures filter fallback",
+          "state todayOnly=false\n" in text and 'state daySel=""' in text
+          and "let filterOn=todayOnly||daySel!=\"\"" in text
+          and ':(daySel!=""?baseRaw.filter' in text
+          and text.count('{todayOnly=false;daySel=""}') >= 2
+          and 'S.noMatchDay+" · "+S.clearFilter' in text)
+
     # Simulated user needs — Lot 1.
+    check("DN05 full H2H list", "h2hAll" in text and "heroH2HObj.h2h" in text and "list??[]" in text)
+    check("DN16 no-vig", "let noVig=" in text and "noVigTxt" in text)
+    check("DN17 odds movement", "let moveH=" in text and "moveTxt" in text and "▼" in text)
+    check("DN24 news ticker", "heroH2HObj.news[0].h" in text and "S.newsT" in text)
+
     check("CU18 plain status", 'fail:"Scores peut-être en retard"' in text and 'sourceErr:"Source indisponible"' in text)
     check("CU23 day filter", 'state daySel=""' in text and "key c.k" in text and "daySel==c.k" in text and '==daySel)' in text)
     check("AT19 fiche freshness", "fmtAgo(heroH2HObj.ts,now)" in text)
