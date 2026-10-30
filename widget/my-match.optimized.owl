@@ -1225,6 +1225,7 @@ let healthTxt=join(healthBad.map(h=>get(healthLabel,h.n,h.n)+" "+(h.s.code??"?")
 let healthShort="⚠ "+count(healthBad)+" · "+S.degraded
 let healthLine=join(healthList.map(h=>get(healthLabel,h.n,h.n)+" "+(h.s==null?"…":(h.s.ok??false)?"✓":("✗"+(h.s.code??""))))," · ")
 let gamesErr=games!=null&&!(games.ok??true)
+let seasonAllErr=seasonAll!=null&&!(seasonAll.ok??true)
 let extraErr=extra!=null&&!(extra.ok??true)
 let nextErr=nextup!=null&&!(nextup.ok??true)
 let histErr=histfull!=null&&!(histfull.ok??true)
@@ -1853,6 +1854,8 @@ if games==null{
 Text{text:S.loading;style:small;color:soft}
 }else if gamesErr{
 Text{text:S.sourceErr+" "+(games.code??"");style:small;color:"#ef4444";align:center}
+}else if total==0&&(extraErr||seasonAllErr){
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if total==0{
 Text{text:S.noMatchTeam;style:small;color:soft}
 }else{
@@ -1872,6 +1875,8 @@ Text{text:rivLabel+liveWarn;style:label;color:soft;align:center;maxLines:1}
 if extra==null&&nextup==null{
 Text{text:S.loading;style:small;color:soft}
 }else if extraErr&&nextErr{
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
+}else if count(rivalsTile)==0&&(extraErr||nextErr){
 Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(rivalsTile)==0{
 Text{text:S.noRecent;style:small;color:soft}
@@ -1913,6 +1918,8 @@ Text{text:S.noResults;style:small;color:soft;align:center}
 }else{
 for g in euroResMatches key g.id{LiveGame{g:g;compact:true}}
 }
+}else if count(euroList)==0&&(extraErr||nextErr||histErr){
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(euroList)==0{
 Text{text:S.noRecent;style:small;color:soft}
 }else{
@@ -1953,6 +1960,8 @@ Text{text:S.noResults;style:small;color:soft;align:center}
 }else{
 for g in topResMatches key g.id{LiveGame{g:g;compact:true}}
 }
+}else if count(topTile)==0&&(extraErr||nextErr){
+Text{text:S.sourceErr;style:small;color:"#ef4444";align:center}
 }else if count(topTile)==0{
 Text{text:S.noRecent;style:small;color:soft}
 }else{
@@ -2094,6 +2103,8 @@ Text{text:S.noMatchDay;style:body;color:soft}
 }else{
 for g in jMatches key g.id{LiveGame{g:g}}
 }
+}else if count(rivalsAll)==0&&(extraErr||nextErr){
+Text{text:S.sourceErr;style:body;color:"#ef4444";align:center}
 }else if count(rivalsAll)==0{
 Text{text:S.noRecent;style:body;color:soft}
 }else{
@@ -2139,6 +2150,8 @@ Text{text:S.noMatchDay;style:body;color:soft}
 }else{
 for g in jMatches key g.id{LiveGame{g:g}}
 }
+}else if count(topAll)==0&&(extraErr||nextErr){
+Text{text:S.sourceErr;style:body;color:"#ef4444";align:center}
 }else if count(topAll)==0{
 Text{text:S.noRecent;style:body;color:soft}
 }else{
@@ -2184,6 +2197,8 @@ Text{text:S.noMatchDay;style:body;color:soft}
 }else{
 for g in euroJMatches key g.id{LiveGame{g:g}}
 }
+}else if count(euroMatches)==0&&(extraErr||nextErr||histErr){
+Text{text:S.sourceErr;style:body;color:"#ef4444";align:center}
 }else if count(euroMatches)==0{
 Text{text:S.noRecent;style:body;color:soft}
 }else{
@@ -2239,7 +2254,9 @@ for u in tb key u.tag+" "+u.group{TableBlock{u:u}}
 }
 }else{
 let one=myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==team))
-if count(baseF)==0&&count(one)==0{
+if count(baseF)==0&&count(one)==0&&(extraErr||seasonAllErr){
+Text{text:S.sourceErr;style:body;color:"#ef4444";align:center}
+}else if count(baseF)==0&&count(one)==0{
 Text{text:S.noMatchAny;style:body;color:soft}
 }else{
 let shown1=baseF

@@ -34,8 +34,9 @@ Trois revues indépendantes ont été rejouées sur le lot. Constats corrigés :
 - **I09** : `spinAt=now+1` ne ré-armait pas le tick (l'horloge `now` est à 15 s).
   Corrigé en `spinAt=spinAt+1`, test aligné sur l'expression exacte.
 - **I08** : une source en échec affichait « aucun match » ; branches d'erreur
-  ajoutées (MINE, RIV, TOP5, EUROPE), bannière santé courte (`⚠ N · dégradé`)
-  avec noms localisés, masquée pendant l'onboarding.
+  ajoutées (MINE, RIV, TOP5, EUROPE), y compris les échecs partiels (un flux
+  tombe, l'autre est vide), bannière santé courte (`⚠ N · dégradé`) avec noms
+  localisés, masquée pendant l'onboarding.
 - **I05** : le nombre de matchs masqués dans la tuile est affiché (`+N`), test
   sur `take(8)` et sur le compteur.
 - **I07** : budgets portés à `standings 300s` / `teamsDb 900s`, `bash -n` étendu

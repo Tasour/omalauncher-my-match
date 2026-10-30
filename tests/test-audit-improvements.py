@@ -103,6 +103,10 @@ def main():
     check("I08 readers use status.out",
           all(f"{name}.out" in text for name in status_names)
           and "(standings??[])" not in text and "(extra??[])" not in text)
+    check("I08 partial failures",
+          "let seasonAllErr" in text
+          and "count(rivalsTile)==0&&(extraErr||nextErr)" in text
+          and "count(euroList)==0&&(extraErr||nextErr||histErr)" in text)
 
     # I09 - the spinner no longer wakes the widget every second while idle.
     check("I09 conditional spinner tick", "every 1s" not in text and "at spinAt{if spinning{elapsed=elapsed+1;spinAt=spinAt+1}" in text)
