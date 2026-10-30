@@ -55,6 +55,11 @@ def main():
     first_scope = "TABLES=\"eng.1 esp.1 ger.1 ita.1 fra.1 uefa.champions uefa.europa uefa.europa.conf\""
     check("I06 standings first launch", first_scope in text and 'TABLES="$TABLESALL"' not in text)
 
+    # I07 - source budgets cover the modelled worst case.
+    check("I07 scheds timeout", '""")every 24h json timeout 240s' in text)
+    check("I07 standings timeout", 'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s' in text)
+    check("I07 teamsDb timeout", '""")every 168h json timeout 600s' in text and '-fsm 5 -o "$d/$f"' in text)
+
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")
         return 1
