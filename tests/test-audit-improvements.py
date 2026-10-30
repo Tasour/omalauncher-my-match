@@ -195,6 +195,13 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    # F06-F10: display controls.
+    check("F06 matchday mode", "state matchdayMode=false persist" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
+    check("F07 compact mode", "state compactMode=false persist" in text and "compactMode?5" in text and "S.compact" in text)
+    check("F08 today filter", "state todayOnly=false persist" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
+    check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
+    check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
     # F01-F05: notification controls.
     check("F01 reminder lead", "state leadH=12 persist" in text and "leadH*3600" in text and "S.lead" in text)
     check("F02 quiet hours", "state quietOn=false persist" in text and "quietNow=quietOn" in text and "!quietNow" in text)
