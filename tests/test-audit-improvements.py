@@ -232,6 +232,12 @@ def main():
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
 
+    # Simulated user needs — Lot 1.
+    check("CU18 plain status", 'fail:"Scores peut-être en retard"' in text and 'sourceErr:"Source indisponible"' in text)
+    check("CU23 day filter", 'state daySel=""' in text and "key c.k" in text and "daySel==c.k" in text and '==daySel)' in text)
+    check("AT19 fiche freshness", "fmtAgo(heroH2HObj.ts,now)" in text)
+    check("HF08 tile live chip", "let liveBadge=" in text and "S.next+\" \"+fmtTime(heroAt" in text and 'if liveBadge!=""' in text)
+
     # Ergonomics: settings is a dedicated view with sections and a compact header.
     check("ergonomic settings",
           "S.general" in text and "S.affichage" in text and "S.rappels" in text
