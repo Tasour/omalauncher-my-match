@@ -75,9 +75,12 @@ def main():
     check("I06 standings first launch", first_scope in text and 'TABLES="$TABLESALL"' not in text)
 
     # I07 - source budgets cover the modelled worst case.
-    check("I07 scheds timeout", '""")every 24h json timeout 240s' in text)
-    check("I07 standings timeout", 'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s' in text)
-    check("I07 teamsDb timeout", '""")every 168h json timeout 600s' in text and '-fsm 5 -o "$d/$f"' in text)
+    check("I07 scheds timeout",
+          "source scheds=cmd(" in text and 'every 24h json timeout 300s status' in text)
+    check("I07 standings timeout",
+          'source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 240s status' in text)
+    check("I07 teamsDb timeout",
+          'every 168h json timeout 600s status' in text and '--connect-timeout 3 -fsm 6 -o "$d/$f"' in text)
 
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):

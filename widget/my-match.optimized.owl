@@ -477,7 +477,7 @@ source scheds=cmd("""
     [ "$(jq 'length // 0' "$tmp/rounds.json")" -gt 0 ] || exit 1
     jq -cs '{rounds: .[0], anchors: .[1]}' "$tmp/rounds.json" "$tmp/anchors.json"
     rm -rf "$tmp"
-  """)every 24h json timeout 240s status
+  """)every 24h json timeout 300s status
 let standingsScript="""    set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
     cleanup() {
@@ -565,7 +565,7 @@ let standingsScript="""    set -o pipefail
     cat "$tmp/merged.json"
     rm -rf "$tmp"
   """
-source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 180s status
+source standings=cmd("bash -c ${sh(standingsScript)}")every 6h json timeout 240s status
 source teamsDb=cmd("""
     set -o pipefail
     tmp=$(mktemp -d /tmp/espn.XXXXXX)
@@ -643,7 +643,7 @@ source teamsDb=cmd("""
     for f in $(jq -r '.[].logo | select(. != "")' "$tmp/teams.json" | sort -u); do
       p=$(echo "$f" | tr '-' '/')
       if [ ! -s "$d/$f" ]; then
-        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 -fsm 5 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
+        curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 3 -fsm 6 -o "$d/$f" "https://a.espncdn.com/combiner/i?img=/i/teamlogos/$p&w=48&h=48" 2>/dev/null || rm -f "$d/$f" &
         n=$((n + 1))
         if [ "$n" -ge 8 ]; then wait; n=0; fi
       fi

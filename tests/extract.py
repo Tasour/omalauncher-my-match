@@ -10,8 +10,13 @@ import sys
 
 path, var = sys.argv[1], sys.argv[2]
 s = open(path, encoding="utf-8").read()
-needle = f'let {var}="""'
-start = s.index(needle) + len(needle)
+needles = (f'let {var}="""', f'source {var}=cmd("""')
+for needle in needles:
+    if needle in s:
+        start = s.index(needle) + len(needle)
+        break
+else:
+    sys.exit(f"no triple-quoted script for {var}")
 i = start
 chunks: list[str] = []
 exprs: list[str] = []
