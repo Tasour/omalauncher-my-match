@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.2";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.3";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1464,8 +1464,8 @@ state quietOn=false persist
 state digestOn=false persist
 state digestAt=0 persist
 state weeklyOn=false persist
-state matchdayMode=false persist
-state compactMode=false persist
+state matchdayMode=false
+state compactMode=false
 state todayOnly=false
 state daySel=""
 state showOdds=true persist
@@ -1633,7 +1633,7 @@ let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
 let heroMatch=first(upShow.sortBy(g=>g.at))
 let matchday=count(liveF)>0||(heroMatch!=null&&heroMatch.at-now>=-10800&&heroMatch.at-now<=7200)
-let tileRows=compactMode?5:((matchdayMode&&matchday)?6:((rows??4)>=10?60:(rows??4)>=6?12:8))
+let tileRows=compactMode?5:((matchdayMode&&matchday)?5:((rows??4)>=10?12:((rows??4)>=6?10:5)))
 let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
@@ -1662,7 +1662,7 @@ let liveSuffix=liveAge==null?"":" · live "+agoP+fmtDuration(liveAge)+agoS
 let statusTxt=spinning?S.refreshing+elapsed+"s":lastOk==false?S.fail:lastAt>0?S.updated+" · "+agoP+fmtDuration(max(now-(lastAt??now),0))+agoS:S.tapRefresh
 let liveWarn=liveAge!=null&&liveAge>900?" · "+(lang=="fr"?"màj ":"updated ")+agoP+fmtDuration(liveAge)+agoS:""
 let total=count(baseF)
-let pastTake=(compactMode||(matchdayMode&&matchday))?[]:(team!="ALL"?pastA.sortBy(g=>g.at):(count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at)))
+let pastTake=(compactMode||(matchdayMode&&matchday))?[]:(count(pastA)<=5?pastA:pastA.sortBy(g=>-g.at).take(5).sortBy(g=>g.at))
 let wide=max(max(screenWidth??0,tileWidth??0),240)>=280
 let fz=uiSize=="S"?12:uiSize=="L"?15:uiSize=="XL"?17:13
 let heroH=heroMatch==null||heroMatch.home==null?"":(myTeams.find(t=>t.abbr==heroMatch.home.abbr).short??(wide?(heroMatch.home.name??heroMatch.home.abbr):heroMatch.home.abbr))
@@ -2211,6 +2211,9 @@ Text{text:liveBadge;style:label;color:count(liveF)>0?"#22c55e":soft;align:center
 if filterOn{
 Text{text:S.filter+" : "+filterLabel+" ✕";style:label;color:pop;align:center;maxLines:1;onTap:{todayOnly=false;daySel=""}}
 }
+if compactMode||matchdayMode{
+Text{text:(compactMode?S.compact:S.matchday)+" ✕";style:label;color:pop;align:center;maxLines:1;onTap:{compactMode=false;matchdayMode=false}}
+}
 if matchdayMode&&matchday{
 Text{text:"⚽ "+S.matchday+(heroMatch==null?"":" · "+heroDown);style:label;color:pop;align:center;maxLines:1}
 }
@@ -2283,7 +2286,7 @@ for g in upTile key g.id{LiveGame{g:g;compact:true}}
 Rule{}
 }
 if count(pastTake)>0{
-Text{text:S.recent;style:label;color:soft;align:center;maxLines:1}
+Text{text:S.recent+(count(pastA)>count(pastTake)?" +"+(count(pastA)-count(pastTake)):"");style:label;color:soft;align:center;maxLines:1;onTap:screen()}
 for g in pastTake key g.id{LiveGame{g:g;compact:true}}
 }
 }
@@ -2527,7 +2530,7 @@ Rule{}
 Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.2\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.3\n"+healthLine);diagDone=true}}
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
 }
 if diagDone{Text{text:S.diagDone;style:label;color:"#22c55e";align:center}}
@@ -2540,7 +2543,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.14.2 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.14.3 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }

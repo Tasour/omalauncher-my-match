@@ -111,7 +111,7 @@ def main():
           "!(g.squads??[]).any(s=>favAbbrs.any(a=>a==s))" in text)
 
     check("I11 selected team keeps all results",
-          'team!="ALL"?pastA.sortBy(g=>g.at)' in text and "let shown1=baseF" in text)
+          "let shown1=baseF" in text and "count(pastA)<=5?pastA" in text)
 
     # I12 - aggregate caches carry schema/version/TTL/expiry metadata.
     check("I12 cache metadata helpers",
@@ -183,7 +183,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.2' in text
+          "S.apropos" in text and 'copy("my-match v5.14.3' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -226,8 +226,8 @@ def main():
     check("F15 per-match reveal", "state revealed=[]persist" in text and "!revealed.any" in text and "revealed+[g.id]" in text)
 
     # F06-F10: display controls.
-    check("F06 matchday mode", "state matchdayMode=false persist" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
-    check("F07 compact mode", "state compactMode=false persist" in text and "compactMode?5" in text and "S.compact" in text)
+    check("F06 matchday mode", "state matchdayMode=false" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
+    check("F07 compact mode", "state compactMode=false" in text and "compactMode?5" in text and "S.compact" in text)
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
@@ -236,6 +236,16 @@ def main():
     check("standings/fixtures migration",
           "state uiSchema=0 persist" in text and "when uiSchema<1" in text
           and "showTables=true;todayOnly=false;daySel=\"\"" in text)
+    check("tile mode chip",
+          "compactMode||matchdayMode" in text
+          and "{compactMode=false;matchdayMode=false}" in text
+          and "(compactMode?S.compact:S.matchday)" in text)
+
+    check("tile balanced",
+          "tileRows=compactMode?5" in text and "?12:" in text
+          and "take(5).sortBy(g=>g.at)" in text
+          and 'S.recent+(count(pastA)>count(pastTake)' in text)
+
     check("tile fixtures before results",
           "S.recent" in text
           and text.find("for g in upTile key g.id") != -1
