@@ -3,6 +3,34 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Fait — lot F01–F20 (2026-10-30)
+
+| ID | Feature | Test |
+|---|---|---|
+| F01 | Délai de rappel 1/3/6/12/24 h | `F01 reminder lead` |
+| F02 | Heures calmes 22–07 | `F02 quiet hours` |
+| F03 | Digest quotidien 08:00 | `F03 daily digest` |
+| F04 | Digest hebdo du lundi | `F04 weekly digest` |
+| F05 | Réarmer les rappels | `F05 reset reminders` |
+| F06 | Matchday mode | `F06 matchday mode` |
+| F07 | Mode compact | `F07 compact mode` |
+| F08 | Filtre « aujourd'hui » | `F08 today filter` |
+| F09 | Masquer les cotes | `F09 show odds` |
+| F10 | Masquer la forme | `F10 show form` |
+| F11 | Copier le match | `F11 copy match` |
+| F12 | Copier mes équipes (JSON) | `F12 copy teams` |
+| F13 | Couleur d'accent par équipe | `F13 team accent` |
+| F14 | Mode daltonien | `F14 colour-blind` |
+| F15 | Révéler un score masqué au tap | `F15 per-match reveal` |
+| F16 | Préchargement à 06:00 | `F16 prewarm` |
+| F17 | Fusion des doublons de match | `F17 dedupe matches` |
+| F18 | Étiquette AET/PEN | `F18 AET/PEN tag` |
+| F19 | Bandeau calendrier 7 jours | `F19 calendar strip` |
+| F20 | Dernier résultat H2H | `F20 last H2H result` |
+
+Les actions F01–F20 sont dans **Réglages → plus d'options**. Les rappels, digests,
+anti-spoiler et notifications de but respectent les heures calmes.
+
 ## Fait
 
 | ID | Feature | Détail | Commit |

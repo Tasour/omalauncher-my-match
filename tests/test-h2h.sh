@@ -30,6 +30,8 @@ jq -e '.hv == 1 and .h2h != null' "$TMP/out.json" >/dev/null 2>&1 ||
   fail "no head-to-head object"
 jq -e '.h2h.n == 5 and .h2h.w == 3 and .h2h.d == 1 and .h2h.l == 1' "$TMP/out.json" >/dev/null 2>&1 ||
   fail "wrong head-to-head form (expected 3W 1D 1L over 5)"
+jq -e '.h2h.last.hs == "2" and .h2h.last.as == "1" and .h2h.last.won == true' "$TMP/out.json" >/dev/null 2>&1 ||
+  fail "wrong last head-to-head result (expected 2-1 win)"
 pass "head-to-head form is 3W 1D 1L over 5"
 
 printf 'ALL H2H TESTS PASSED\n'

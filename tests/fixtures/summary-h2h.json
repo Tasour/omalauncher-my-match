@@ -33,14 +33,18 @@
                 "id": "6994",
                 "abbreviation": "GRE"
               },
-              "winner": true
+              "winner": true,
+              "score": "2",
+              "homeAway": "home"
             },
             {
               "team": {
                 "id": "3170",
                 "abbreviation": "DIJO"
               },
-              "winner": false
+              "winner": false,
+              "score": "1",
+              "homeAway": "away"
             }
           ]
         },
@@ -51,14 +55,16 @@
                 "id": "6994",
                 "abbreviation": "GRE"
               },
-              "winner": true
+              "winner": true,
+              "homeAway": "home"
             },
             {
               "team": {
                 "id": "3170",
                 "abbreviation": "DIJO"
               },
-              "winner": false
+              "winner": false,
+              "homeAway": "away"
             }
           ]
         },
@@ -69,14 +75,16 @@
                 "id": "6994",
                 "abbreviation": "GRE"
               },
-              "winner": false
+              "winner": false,
+              "homeAway": "home"
             },
             {
               "team": {
                 "id": "3170",
                 "abbreviation": "DIJO"
               },
-              "winner": false
+              "winner": false,
+              "homeAway": "away"
             }
           ]
         },
@@ -87,14 +95,16 @@
                 "id": "6994",
                 "abbreviation": "GRE"
               },
-              "winner": false
+              "winner": false,
+              "homeAway": "home"
             },
             {
               "team": {
                 "id": "3170",
                 "abbreviation": "DIJO"
               },
-              "winner": true
+              "winner": true,
+              "homeAway": "away"
             }
           ]
         },
@@ -105,14 +115,16 @@
                 "id": "6994",
                 "abbreviation": "GRE"
               },
-              "winner": true
+              "winner": true,
+              "homeAway": "home"
             },
             {
               "team": {
                 "id": "3170",
                 "abbreviation": "DIJO"
               },
-              "winner": false
+              "winner": false,
+              "homeAway": "away"
             }
           ]
         }

@@ -198,6 +198,13 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    # F16-F20: reliability, data and calendar.
+    check("F16 prewarm", "state prewarmOn=false persist" in text and "at prewarmAt{" in text and "prewarmAt=now+86400" in text and "S.prewarm" in text)
+    check("F17 dedupe matches", "values(groupBy(allRaw" in text and "map(a=>first(a))" in text)
+    check("F18 AET/PEN tag", "let extraTag=" in text and '"AET"' in text and 'text:extraTag==""?rdt2' in text)
+    check("F19 calendar strip", "let cal=range(7)" in text and "for c in cal" in text)
+    check("F20 last H2H result", "heroH2HLast" in text and "h2h.last" in text and '"last H2H:' in text)
+
     # F11-F15: sharing and personalisation.
     check("F11 copy match", "let heroShare=" in text and "S.copyMatch" in text and "copy(heroShare)" in text)
     check("F12 copy teams", "S.copyTeams" in text and "copy(toJson(myTeams))" in text)
