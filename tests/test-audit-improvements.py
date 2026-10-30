@@ -142,7 +142,7 @@ def main():
           'postponed:"reporté"' in text and 'let special=contains(gdet' in text
           and 'g.at>now-7200||contains(lower(g.detail' in text)
     check("I17 two-leg aggregate",
-          "aggH:" in text and "aggDone:" in text and 'lang=="fr"?"cumul ":"agg "' in text)
+          "aggH:" in text and "aggDone:" in text and "S.agg+" in text and 'agg:"cumul "' in text)
 
     # I19 - tables compose only when asked for (persisted choice).
     check("I19 tables on demand", "state showTables=false persist" in text)
@@ -174,6 +174,13 @@ def main():
     check("I32 about and privacy UI",
           "S.about" in text and 'copy("my-match v5.11.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
+
+    # I30 - a development extractor dumps every embedded script.
+    dump = ROOT / "scripts" / "dump-widget-scripts.sh"
+    dump_text = dump.read_text(encoding="utf-8") if dump.exists() else ""
+    check("I30 script extractor",
+          dump.exists() and os.access(dump, os.X_OK)
+          and all(name in dump_text for name in ("scheds", "teamsDb", "histfull")))
 
     # I08 - every heavy source exposes status and the UI shows source health.
     def source_block(name):

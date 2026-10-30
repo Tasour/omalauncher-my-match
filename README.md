@@ -41,7 +41,7 @@ Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-
 docs/        audit initial, cycle en V, audit du widget, notice de données, modèle CI
 widget/      my-match.owl original + version optimisée
 measurements/ avant/après (CPU, fps, réseau, batterie)
-scripts/     protocole de mesure reproductible + scripts/ci.sh
+scripts/     mesure, CI, extraction des scripts du widget
 tests/       fixtures ESPN, faux curl, garde-fous statiques
 ```
 
@@ -71,7 +71,8 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] I32 : LICENSE MIT + notice de données/attribution ESPN
 - [x] I33 (partiel) : preuves hors appareil + protocole ; décharge device non exécutée
 - [x] Réglages « à propos / données » : attribution ESPN, diagnostic copiable, effacement des caches en deux temps
-- [ ] I18 : listes lazy (refactor d'écran) · I30 : extraction des scripts
+- [x] I30 : extracteur `scripts/dump-widget-scripts.sh` (revue/shellcheck, mono-fichier conservé)
+- [ ] I18 : listes lazy (refactor d'écran + validation device)
 - [ ] Mesures device v5.10.0 + test de décharge
 
 ## Sécurité

@@ -121,9 +121,9 @@ Cela ferme PROD-04 et donne une action de confidentialité visible (PRIV-02).
   pour ne pas livrer un rendu non testé (RENDER-01).
 - **Fait — I19** `showTables=false persist` : les classements se composent à la
   demande (RENDER-02) ; le lazy des tables reste lié à I18.
-- **Partiel — I20** `label` sur les `Image` des écussons (Crest/BannerLogo) ;
-  les contrôles `Canvas` (refresh, flèches) ne sont pas convertis en `Button`
-  faute de validation visuelle (A11Y-01/02).
+- **Partiel — I20** `label` sur les `Image` des écussons (Crest/BannerLogo) et
+  libellé texte « actualiser » sous le bouton Canvas (deuxième cible tactile) ;
+  les flèches restent des `Text`/`Canvas` faute de validation visuelle (A11Y-01/02).
 - **Fait — I21** Zones nommées dans le tableau large et « en direct » dans le
   détail live, plus seulement la couleur (A11Y-03).
 - **Fait — I22** Plancher 12 en taille S, tags à 11, largeurs dynamiques ;
@@ -141,8 +141,10 @@ Cela ferme PROD-04 et donne une action de confidentialité visible (PRIV-02).
 - **Fait — I28** `tests/test-degraded.sh` : 429/500/503/offline/tronqué/trop gros (QA-03).
 - **Fait — I29** `tests/test-cache-concurrency.sh` : deux rafraîchissements
   concurrents laissent JSON + méta valides, sans `.tmp` (QA-04).
-- **Reporté — I30** Extraction des scripts / réduction du monolithe : plan
-  documenté, refactor non fait (risque élevé sans validation device).
+- **Fait (outil) — I30** `scripts/dump-widget-scripts.sh` extrait les onze
+  scripts embarqués dans `build/widget-scripts/` pour revue/shellcheck. Le
+  widget reste **mono-fichier** pour la distribution (un `.owl` autonome) : le
+  refactor runtime n'apporte rien à l'utilisateur et risquerait une régression.
 - **Partiel — I31** Langue initiale depuis `lang()` et réglages déjà persistés ;
   `showSettings` reste volontairement limité à la session, et l'i18n des
   libellés ESPN inconnus n'est pas exhaustif (I18N-02..04).
