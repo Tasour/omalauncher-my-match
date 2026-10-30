@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.12.0";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.13.0";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -2475,13 +2475,13 @@ Button{text:"Français";weight:1;color:lang=="fr"?pop:soft;onTap:lang="fr"}
 }
 Button{text:S.spoiler+" : "+(spoiler?S.yes:S.no);fill:width;color:spoiler?pop:soft;onTap:spoiler=!spoiler}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:4}
-Text{text:"my-match v5.12.0 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.13.0 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Rule{}
 Text{text:S.about;style:label;color:soft}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 Row{
 gap:6
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.12.0\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.13.0\n"+healthLine);diagDone=true}}
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
 }
 if diagDone{
