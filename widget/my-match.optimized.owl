@@ -1539,7 +1539,7 @@ let liveF=baseF.filter(g=>g.state=='in')
 let nextF=baseF.filter(g=>g.state=='pre')
 let pastA=baseF.filter(g=>g.state=='post')
 let upShow=flatten([liveF,nextF])
-let tileRows=(rows??4)>=10?60:(rows??4)>=6?12:8
+let tileRows=(rows??4)>=10?20:(rows??4)>=6?12:8
 let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)
 let notDone=allMine.filter(g=>g.state=="pre"&&g.at>now&&!nextDone.any(d=>d==g.id))
 let soon12=first(notDone.sortBy(g=>g.at))
