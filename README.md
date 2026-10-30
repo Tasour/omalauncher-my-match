@@ -38,10 +38,11 @@ Le suivi d'implémentation du lot **v5.10.0** est dans [`docs/improvements-2026-
 ## Structure
 
 ```
-docs/        audit initial, cycle en V, audit du widget
+docs/        audit initial, cycle en V, audit du widget, modèle CI
 widget/      my-match.owl original + version optimisée
 measurements/ avant/après (CPU, fps, réseau, batterie)
-scripts/     protocole de mesure reproductible
+scripts/     protocole de mesure reproductible + scripts/ci.sh
+tests/       fixtures ESPN, faux curl, garde-fous statiques
 ```
 
 ## Statut
@@ -61,7 +62,13 @@ scripts/     protocole de mesure reproductible
 
 Aucun secret, token ou donnée personnelle ne doit être publié. Le widget et les rapports sont vérifiés avant publication ; les versions complètes non assainies restent en local.
 
-Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` ou, à défaut, `~/.config/omalauncher/measure-base` (une ligne, ex. `http://192.168.0.10:1764`), puis retombent sur `http://127.0.0.1:1764`.
+Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` ou, à défaut, `~/.config/omalauncher/measure-base` (une ligne, ex. `http://<IP-DU-PC>:1764`), puis retombent sur `http://127.0.0.1:1764`. L'hôte est validé (`http(s)://` + caractères sûrs) avant usage.
+
+## Tests et CI
+
+- `make test` (ou `./tests/run.sh`) : `bash -n` des scripts extraits du widget, fixtures ESPN hors ligne, garde-fous statiques des améliorations.
+- `scripts/ci.sh` : point d'entrée portable (compilation Python + `tests/run.sh`), utilisable par n'importe quel runner.
+- `.github/workflows/ci.yml` est fourni comme modèle dans [`docs/ci-workflow.yml`](docs/ci-workflow.yml) : le copier après avoir accordé le scope `workflow` au token (`gh auth refresh -s workflow`). Sans ce scope, GitHub refuse tout push qui crée un workflow.
 
 ## Licence
 

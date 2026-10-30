@@ -1,0 +1,30 @@
+# Template for .github/workflows/ci.yml.
+#
+# Copy it to .github/workflows/ci.yml once the token that pushes the repo has
+# the GitHub `workflow` scope (`gh auth refresh -s workflow`). A token without
+# that scope cannot create or update a workflow file, so the portable harness
+# `scripts/ci.sh` (run by `make test`) is the gate until then.
+name: offline checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install fixture tools
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Run offline checks
+        run: make test
+      - name: OWL check when a checker is provided
+        env:
+          OWL_JAR: ${{ secrets.OWL_JAR }}
+        run: |
+          if [ -n "${OWL_JAR:-}" ] && [ -f "$OWL_JAR" ]; then
+            java -jar "$OWL_JAR" check widget/my-match.optimized.owl
+          else
+            echo "OWL_JAR secret not set; owl check stays a local device gate"
+          fi

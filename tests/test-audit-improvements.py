@@ -6,6 +6,7 @@ intentionally cheap and offline: each improvement must leave a trace that can
 be checked without a phone or network.
 """
 from pathlib import Path
+import os
 import re
 import sys
 
@@ -76,6 +77,17 @@ def main():
 
     # I09 - the spinner no longer wakes the widget every second while idle.
     check("I09 conditional spinner tick", "every 1s" not in text and "at spinAt{" in text and "spinAt=now+1" in text)
+
+    # I10 - one portable offline harness, plus a ready GitHub Actions template.
+    ci = ROOT / "scripts" / "ci.sh"
+    ci_text = ci.read_text(encoding="utf-8") if ci.exists() else ""
+    check("I10 portable CI harness",
+          ci.exists() and os.access(ci, os.X_OK) and "./tests/run.sh" in ci_text)
+    workflow = ROOT / ".github" / "workflows" / "ci.yml"
+    template = ROOT / "docs" / "ci-workflow.yml"
+    template_text = template.read_text(encoding="utf-8") if template.exists() else ""
+    check("I10 GitHub Actions template",
+          not workflow.exists() and "pull_request" in template_text and "make test" in template_text)
 
     if FAILED:
         print(f"FAILED: {', '.join(FAILED)}")

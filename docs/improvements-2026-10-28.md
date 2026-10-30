@@ -17,7 +17,15 @@ fonctionnalité retirée. Le widget passe au lot **v5.10.0**.
 | I07 | Aligner les timeouts `scheds`/`standings`/`teamsDb` sur le pire cas | SHELL-01, DATA-03 | test de valeurs + `bash -n` | **Fait** |
 | I08 | Ajouter `status` à toutes les sources et une santé visible | SRE-01, PROD-02, UX-03 | test de présence + `owl-check` | **Fait** |
 | I09 | Remplacer le réveil `every 1s` par un `at` conditionnel | ENERGY-01 | test anti-`every 1s` + `owl-check` | **Fait** |
-| I10 | Ajouter la CI et le harnais de tests des améliorations | QA-01, QA-02 | workflow + exécution locale | À faire |
+| I10 | Ajouter la CI et le harnais de tests des améliorations | QA-01, QA-02 | `scripts/ci.sh` + template Actions | **Fait** |
+
+## Note CI (I10)
+
+`scripts/ci.sh` est le harnais portable (compile Python, `tests/run.sh`).
+Le workflow GitHub Actions prêt à l'emploi est `docs/ci-workflow.yml` : il doit
+être copié vers `.github/workflows/ci.yml` par un token disposant du scope
+`workflow` (`gh auth refresh -s workflow`). Le token courant ne l'a pas, et
+GitHub rejette alors tout push contenant un fichier de workflow.
 
 ## Backlog restant
 
