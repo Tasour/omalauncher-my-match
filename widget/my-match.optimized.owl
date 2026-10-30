@@ -1617,6 +1617,8 @@ let tables=standings.out??[]
 let live=all.filter(g=>g.state=='in')
 let allMine=all.filter(g=>count(myTeams)>0&&(count(g.tids??[])>0?((g.tids??[]).any(s=>myTeams.any(t=>(t.tid??"")!=""&&t.tid==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))||(g.squads??[]).any(s=>myTeams.any(t=>(t.tid??"")==""&&t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")))):((g.squads??[]).any(s=>myTeams.any(t=>t.abbr==s&&t.kind==(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c"))))))
 let cal=range(7).map(i=>({d:fmtTime(now+i*86400,"EEE",null,lang),n:count(allMine.filter(g=>fmtTime(g.at,"yyyy-MM-dd")==fmtTime(now+i*86400,"yyyy-MM-dd")))}))
+let prefetchMatches=flatten(myTeams.map(t=>[first(allMine.filter(g=>g.state=="pre"&&g.at>now&&(g.squads??[]).any(s=>s==t.abbr)).sortBy(g=>g.at))])).filter(g=>g!=null)
+let prefetchArg=join(prefetchMatches.map(g=>g.league+"|"+g.id+"|"+(g.at??0)+"|"+(g.home.abbr??""))," ")
 let baseRaw=team=="ALL"?allMine:allMine.filter(g=>((count(g.tids??[])>0&&selTeam!=null&&(selTeam.tid??"")!=""?(g.tids??[]).any(s=>s==selTeam.tid):(g.squads??[]).any(s=>s==team))&&(selTeam==null||(g.league=="uefa.nations"||g.league=="fifa.worldq.uefa"||g.league=="fifa.friendly"?"n":"c")==(selTeam.kind??"c"))))
 let base=todayOnly?baseRaw.filter(g=>fmtTime(g.at,"yyyy-MM-dd")==fmtTime(now,"yyyy-MM-dd")):baseRaw
 let baseF=base
@@ -1715,8 +1717,29 @@ let bannerScript="""    HL="""+sh(heroMatch==null?"":(heroMatch.home==null?"":(h
     printf 'ok'
 """
 source bannerLogos=cmd("bash -c ${sh(bannerScript)}")every 1h timeout 60s
+let prefetchScript="""    NEXT="""+sh(prefetchArg)+""";
+    [ -n "$NEXT" ] || { printf 'ok'; exit 0; }
+    C=~/.cache/espn-odds
+    mkdir -p "$C"
+    NOW=$(date +%s)
+    for e in $NEXT; do
+      LG=${e%%|*}; rest=${e#*|}; ID=${rest%%|*}; rest=${rest#*|}; AT=${rest%%|*}; HABBR=${rest#*|}
+      RAW=${ID#*:}
+      F="$C/$LG-$RAW.json"
+      if [ -s "$F" ]; then
+        TS=$(jq -r '.ts // 0' "$F" 2>/dev/null)
+        HV=$(jq -r '.hv // 0' "$F" 2>/dev/null)
+        if [ -n "$TS" ] && [ "$TS" != "null" ] && [ "$HV" = "1" ] && [ $((NOW-TS)) -lt 21600 ]; then continue; fi
+      fi
+      OUT=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 0 -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$LG/summary?event=$RAW" 2>/dev/null | jq -c --arg lg "$LG" --arg id "$RAW" --argjson ts "$NOW" --arg hid "" --arg habbr "$HABBR" 'def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec)} end; {id: ($lg + ":" + $id), ts: $ts, date: (.header.competitions[0].date? // null), at: ((.header.competitions[0].date? // "") | sub("Z$"; ":00Z") | (try fromdateiso8601 catch null)), odds: O, hv: 1, h2h: (([.seasonseries[]? | select((.type? // "") == "head-to-head")][0]) as $s | if $s == null then null else (($s.events // []) | length) as $n | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)] | length) as $w | ([$s.events[]? | .competitors as $cs | select([$cs[] | select((((.team.id|tostring)!=$hid) and ((.team.abbreviation? // "")!=$habbr))) | .winner] | any)] | length) as $l | {n: $n, w: $w, d: ($n - $w - $l), l: $l, last: (((($s.events // []) | .[0]) as $e | if $e == null then null else {hs: ([$e.competitors[]? | select(.homeAway=="home") | .score][0] // null), as: ([$e.competitors[]? | select(.homeAway=="away") | .score][0] // null), won: ([$e.competitors[]? | select((((.team.id|tostring)==$hid) or ((.team.abbreviation? // "")==$habbr))) | .winner] | any)} end))} end)}')
+      if [ -n "$OUT" ] && [ "$OUT" != "null" ]; then printf '%s\n' "$OUT" > "$F.tmp" && mv "$F.tmp" "$F"; fi
+    done
+    printf 'ok'
+"""
+source prefetch=cmd("bash -c ${sh(prefetchScript)}")every 1h timeout 120s
 source heroOdds=cmd("bash -c ${sh(heroOddsScript)}")every 1h json timeout 20s
 source oddsNow=file("~/.cache/espn-odds/current.json")json
+source h2hNow=file(heroMatch==null?null:"~/.cache/espn-odds/"+(heroMatch.league??"")+"-"+(replace((heroMatch.id??""),(heroMatch.league??"")+":",""))+".json")json
 let heroAt=heroMatch==null?0:((oddsNow??{}).id==heroMatch.id&&oddsNow.at!=null?oddsNow.at:(heroOdds!=null&&heroOdds.id==heroMatch.id&&heroOdds.at!=null?heroOdds.at:heroMatch.at))
 let heroTime=heroMatch==null?"":heroMatch.state=="in"?(heroMatch.detail??""):fmtTime(heroAt,"HH:mm")
 let heroTag=heroMatch==null||heroMatch.tag==null||heroMatch.tag==""?"":heroMatch.tag
@@ -1724,8 +1747,9 @@ let heroDay=heroMatch==null||heroMatch.state=="in"?"":fmtTime(heroAt,"d MMM",nul
 let heroTagLine=heroDay==""?heroTag:(heroTag==""?heroDay:heroTag+" · "+heroDay)
 let heroDown=heroMatch==null?"":heroMatch.state=="in"?S.liveNowB:heroAt-now<0?S.liveNowB:heroAt-now<60?S.startingNow:S.kickoffIn+fmtDuration(heroAt-now)
 let heroOddObj=heroMatch!=null&&(oddsNow??{}).id==heroMatch.id?oddsNow:(heroMatch!=null&&(heroOdds??{}).id==heroMatch.id?heroOdds:null)
-let heroH2H=heroOddObj!=null&&heroOddObj.h2h!=null?(lang=="fr"?"H2H · "+heroOddObj.h2h.w+"V "+heroOddObj.h2h.d+"N "+heroOddObj.h2h.l+"D":"H2H · "+heroOddObj.h2h.w+"W "+heroOddObj.h2h.d+"D "+heroOddObj.h2h.l+"L"):""
-let heroH2HLast=heroOddObj!=null&&heroOddObj.h2h!=null&&heroOddObj.h2h.last!=null?(lang=="fr"?"dernier H2H : ":"last H2H: ")+(heroOddObj.h2h.last.hs??"?")+"–"+(heroOddObj.h2h.last.as??"?"):""
+let heroH2HObj=heroMatch!=null&&(h2hNow??{}).id==heroMatch.id?h2hNow:heroOddObj
+let heroH2H=heroH2HObj!=null&&heroH2HObj.h2h!=null?(lang=="fr"?"H2H · "+heroH2HObj.h2h.w+"V "+heroH2HObj.h2h.d+"N "+heroH2HObj.h2h.l+"D":"H2H · "+heroH2HObj.h2h.w+"W "+heroH2HObj.h2h.d+"D "+heroH2HObj.h2h.l+"L"):""
+let heroH2HLast=heroH2HObj!=null&&heroH2HObj.h2h!=null&&heroH2HObj.h2h.last!=null?(lang=="fr"?"dernier H2H : ":"last H2H: ")+(heroH2HObj.h2h.last.hs??"?")+"–"+(heroH2HObj.h2h.last.as??"?"):""
 let heroShare=heroMatch==null?"":(heroH+" – "+heroA+" · "+fmtTime(heroAt,"EEE d/MM HH:mm",null,lang)+(heroTag==""?"":" · "+heroTag)+(heroH2H==""?"":" · "+heroH2H))
 let soft=mix(muted,foreground,0.5)
 let pop=mix(accent,foreground,0.4)

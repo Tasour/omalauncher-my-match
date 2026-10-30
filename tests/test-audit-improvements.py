@@ -198,6 +198,10 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
+    check("H2H instant cache", "source h2hNow=file(" in text and "heroH2HObj" in text and "heroMatch.id?h2hNow" in text)
+
+    check("prefetch source", "let prefetchScript=" in text and "source prefetch=" in text and "prefetchArg" in text)
+
     check("banner logos high-res",
           "B=~/.cache/espn-logos/banner" in text and "w=160&h=160" in text
           and "dims_ok()" in text and "-ge 160" in text

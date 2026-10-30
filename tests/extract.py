@@ -40,6 +40,7 @@ values = {
     "sh(favTid)": "${TEST_FAVTID}",
     "sh(favNoTid)": "${TEST_FAVNOTID}",
     "sh(favLg)": "${TEST_FAVLG}",
+    "sh(prefetchArg)": "${TEST_PREFETCH}",
     'sh(heroMatch==null?"":(heroMatch.league??""))': "${TEST_HERO_LG}",
     'sh(heroMatch==null?"":(heroMatch.id??""))': "${TEST_HERO_ID}",
     'sh(heroMatch==null?"0":(heroMatch.at??0))': "${TEST_HERO_AT}",
