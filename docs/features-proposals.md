@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Live alerts — v5.14.5
+
+Goal Flash inclut désormais le **buteur et la minute**, une alerte **carton rouge**
+et les notifications **mi-temps** (source live) et **fin de match** (source games,
+rattrapage toutes les 15 min). Les détails viennent de `competitions[0].details`
+du scoreboard, sans requête supplémentaire. Garde-fous HF02/HF03/HF04.
+
 ## Refonte ergonomique — v5.14.0
 
 Réglages en vue dédiée, découpés en **Général / Affichage / Rappels / Partage /

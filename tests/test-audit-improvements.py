@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.4' in text
+          "S.apropos" in text and 'copy("my-match v5.14.5' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,11 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Lot 3: richer live alerts from scoreboard details.
+    check("HF02 goal scorer", 'plays: [($c.details' in text and "g1.who" in text and 'notify("⚽ "' in text)
+    check("HF03 HT/FT", 'S.half+" · "' in text and 'S.full+" · "' in text and "ht!=null&&!quietNow&&!spoiler" in text and "count(ft)>0&&!ftQuiet&&!spoiler" in text)
+    check("HF04 red card", "S.redCard" in text and "redM" in text and "p.red" in text)
 
     # Standings and fixtures must be visible after the filter-era upgrades.
     check("standings/fixtures migration",
