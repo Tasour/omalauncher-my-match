@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.2
+
+- logos 160 px du cache bannière au lieu des 48 px upscalés (flou)
+- cartes équipes à hauteur fixe et noms sur deux lignes, sans débordement
+- prochains matchs limités aux rencontres futures réelles
+
 ## App avant-match — v5.18.1
 
 - ouverture corrigée : la clé du tiroir est `o:prematch.owl`, pas `owl:`
