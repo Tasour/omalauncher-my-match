@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.9' in text
+          "S.apropos" in text and 'copy("my-match v5.15.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,21 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Lot 8: data.
+    check("DN25 archive export", "let archiveTxt=" in text and "copy(archiveTxt)" in text and "S.exportT" in text)
+    check("DN23 leaders", "leaders: ([" in text and "S.leadersT" in text and "heroH2HObj.leaders" in text)
+    check("DN22 injuries", "injuries: ([" in text and "S.injuriesT" in text and "heroH2HObj.injuries" in text)
+
+    # Lot 9: travel / low data.
+    check("AT20 travel pack", "let travelTxt=" in text and "copy(travelTxt)" in text and "S.travel" in text)
+    check("AT18 offline age", "let offlineTxt=" in text and "S.offline" in text and "fmtAgo(lastAt,now)" in text)
+    check("AT22 low data", "state lowData=false persist" in text and "lowData?-1" in text and "S.lowData" in text)
+
+    # Lot 10: finishing.
+    check("HF23 banter", "let banterTxt=" in text and "copy(banterTxt)" in text)
+    check("HF24 config import", "state importRaw" in text and "parseJson(importRaw)" in text and "S.importT" in text)
+    check("AT25 retry per source", "for h in healthList" in text and "Button{text:S.retry;color:soft;onTap:refresh()}" in text)
 
     # Lot 7: personalisation.
     check("HF01 per-club mute", "state muteTeams=[] persist" in text and "S.alertsByClub" in text and text.count("!muteTeams.any") >= 7)

@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Données, voyage, finitions — v5.15.0
+
+- archive CSV/Markdown exportable, leaders buteurs/passeurs, blessures et suspensions dans la fiche
+- travel pack copiable, bandeau hors ligne avec âge + retry, mode basse data (initiales, sections allégées)
+- ligne de chambrage, import de la config équipes par JSON, retry visible par source
+Garde-fous DN25/DN23/DN22/AT20/AT18/AT22/HF23/HF24/AT25.
+
 ## Personnalisation — v5.14.9
 
 - rivaux explicites par codes séparés par des virgules, prioritaires sur les concurrents de ligue
