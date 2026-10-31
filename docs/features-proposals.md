@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Arbres de coupes — v5.15.1
+
+- Coupe de France ajoutée aux compétitions suivies, avec son arbre dans « Mes matchs »
+- les tours de coupe sont lus depuis le `season.slug` ESPN de chaque match
+- l'arbre européen se complète aussi depuis les matchs de saison, sans attendre la source dédiée
+Garde-fous CDF/UCL bracket.
+
 ## Données, voyage, finitions — v5.15.0
 
 - archive CSV/Markdown exportable, leaders buteurs/passeurs, blessures et suspensions dans la fiche

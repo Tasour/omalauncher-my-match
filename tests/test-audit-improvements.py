@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.15.0' in text
+          "S.apropos" in text and 'copy("my-match v5.15.1' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,12 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Cup brackets: national cups and knockout fallback.
+    check("CDF bracket data", '"fra.coupe_de_france"' in text and "stage: (.season.slug" in text and text.count("stage: (.season.slug") >= 5)
+    check("CDF bracket view", "let cupStages=" in text and "for st in cupStages" in text and "S.bracket" in text)
+    check("UCL bracket fallback", "knockAll=values(groupBy(flatten([knock.out??[],all.filter" in text and 'g.stage!="league-phase"' in text)
+    check("CDF round labels", '"round-of-64":"32es de finale"' in text and '"round-of-32":"16es de finale"' in text)
 
     # Lot 8: data.
     check("DN25 archive export", "let archiveTxt=" in text and "copy(archiveTxt)" in text and "S.exportT" in text)

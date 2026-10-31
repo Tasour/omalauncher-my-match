@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.15.0";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.15.1";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -76,7 +76,7 @@ let gamesScript="""    set -o pipefail
       tag=$(tagof "$lg")
       r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 15 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
       printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
-      printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec), ho: (($o.moneyline.home.open.odds // null) | dec), do: (($o.moneyline.draw.open.odds // null) | dec), ao: (($o.moneyline.away.open.odds // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+      printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec), ho: (($o.moneyline.home.open.odds // null) | dec), do: (($o.moneyline.draw.open.odds // null) | dec), ao: (($o.moneyline.away.open.odds // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, stage: (.season.slug // ""), squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
     # Cache mensuel range par signature de suivi : les mois passes sont immuables.
     SIG=$(printf '%s|%s|%s|%s' "$WANT" "$WANTID" "$WANTNOTID" "$WANTLG" | sha256sum | cut -d' ' -f1)
@@ -384,7 +384,7 @@ let seasonScript="""    set -o pipefail
       tag=$(tagof "$lg")
       r=$(curl --proto '=https' --max-redirs 0 --max-filesize 2097152 --connect-timeout 5 --retry 1 --retry-delay 0 --retry-max-time 20 --retry-connrefused -fsm 10 --compressed "https://site.api.espn.com/apis/site/v2/sports/soccer/$lg/scoreboard?dates=$d" 2>/dev/null) || return 1
       printf '%s' "$r" | jq -e 'type == "object" and (has("events") or has("leagues"))' >/dev/null 2>&1 || return 1
-      printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec), ho: (($o.moneyline.home.open.odds // null) | dec), do: (($o.moneyline.draw.open.odds // null) | dec), ao: (($o.moneyline.away.open.odds // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
+      printf '%s' "$r" | jq -c --arg lg "$lg" --arg tag "$tag" --arg want "$WANT" --arg wantid "$WANTID" --arg wantnotid "$WANTNOTID" '($want | split(",") | map(select(. != ""))) as $wl | ($wantid | split(",") | map(select(. != ""))) as $wlid | ($wantnotid | split(",") | map(select(. != ""))) as $wln | def dec: ((tostring) | if startswith("+") then .[1:] else . end | (try tonumber catch null)) as $n | if $n == null or $n == 0 then null elif $n > 0 then 1 + ($n / 100) else 1 + (100 / (0 - $n)) end; def O: ([.odds[]? | select(. != null and .moneyline != null)][0]) as $o | if $o == null then null else {h: (($o.moneyline.home.close.odds // $o.moneyline.home.open.odds // $o.homeTeamOdds.moneyLine // null) | dec), d: (($o.moneyline.draw.close.odds // $o.moneyline.draw.open.odds // $o.drawOdds.moneyLine // null) | dec), a: (($o.moneyline.away.close.odds // $o.moneyline.away.open.odds // $o.awayTeamOdds.moneyLine // null) | dec), ho: (($o.moneyline.home.open.odds // null) | dec), do: (($o.moneyline.draw.open.odds // null) | dec), ao: (($o.moneyline.away.open.odds // null) | dec)} end; def T: {abbr: .team.abbreviation, name: (if .team.abbreviation == "LYON" then "Olympique Lyonnais" else .team.shortDisplayName end), score, winner: (.winner // false), logo: (((.team.logo // "") | sub(".*/teamlogos/"; "")) | if test("^(soccer|countries)/500/[a-z0-9]+[.]png$") then gsub("/"; "-") else "" end)}; .events[]? | .competitions[0] as $c | {ids: [$c.competitors[]? | .team.id | tostring], abbrs: [$c.competitors[]? | .team.abbreviation]} as $duo | select((($wlid | length) > 0 and ([$duo.ids[] | IN($wlid[])] | any)) or (($wln | length) > 0 and ([$duo.abbrs[] | IN($wln[])] | any)) or ((($wlid | length) == 0 and ($wln | length) == 0) and ([$duo.abbrs[] | IN($wl[])] | any))) | {id: ($lg + ":" + .id), league: $lg, tag: $tag, at: (.date[0:16] + ":00Z" | fromdateiso8601), state: $c.status.type.state, detail: $c.status.type.shortDetail, stage: (.season.slug // ""), squads: ([$c.competitors[] | .team.abbreviation]), tids: $duo.ids, odds: ($c | O), teams: [$c.competitors[] | {side: .homeAway} + T], home: ([$c.competitors[] | select(.homeAway == "home")][0] | T), away: ([$c.competitors[] | select(.homeAway == "away")][0] | T)}'
     }
     n=0
     : > "$tmp/ok.log"
@@ -641,7 +641,7 @@ source teamsDb=cmd("""
     }
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
-    LEAGUES="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly"
+    LEAGUES="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly"
     tagof() {
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
@@ -763,8 +763,8 @@ source extra=cmd("""
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     NOW=$(date +%s)
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
     done
@@ -812,7 +812,7 @@ source extra=cmd("""
       n=$((n + 1))
       if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
     }
-    RR="fra.1 fra.2 eng.1 esp.1 ger.1 ita.1"
+    RR="fra.1 fra.2 fra.coupe_de_france eng.1 esp.1 ger.1 ita.1"
     MONTHS5=$(for off in 0 30 60 90 120; do date -d "$off day ago" +%Y%m; done | sort -u)
     MONTHS2=$(for off in 0 30; do date -d "$off day ago" +%Y%m; done | sort -u)
     # Mois passes deja en cache : immuables, on ne refetch que le courant.
@@ -1141,8 +1141,8 @@ source nextup=cmd("""
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
     done
@@ -1261,8 +1261,8 @@ source histfull=cmd("""
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions"
-    RR="fra.1 fra.2 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
+    RR="fra.1 fra.2 fra.coupe_de_france eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $RR " in *" $l "*) ;; *) RR="$RR $l";; esac;; esac
     done
@@ -1797,7 +1797,7 @@ let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[])
 let modeTabs=[{id:"MINE",short:S.tabMine},{id:"RIV",short:S.tabRiv},{id:"TOP5",short:S.tabTop5},{id:"EUROPE",short:S.tabEurope}]
 let topTabs=[{id:"eng.1",short:"ENG"},{id:"esp.1",short:"ESP"},{id:"ger.1",short:"GER"},{id:"ita.1",short:"ITA"},{id:"fra.1",short:"FRA"}]
 let topLeagues=["eng.1","esp.1","ger.1","ita.1","fra.1"]
-let supportedLeagues=["fra.1","fra.2","ned.1","por.1","tur.1","bel.1","sco.1","gre.1","sui.1","aut.1","den.1","nor.1","swe.1","rou.1","cze.1","isr.1","cyp.1","eng.1","esp.1","ger.1","ita.1","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","fifa.worldq.uefa","fifa.friendly"]
+let supportedLeagues=["fra.1","fra.2","ned.1","por.1","tur.1","bel.1","sco.1","gre.1","sui.1","aut.1","den.1","nor.1","swe.1","rou.1","cze.1","isr.1","cyp.1","eng.1","esp.1","ger.1","ita.1","fra.coupe_de_france","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","fifa.worldq.uefa","fifa.friendly"]
 let extraAll=extra.out??[]
 let nextAll=nextup.out??[]
 let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
@@ -1821,10 +1821,12 @@ let euroMatches=extraAll.filter(g=>g.league==euroLg).sortBy(g=>g.at).reverse()
 let euroNext=nextNew.filter(g=>g.league==euroLg).sortBy(g=>g.at).take(6)
 let euroList=flatten([euroNext.take(4),euroMatches.take(8)])
 let euroTables=tables.filter(u=>(u.league??"")==euroLg)
-let knockAll=knock.out??[]
+let knockAll=values(groupBy(flatten([knock.out??[],all.filter(g=>g.league==euroLg&&g.stage!=null&&g.stage!=""&&g.stage!="league-phase")]),g=>g.id)).map(a=>first(a))
 let knockLg=knockAll.filter(g=>g.league==euroLg).sortBy(g=>g.at)
-let knockRounds=["knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
-let knockLabels=lang=="fr"?{"knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
+let knockRounds=["round-of-64","round-of-32","knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
+let cupSource=selTeam==null?allMine:baseF
+let cupStages=unique(cupSource.filter(g=>g.stage!=null&&g.stage!=""&&g.stage!="league-phase").map(g=>g.stage))
+let knockLabels=lang=="fr"?{"round-of-64":"32es de finale","round-of-32":"16es de finale","knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"round-of-64":"Round of 64","round-of-32":"Round of 32","knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
 let curLg=view=="TOP5"?(topLg=="ALL"?null:topLg):(selTeam==null||selTeam.kind=="n"?null:selTeam.league)
 let histMap=histfull.out??{}
 let histLg=curLg==null?[]:(get(histMap,curLg,[])??[])
@@ -2588,7 +2590,7 @@ Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
 Button{text:S.exportT;weight:1;color:soft;onTap:copy(archiveTxt)}
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.15.0\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.15.1\n"+healthLine);diagDone=true}}
 }
 Row{gap:6
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
@@ -2617,7 +2619,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.15.0 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.15.1 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }
@@ -2634,6 +2636,15 @@ Text{text:S.noMatchDay+" · "+S.clearFilter;style:small;color:pop;align:center;m
 if count(upShow)>0{
 Text{text:S.upcomingHdr;style:label;color:pop}
 for g in upShow.take(8) key g.id{LiveGame{g:g}}
+Rule{}
+}
+if count(cupStages)>0{
+Text{text:S.bracket;style:label;color:pop}
+for st in cupStages key st{
+let sm=cupSource.filter(g=>(g.stage??"")==st).sortBy(g=>g.at)
+Text{text:"${get(knockLabels,st,st)} · ${count(sm)}";style:small;color:soft}
+for g in sm key g.id{LiveGame{g:g}}
+}
 Rule{}
 }
 if showDetail&&heroH2HObj!=null{
