@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.15.1";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.15.2";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -26,13 +26,17 @@ let gamesScript="""    set -o pipefail
     LG=$(printf '%s' "$WANTLG" | tr ',' ' ')
     if [ -z "$LG" ]; then
       # fallback : etat persiste ancien sans league, on garde le comportement complet
-      CLUBS="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
+      CLUBS="fra.1 fra.2 fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
       NATS="uefa.nations fifa.worldq.uefa fifa.friendly"
     else
       NONNAT=$(printf '%s\n' $LG | grep -Ev '^(uefa\.nations|fifa\.(worldq\.uefa|friendly))$' || true)
       if [ -n "$NONNAT" ]; then
         CLUBS=$(printf '%s\n' $NONNAT uefa.champions uefa.europa uefa.europa.conf | awk 'NF && !seen[$0]++' | tr '\n' ' ')
         case " $NONNAT " in *" fra.1 "*|*" fra.2 "*) CLUBS="$CLUBS fra.coupe_de_france";; esac
+        case " $NONNAT " in *" eng.1 "*) CLUBS="$CLUBS eng.fa eng.league_cup";; esac
+        case " $NONNAT " in *" esp.1 "*) CLUBS="$CLUBS esp.copa_del_rey";; esac
+        case " $NONNAT " in *" ger.1 "*) CLUBS="$CLUBS ger.dfb_pokal";; esac
+        case " $NONNAT " in *" ita.1 "*) CLUBS="$CLUBS ita.coppa_italia";; esac
       else
         CLUBS=""
       fi
@@ -46,6 +50,11 @@ let gamesScript="""    set -o pipefail
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "ned.1" ]; then printf 'NED'
       elif [ "$1" = "por.1" ]; then printf 'POR'
       elif [ "$1" = "tur.1" ]; then printf 'TUR'
@@ -334,13 +343,17 @@ let seasonScript="""    set -o pipefail
     LG=$(printf '%s' "$WANTLG" | tr ',' ' ')
     if [ -z "$LG" ]; then
       # fallback : etat persiste ancien sans league, on garde le comportement complet
-      CLUBS="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
+      CLUBS="fra.1 fra.2 fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf eng.1 esp.1 ger.1 ita.1 uefa.champions"
       NATS="uefa.nations fifa.worldq.uefa fifa.friendly"
     else
       NONNAT=$(printf '%s\n' $LG | grep -Ev '^(uefa\.nations|fifa\.(worldq\.uefa|friendly))$' || true)
       if [ -n "$NONNAT" ]; then
         CLUBS=$(printf '%s\n' $NONNAT uefa.champions uefa.europa uefa.europa.conf | awk 'NF && !seen[$0]++' | tr '\n' ' ')
         case " $NONNAT " in *" fra.1 "*|*" fra.2 "*) CLUBS="$CLUBS fra.coupe_de_france";; esac
+        case " $NONNAT " in *" eng.1 "*) CLUBS="$CLUBS eng.fa eng.league_cup";; esac
+        case " $NONNAT " in *" esp.1 "*) CLUBS="$CLUBS esp.copa_del_rey";; esac
+        case " $NONNAT " in *" ger.1 "*) CLUBS="$CLUBS ger.dfb_pokal";; esac
+        case " $NONNAT " in *" ita.1 "*) CLUBS="$CLUBS ita.coppa_italia";; esac
       else
         CLUBS=""
       fi
@@ -354,6 +367,11 @@ let seasonScript="""    set -o pipefail
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "ned.1" ]; then printf 'NED'
       elif [ "$1" = "por.1" ]; then printf 'POR'
       elif [ "$1" = "tur.1" ]; then printf 'TUR'
@@ -545,6 +563,11 @@ let standingsScript="""    set -o pipefail
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "ned.1" ]; then printf 'NED'
       elif [ "$1" = "por.1" ]; then printf 'POR'
       elif [ "$1" = "tur.1" ]; then printf 'TUR'
@@ -641,11 +664,16 @@ source teamsDb=cmd("""
     }
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
-    LEAGUES="fra.1 fra.2 fra.coupe_de_france ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly"
+    LEAGUES="fra.1 fra.2 fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly"
     tagof() {
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "ned.1" ]; then printf 'NED'
       elif [ "$1" = "por.1" ]; then printf 'POR'
       elif [ "$1" = "tur.1" ]; then printf 'TUR'
@@ -763,8 +791,8 @@ source extra=cmd("""
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     NOW=$(date +%s)
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
     done
@@ -772,6 +800,11 @@ source extra=cmd("""
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
       elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
       elif [ "$1" = "uefa.champions" ]; then printf 'C1'
@@ -812,7 +845,7 @@ source extra=cmd("""
       n=$((n + 1))
       if [ "$n" -ge 5 ]; then wait; n=0; sleep 1; fi
     }
-    RR="fra.1 fra.2 fra.coupe_de_france eng.1 esp.1 ger.1 ita.1"
+    RR="fra.1 fra.2 fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia eng.1 esp.1 ger.1 ita.1"
     MONTHS5=$(for off in 0 30 60 90 120; do date -d "$off day ago" +%Y%m; done | sort -u)
     MONTHS2=$(for off in 0 30; do date -d "$off day ago" +%Y%m; done | sort -u)
     # Mois passes deja en cache : immuables, on ne refetch que le courant.
@@ -961,6 +994,11 @@ let liveScript="""
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "ned.1" ]; then printf 'NED'
       elif [ "$1" = "por.1" ]; then printf 'POR'
       elif [ "$1" = "tur.1" ]; then printf 'TUR'
@@ -1141,8 +1179,8 @@ source nextup=cmd("""
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
-    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia"
+    LEAGUES="fra.1 fra.2 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $LEAGUES " in *" $l "*) ;; *) LEAGUES="$LEAGUES $l";; esac;; esac
     done
@@ -1150,6 +1188,11 @@ source nextup=cmd("""
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
       elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
       elif [ "$1" = "uefa.champions" ]; then printf 'C1'
@@ -1261,8 +1304,8 @@ source histfull=cmd("""
     trap cleanup EXIT INT TERM
     j=$(od -An -N1 -tu1 /dev/urandom 2>/dev/null | tr -d ' '); sleep $(( ${j:-0} % 3 ))
     WANTLG="""+sh(favLg)+""";
-    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france"
-    RR="fra.1 fra.2 fra.coupe_de_france eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
+    ALLLG="fra.1 fra.2 ned.1 por.1 tur.1 bel.1 sco.1 gre.1 sui.1 aut.1 den.1 nor.1 swe.1 rou.1 cze.1 isr.1 cyp.1 uefa.europa uefa.europa.conf uefa.nations fifa.worldq.uefa fifa.friendly eng.1 esp.1 ger.1 ita.1 uefa.champions fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia"
+    RR="fra.1 fra.2 fra.coupe_de_france eng.fa eng.league_cup esp.copa_del_rey ger.dfb_pokal ita.coppa_italia eng.1 esp.1 ger.1 ita.1 uefa.champions uefa.europa uefa.europa.conf"
     for l in $(printf '%s' "$WANTLG" | tr ',' ' '); do
       case " $ALLLG " in *" $l "*) case " $RR " in *" $l "*) ;; *) RR="$RR $l";; esac;; esac
     done
@@ -1270,6 +1313,11 @@ source histfull=cmd("""
       if [ "$1" = "fra.1" ]; then printf 'L1'
       elif [ "$1" = "fra.2" ]; then printf 'L2'
       elif [ "$1" = "fra.coupe_de_france" ]; then printf 'CDF'
+      elif [ "$1" = "eng.fa" ]; then printf 'FA'
+      elif [ "$1" = "eng.league_cup" ]; then printf 'LC'
+      elif [ "$1" = "esp.copa_del_rey" ]; then printf 'CDR'
+      elif [ "$1" = "ger.dfb_pokal" ]; then printf 'DFB'
+      elif [ "$1" = "ita.coppa_italia" ]; then printf 'CI' 
       elif [ "$1" = "uefa.europa" ]; then printf 'EUR'
       elif [ "$1" = "uefa.europa.conf" ]; then printf 'CONF'
       elif [ "$1" = "uefa.champions" ]; then printf 'C1'
@@ -1797,7 +1845,7 @@ let myTablesAll=tables.filter(u=>(u.ends??9999999999)+604800>slow&&(u.teams??[])
 let modeTabs=[{id:"MINE",short:S.tabMine},{id:"RIV",short:S.tabRiv},{id:"TOP5",short:S.tabTop5},{id:"EUROPE",short:S.tabEurope}]
 let topTabs=[{id:"eng.1",short:"ENG"},{id:"esp.1",short:"ESP"},{id:"ger.1",short:"GER"},{id:"ita.1",short:"ITA"},{id:"fra.1",short:"FRA"}]
 let topLeagues=["eng.1","esp.1","ger.1","ita.1","fra.1"]
-let supportedLeagues=["fra.1","fra.2","ned.1","por.1","tur.1","bel.1","sco.1","gre.1","sui.1","aut.1","den.1","nor.1","swe.1","rou.1","cze.1","isr.1","cyp.1","eng.1","esp.1","ger.1","ita.1","fra.coupe_de_france","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","fifa.worldq.uefa","fifa.friendly"]
+let supportedLeagues=["fra.1","fra.2","ned.1","por.1","tur.1","bel.1","sco.1","gre.1","sui.1","aut.1","den.1","nor.1","swe.1","rou.1","cze.1","isr.1","cyp.1","eng.1","esp.1","ger.1","ita.1","fra.coupe_de_france","eng.fa","eng.league_cup","esp.copa_del_rey","ger.dfb_pokal","ita.coppa_italia","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","fifa.worldq.uefa","fifa.friendly"]
 let extraAll=extra.out??[]
 let nextAll=nextup.out??[]
 let nextNew=nextAll.filter(h=>!extraAll.any(g=>g.id==h.id))
@@ -1823,10 +1871,10 @@ let euroList=flatten([euroNext.take(4),euroMatches.take(8)])
 let euroTables=tables.filter(u=>(u.league??"")==euroLg)
 let knockAll=values(groupBy(flatten([knock.out??[],all.filter(g=>g.league==euroLg&&g.stage!=null&&g.stage!=""&&g.stage!="league-phase")]),g=>g.id)).map(a=>first(a))
 let knockLg=knockAll.filter(g=>g.league==euroLg).sortBy(g=>g.at)
-let knockRounds=["round-of-64","round-of-32","knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
-let cupSource=selTeam==null?allMine:baseF
+let knockRounds=["qualifying-round","first-round","second-round","third-round","fourth-round","fifth-round","round-of-64","round-of-32","knockout-round-playoffs","round-of-16","quarterfinals","semifinals","final"]
+let cupSource=selTeam==null?allMine:baseRaw
 let cupStages=unique(cupSource.filter(g=>g.stage!=null&&g.stage!=""&&g.stage!="league-phase").map(g=>g.stage))
-let knockLabels=lang=="fr"?{"round-of-64":"32es de finale","round-of-32":"16es de finale","knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"round-of-64":"Round of 64","round-of-32":"Round of 32","knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
+let knockLabels=lang=="fr"?{"qualifying-round":"Tour préliminaire","first-round":"1er tour","second-round":"2e tour","third-round":"3e tour","fourth-round":"4e tour","fifth-round":"5e tour","round-of-64":"32es de finale","round-of-32":"16es de finale","knockout-round-playoffs":"Barrages","round-of-16":"8es de finale","quarterfinals":"Quarts de finale","semifinals":"Demi-finales","final":"Finale"}:{"qualifying-round":"Qualifying round","first-round":"First round","second-round":"Second round","third-round":"Third round","fourth-round":"Fourth round","fifth-round":"Fifth round","round-of-64":"Round of 64","round-of-32":"Round of 32","knockout-round-playoffs":"Play-off round","round-of-16":"Round of 16","quarterfinals":"Quarter-finals","semifinals":"Semi-finals","final":"Final"}
 let curLg=view=="TOP5"?(topLg=="ALL"?null:topLg):(selTeam==null||selTeam.kind=="n"?null:selTeam.league)
 let histMap=histfull.out??{}
 let histLg=curLg==null?[]:(get(histMap,curLg,[])??[])
@@ -2590,7 +2638,7 @@ Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
 Button{text:S.exportT;weight:1;color:soft;onTap:copy(archiveTxt)}
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.15.1\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.15.2\n"+healthLine);diagDone=true}}
 }
 Row{gap:6
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
@@ -2619,7 +2667,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.15.1 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.15.2 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }

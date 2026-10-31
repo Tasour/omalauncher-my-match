@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.15.1' in text
+          "S.apropos" in text and 'copy("my-match v5.15.2' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,12 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # National cups: data, tags and stages.
+    for cup in ("eng.fa", "eng.league_cup", "esp.copa_del_rey", "ger.dfb_pokal", "ita.coppa_italia"):
+        check(f"National cup {cup}", f'"{cup}"' in text)
+    check("National cup tags", 'printf \'FA\'' in text and 'printf \'CDR\'' in text and 'printf \'DFB\'' in text and 'printf \'CI\'' in text)
+    check("National cup stages", '"qualifying-round":"Tour préliminaire"' in text and '"fourth-round":"4e tour"' in text)
 
     # Cup brackets: national cups and knockout fallback.
     check("CDF bracket data", '"fra.coupe_de_france"' in text and "stage: (.season.slug" in text and text.count("stage: (.season.slug") >= 5)

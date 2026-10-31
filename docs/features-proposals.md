@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Coupes nationales — v5.15.2
+
+- FA Cup, Carabao Cup, Copa del Rey, DFB-Pokal et Coppa Italia suivies avec la Coupe de France
+- tours lus depuis `season.slug` et affichés dans « Mes matchs » pour l'équipe choisie
+- libellés de tours (préliminaire → finale) et repli européen depuis les matchs de saison
+Garde-fous coupes nationales.
+
 ## Arbres de coupes — v5.15.1
 
 - Coupe de France ajoutée aux compétitions suivies, avec son arbre dans « Mes matchs »
