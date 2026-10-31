@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Audit avant-match — v5.17.3
+
+- audits UX, accessibilité et data documentés dans `docs/audits/prematch-2026-10-31.md`
+- projection trompeuse remplacée par les points réels
+- leaders vides masqués ; actus filtrées sur les noms complets des deux équipes
+- refonte en onglets/hero compact et corrections de barres zéro planifiées
+
 ## Avant-match — v5.17.2
 
 - actus filtrées sur les deux équipes du match, plus de news PSG sur un Lyon–Angers

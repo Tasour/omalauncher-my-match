@@ -22,7 +22,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 - Audit multi-agents initial : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
 - Audit multi-expert 360° v5.9.8 (28/10/2026) : [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) — 17 expertises, 66 constats, cycle en V, RTM, registre des features et de validation.
 - Mesures brutes : [`measurements/`](measurements/).
-- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.17.2).
+- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.17.3).
 
 ## Audits datés et traçabilité
 

@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.17.2";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.17.3";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1942,7 +1942,8 @@ let previewNextAvg=count(previewNextRanks)==0?"—":fixed(avg(previewNextRanks),
 let previewH2H=heroH2HObj==null?[]:(heroH2HObj.h2h.list??[])
 let previewH2HGoals=sum(previewH2H.map(h=>int(h.hs??0)+int(h.a??0)))
 let heroLineups=(heroH2HObj==null?[]:(heroH2HObj.lineups??[])).filter(l=>count(l.p??[])>0)
-let heroNews=(heroH2HObj==null?[]:(heroH2HObj.news??[])).filter(n=>contains(lower((n.h??"")+" "+(n.d??"")),lower(heroH??""))||contains(lower((n.h??"")+" "+(n.d??"")),lower(heroA??""))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.home.abbr??""))))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.away.abbr??""))))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.home.name??""))))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.away.name??"")))))
+let heroLeaders=(heroH2HObj==null?[]:(heroH2HObj.leaders??[])).filter(g=>count((g.l??[]).filter(x=>(x.n??"")!=""&&(x.v??"")!=""))>0)
+let heroNews=(heroH2HObj==null?[]:(heroH2HObj.news??[])).filter(n=>contains(lower((n.h??"")+" "+(n.d??"")),lower(heroH??""))||contains(lower((n.h??"")+" "+(n.d??"")),lower(heroA??""))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.home.name??""))))||contains(lower((n.h??"")+" "+(n.d??"")),lower((heroMatch==null?"":(heroMatch.away.name??"")))))
 let previewH2HAvg=count(previewH2H)==0?"—":fixed(previewH2HGoals/count(previewH2H),1)
 let previewImportance=heroHomeRow==null||heroAwayRow==null?"—":heroHomeRow.rank<=6&&heroAwayRow.rank<=6?(lang=="fr"?"choc du haut de tableau":"top-table clash"):heroHomeRow.rank<=3||heroAwayRow.rank<=3?(lang=="fr"?"gros morceau":"big test"):(lang=="fr"?"match à prendre":"winnable")
 let previewKeys=flatten([count(previewGames)>=3?[(lang=="fr"?"forme ":"form ")+previewForm]:[],heroH2HObj!=null&&heroH2HObj.h2h!=null?[(lang=="fr"?"H2H ":"H2H ")+heroH2HObj.h2h.w+"V-"+heroH2HObj.h2h.d+"N-"+heroH2HObj.h2h.l+"D"]:[],previewRest!=null?[(lang=="fr"?"repos ":"rest ")+previewRest+(lang=="fr"?" j":" d")]:[],heroHomeRow!=null&&heroAwayRow!=null?["#"+heroHomeRow.rank+" vs #"+heroAwayRow.rank]:[]])
@@ -2696,7 +2697,7 @@ PreviewStat{l:S.ppgT;v:previewPPG+" / "+previewOppPPG}
 Row{gap:6
 PreviewStat{l:S.goalsT;v:previewHomeGF+" / "+previewAwayGF}
 PreviewStat{l:S.cleanT;v:previewHomeClean+" / "+previewAwayClean}
-PreviewStat{l:S.projT;v:previewProjection}
+PreviewStat{l:S.pts;v:(heroHomeRow==null?"—":heroHomeRow.pts)+" / "+(heroAwayRow==null?"—":heroAwayRow.pts)}
 }
 SectionTitle{t:S.statsT;c:pop}
 if count(heroH2HObj.stats??[])>0{
@@ -2740,7 +2741,7 @@ else{for g in previewNext key g.id{LiveGame{g:g;compact:true}}}
 SectionTitle{t:S.lineupsT;c:pop}
 if count(heroLineups)==0{Text{text:S.lineupsWait;style:small;color:soft;maxLines:2}}
 else{for l in heroLineups key l.t{Text{text:l.t+" "+(l.f??"")+" · "+join((l.p??[]).map(p=>p.n)," · ");style:label;color:soft;maxLines:3}}}
-if count(heroH2HObj.leaders??[])>0{Text{text:S.leadersT;style:label;color:pop};for ld in (heroH2HObj.leaders??[]) key ld.t+ld.n{Text{text:ld.t+" · "+(ld.n??"")+": "+join((ld.l??[]).map(x=>x.n+" "+x.v)," · ");style:label;color:soft;maxLines:2}}}
+if count(heroLeaders)>0{Text{text:S.leadersT;style:label;color:pop};for ld in heroLeaders key ld.t+ld.n{Text{text:ld.t+" · "+(ld.n??"")+": "+join((ld.l??[]).filter(x=>(x.n??"")!=""&&(x.v??"")!="").map(x=>x.n+" "+x.v)," · ");style:label;color:soft;maxLines:2}}}
 if count(heroH2HObj.injuries??[])>0{Text{text:S.injuriesT;style:label;color:pop};for it in (heroH2HObj.injuries??[]) key it.t+it.n{Text{text:it.t+" · "+(it.n??"")+(it.s==null?"":" · "+(it.s??""));style:label;color:soft;maxLines:1}}}
 SectionTitle{t:S.newsT;c:pop}
 if count(heroNews)>0{for n in heroNews key n.h{Text{text:n.h;style:label;color:pop;maxLines:2};Text{text:n.d;style:small;color:soft;maxLines:3}}}
@@ -2930,7 +2931,7 @@ Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
 Button{text:S.exportT;weight:1;color:soft;onTap:copy(archiveTxt)}
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.17.2\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.17.3\n"+healthLine);diagDone=true}}
 }
 Row{gap:6
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
@@ -2959,7 +2960,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.17.2 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.17.3 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }
