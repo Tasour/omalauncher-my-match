@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.3
+
+- cartes équipes compactes, sans vide sous les noms
+- libellé de forme exact quand moins de 5 matchs sont disponibles
+- libellés de cotes sur deux lignes dans Infos
+
 ## App avant-match — v5.18.2
 
 - logos 160 px du cache bannière au lieu des 48 px upscalés (flou)
