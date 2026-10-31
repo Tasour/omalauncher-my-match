@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Contexte match — v5.14.8
+
+- rang de l'adversaire `#N` sur chaque ligne (accent si top 5)
+- jours de repos avant le prochain match dans la fiche
+- forme domicile/extérieur séparée dans la fiche
+Garde-fous DN14/HF/DN08.
+
 ## Casual/setup — v5.14.7
 
 - ligne de confiance « ESPN, sans compte, rien n'est envoyé » dans le setup

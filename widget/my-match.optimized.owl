@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.7";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.14.8";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -2026,6 +2026,9 @@ let hmOurs=favAbbrs.any(a=>a==hm.abbr)
 let awOurs=favAbbrs.any(a=>a==aw.abbr)
 let scored=(hm.score??null)!=null&&(aw.score??null)!=null
 let res=final&&(hmOurs!=awOurs)&&scored?(hmOurs?(hm.winner?cW:aw.winner?cL:cN):(aw.winner?cW:hm.winner?cL:cN)):""
+let oppAbbr=hmOurs?aw.abbr:awOurs?hm.abbr:null
+let oppTeam=oppAbbr==null?null:first(flatten(tables.filter(u=>(u.league??"")==g.league).map(u=>u.teams??[])).filter(tm=>tm.abbr==oppAbbr))
+let oppRank=oppTeam==null?null:oppTeam.rank
 let hide=spoiler&&(g.state=="in"||g.state=="post")&&!revealed.any(x=>x==g.id)
 let slot=fz
 let cpc=fz*8/13
@@ -2082,6 +2085,7 @@ Text{text:hide?"–":(aw.score??"?");fontSize:fz;font:mono;width:max(18,len((aw.
 }
 Text{text:awOurs?(myTeams.find(t=>t.abbr==aw.abbr).short??aw.abbr):wide?aw.name:aw.abbr;fontSize:fz;weight:1;maxLines:1;align:end;bold:awOurs;color:awOurs?pop:final&&!hide&&hm.winner?soft:foreground}
 Crest{logo:aw.logo;px:16;name:aw.name??aw.abbr}
+if oppRank!=null{Text{text:"#"+oppRank;style:label;color:oppRank<=5?pop:soft;width:24;align:end;maxLines:1}}
 Text{text:extraTag==""?rdt2:extraTag+" · "+rdt2;fontSize:11;color:soft;width:max(30,fz*2);align:end;maxLines:1}
 }
 }
@@ -2548,7 +2552,7 @@ Rule{}
 Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.7\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.14.8\n"+healthLine);diagDone=true}}
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
 }
 if diagDone{Text{text:S.diagDone;style:label;color:"#22c55e";align:center}}
@@ -2561,7 +2565,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.14.7 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.14.8 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }
@@ -2583,10 +2587,26 @@ Rule{}
 if showDetail&&heroH2HObj!=null{
 Column{
 gap:4
+let homeAbbr=heroMatch==null||heroMatch.home==null?"":heroMatch.home.abbr
+let awayAbbr=heroMatch==null||heroMatch.away==null?"":heroMatch.away.abbr
+let myH=myTeams.find(t=>t.abbr==homeAbbr)??myTeams.find(t=>t.abbr==awayAbbr)
+let myAbbr=myH==null?"":myH.abbr
+let lastM=last(allMine.filter(g=>g.state=="post"&&(g.home.abbr==myAbbr||g.away.abbr==myAbbr)).sortBy(g=>g.at))
+let hRest=lastM==null||heroMatch==null?null:round((heroMatch.at-lastM.at)/86400)
+let hGames=allMine.filter(g=>g.state=="post"&&g.home.abbr==myAbbr).sortBy(g=>-g.at).take(5)
+let aGames=allMine.filter(g=>g.state=="post"&&g.away.abbr==myAbbr).sortBy(g=>-g.at).take(5)
+let hForm=join(hGames.map(g=>g.home.winner?"V":g.away.winner?"D":"N")," ")
+let aForm=join(aGames.map(g=>g.away.winner?"V":g.home.winner?"D":"N")," ")
 Row{gap:6
 Text{text:S.detail;style:title;weight:1}
 Text{text:heroH2HObj.ts==null?"":(lang=="fr"?"maj ":"updated ")+fmtAgo(heroH2HObj.ts,now);style:label;color:soft;maxLines:1}
 Button{text:S.close;color:soft;onTap:showDetail=false}
+}
+if hRest!=null{
+Text{text:(lang=="fr"?"repos · ":"rest · ")+hRest+(lang=="fr"?" j":" d");style:label;color:soft;maxLines:1}
+}
+if hForm!=""||aForm!=""{
+Text{text:(lang=="fr"?"dom. ":"home ")+hForm+(lang=="fr"?" · ext. ":" · away ")+aForm;style:label;color:soft;maxLines:1}
 }
 if (heroH2HObj.info??{}).venue!=null{
 Text{text:(lang=="fr"?"stade · ":"venue · ")+((heroH2HObj.info??{}).venue??"")+((heroH2HObj.info??{}).city==null?"":" · "+((heroH2HObj.info??{}).city??""));style:label;color:soft;maxLines:1}
