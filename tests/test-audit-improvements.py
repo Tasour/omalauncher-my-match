@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.8' in text
+          "S.apropos" in text and 'copy("my-match v5.14.9' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,11 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Lot 7: personalisation.
+    check("HF01 per-club mute", "state muteTeams=[] persist" in text and "S.alertsByClub" in text and text.count("!muteTeams.any") >= 7)
+    check("N15 explicit rivals", "state rivalsCsv=" in text and "let rivalsList=split" in text and "count(rivalsList)>0" in text)
+    check("HF25 team colours", "state teamColors=true persist" in text and "teamColors?hsl" in text)
 
     # Lot 6: match context.
     check("DN14 opponent rank", "let oppRank=" in text and '"#"+oppRank' in text and "oppRank<=5?pop" in text)

@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Personnalisation — v5.14.9
+
+- rivaux explicites par codes séparés par des virgules, prioritaires sur les concurrents de ligue
+- coupure des alertes club par club (rappels, buts, cartons, HT/FT)
+- couleurs d'équipe activables/désactivables, preset couleur conservé par club
+Garde-fous HF01/N15/HF25.
+
 ## Contexte match — v5.14.8
 
 - rang de l'adversaire `#N` sur chaque ligne (accent si top 5)

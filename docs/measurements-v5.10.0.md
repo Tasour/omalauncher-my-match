@@ -1,6 +1,6 @@
-# Mesures v5.14.8 — plan reproductible et état des preuves
+# Mesures v5.14.9 — plan reproductible et état des preuves
 
-> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; widget publié en **v5.14.8** (rang adversaire, repos, forme dom/ext).
+> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; widget publié en **v5.14.9** (rivaux explicites, alertes par club, couleurs).
 
 Audit **I33 / ENERGY-03**. Widget `my-match` **v5.10.0**.
 Rédigé le **2026-10-30**. Références : `docs/measurements-2026-10-25.md`
