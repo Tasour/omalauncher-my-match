@@ -68,9 +68,8 @@ def main():
     check("I04 showTables persisted", bool(re.search(r"state showTables=(?:true|false)\s+persist", text)))
 
     # I05 - the tile list is bounded, the full screen keeps everything.
-    check("I05 tile bounded",
-          "tileRows=compactMode?5" in text
-          and "let upTile=count(upShow)<=tileRows?upShow:upShow.take(tileRows)" in text
+    check("I05 tile compact",
+          "upTile=compactMode||(matchdayMode&&matchday)?upShow.sortBy(g=>g.at).take(5):upShow.sortBy(g=>g.at)" in text
           and "for g in upTile key g.id" in text
           and "for g in upShow key g.id" not in text)
     check("I05 hidden count shown", '" +"+(count(upShow)-count(upTile))' in text)
@@ -183,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.3' in text
+          "S.apropos" in text and 'copy("my-match v5.14.4' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -227,7 +226,7 @@ def main():
 
     # F06-F10: display controls.
     check("F06 matchday mode", "state matchdayMode=false" in text and "matchdayMode&&matchday" in text and "S.matchday" in text)
-    check("F07 compact mode", "state compactMode=false" in text and "compactMode?5" in text and "S.compact" in text)
+    check("F07 compact mode", "state compactMode=false" in text and "compactMode||(matchdayMode&&matchday)?upShow.sortBy(g=>g.at).take(5)" in text and "S.compact" in text)
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
@@ -241,15 +240,16 @@ def main():
           and "{compactMode=false;matchdayMode=false}" in text
           and "(compactMode?S.compact:S.matchday)" in text)
 
-    check("tile balanced",
-          "tileRows=compactMode?5" in text and "?12:" in text
+    check("tile all upcoming",
+          "upTile=compactMode||(matchdayMode&&matchday)?upShow.sortBy(g=>g.at).take(5):upShow.sortBy(g=>g.at)" in text
           and "take(5).sortBy(g=>g.at)" in text
-          and 'S.recent+(count(pastA)>count(pastTake)' in text)
+          and 'S.recent+(count(pastA)>count(pastTake)' in text
+          and "tileRows" not in text)
 
-    check("tile fixtures before results",
-          "S.recent" in text
+    check("tile chronological",
+          text.find("for g in pastTake key g.id") != -1
           and text.find("for g in upTile key g.id") != -1
-          and text.find("for g in upTile key g.id") < text.find("for g in pastTake key g.id"))
+          and text.find("for g in pastTake key g.id") < text.find("for g in upTile key g.id"))
 
     check("fixtures block under hero",
           "for g in upShow.take(8)" in text and "S.upcomingHdr" in text)
@@ -271,7 +271,7 @@ def main():
     check("CU18 plain status", 'fail:"Scores peut-être en retard"' in text and 'sourceErr:"Source indisponible"' in text)
     check("CU23 day filter", 'state daySel=""' in text and "key c.k" in text and "daySel==c.k" in text and '==daySel)' in text)
     check("AT19 fiche freshness", "fmtAgo(heroH2HObj.ts,now)" in text)
-    check("HF08 tile live chip", "let liveBadge=" in text and "S.next+\" \"+fmtTime(heroAt" in text and 'if liveBadge!=""' in text)
+    check("HF08 tile live chip", "let liveBadge=" in text and '"● "+S.liveWord' in text and 'if liveBadge!=""' in text and "S.next+" not in text)
 
     # Ergonomics: settings is a dedicated view with sections and a compact header.
     check("ergonomic settings",
