@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match dédiée — v5.18.0
+
+- nouvel app `widget/prematch.owl`, ouverte par la bannière (`owl:prematch.owl`)
+- layout complet avec hero VS coloré, onglets Aperçu / Stats / Infos
+- tendances, forme, contexte, classement, H2H, cotes, compos, actus et voyage
+- données lues dans les caches ESPN déjà produits par le widget principal
+
 ## Hiérarchie avant-match — v5.17.4
 
 - les tendances passent avant le bloc « À retenir », conformément à l'audit UX

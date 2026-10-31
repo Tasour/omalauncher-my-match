@@ -1,0 +1,215 @@
+app "Avant-match" {
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.0"; license: "MIT"; category: "sport"; owl: 16 }
+  title: "Avant-match"
+  icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
+  state tab = "overview"
+
+  source now = clock every 15s
+  source cur = file("~/.cache/espn-odds/current.json") json
+  source games = file("~/.cache/espn-games.json") json
+  source extra = file("~/.cache/espn-extra.json") json
+  source hist = file("~/.cache/espn-history.json") json
+  source nextup = file("~/.cache/espn-nextup.json") json
+  source tables = file("~/.cache/espn-standings.json") json
+
+  let all = flatten([games ?? [], extra ?? []])
+  let hero = first(all.filter(g => g.id == (cur == null ? "" : (cur.id ?? "")))) ?? first((extra ?? []).filter(g => g.state == "pre")) ?? first(all)
+  let h = hero == null ? {} : (hero.home ?? {})
+  let a = hero == null ? {} : (hero.away ?? {})
+  let hAbbr = h.abbr ?? ""
+  let aAbbr = a.abbr ?? ""
+  let hName = h.name ?? hAbbr
+  let aName = a.name ?? aAbbr
+  let hLogo = h.logo ?? ""
+  let aLogo = a.logo ?? ""
+  let league = hero == null ? "" : (hero.league ?? "")
+  let hColor = hsl(hash(hAbbr) * 360, 0.65, 0.55)
+  let aColor = hsl(hash(aAbbr) * 360, 0.65, 0.55)
+  let hText = mix(hColor, foreground, 0.3)
+  let aText = mix(aColor, foreground, 0.3)
+  let info = cur == null ? {} : (cur.info ?? {})
+  let odds = cur != null && cur.odds != null ? cur.odds : (hero == null ? null : hero.odds)
+  let pool = flatten([extra ?? [], get(hist ?? {}, league, [])])
+  let hGames = pool.filter(g => g.state == "post" && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => -g.at).take(10)
+  let aGames = pool.filter(g => g.state == "post" && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => -g.at).take(10)
+  let res = games => games.map(g => (g.home.abbr ?? "") == hAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
+  let hRes = hGames.map(g => (g.home.abbr ?? "") == hAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
+  let aRes = aGames.map(g => (g.home.abbr ?? "") == aAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
+  let hForm = join(reverse(hRes.take(5)), " ")
+  let aForm = join(reverse(aRes.take(5)), " ")
+  let hPts = sum(hRes.take(5).map(r => r == "V" ? 3 : r == "N" ? 1 : 0))
+  let aPts = sum(aRes.take(5).map(r => r == "V" ? 3 : r == "N" ? 1 : 0))
+  let hGF = sum(hGames.map(g => int((g.home.abbr ?? "") == hAbbr ? (g.home.score ?? 0) : (g.away.score ?? 0))))
+  let aGF = sum(aGames.map(g => int((g.home.abbr ?? "") == aAbbr ? (g.home.score ?? 0) : (g.away.score ?? 0))))
+  let hGA = sum(hGames.map(g => int((g.home.abbr ?? "") == hAbbr ? (g.away.score ?? 0) : (g.home.score ?? 0))))
+  let aGA = sum(aGames.map(g => int((g.home.abbr ?? "") == aAbbr ? (g.away.score ?? 0) : (g.home.score ?? 0))))
+  let hClean = count(hGames.filter(g => int((g.home.abbr ?? "") == hAbbr ? (g.away.score ?? 0) : (g.home.score ?? 0)) == 0))
+  let aClean = count(aGames.filter(g => int((g.home.abbr ?? "") == aAbbr ? (g.away.score ?? 0) : (g.home.score ?? 0)) == 0))
+  let hBtts = count(hGames.filter(g => int(g.home.score ?? 0) > 0 && int(g.away.score ?? 0) > 0))
+  let aBtts = count(aGames.filter(g => int(g.home.score ?? 0) > 0 && int(g.away.score ?? 0) > 0))
+  let hOver = count(hGames.filter(g => int(g.home.score ?? 0) + int(g.away.score ?? 0) > 2))
+  let aOver = count(aGames.filter(g => int(g.home.score ?? 0) + int(g.away.score ?? 0) > 2))
+  let tb = first((tables ?? []).filter(u => (u.league ?? "") == league))
+  let hRow = tb == null ? null : first((tb.teams ?? []).filter(t => t.abbr == hAbbr))
+  let aRow = tb == null ? null : first((tb.teams ?? []).filter(t => t.abbr == aAbbr))
+  let hPPG = hRow == null || (hRow.played ?? 0) == 0 ? "—" : fixed((hRow.pts ?? 0) / (hRow.played ?? 1), 2)
+  let aPPG = aRow == null || (aRow.played ?? 0) == 0 ? "—" : fixed((aRow.pts ?? 0) / (aRow.played ?? 1), 2)
+  let h2h = cur == null ? null : (cur.h2h ?? null)
+  let h2hList = h2h == null ? [] : (h2h.list ?? [])
+  let h2hGoals = sum(h2hList.map(x => int(x.hs ?? 0) + int(x.a ?? 0)))
+  let h2hAvg = count(h2hList) == 0 ? "—" : fixed(h2hGoals / count(h2hList), 1)
+  let news = (cur == null ? [] : (cur.news ?? [])).filter(n => contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(hName)) || contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(aName)))
+  let lineups = (cur == null ? [] : (cur.lineups ?? [])).filter(l => count(l.p ?? []) > 0)
+  let leaders = (cur == null ? [] : (cur.leaders ?? [])).filter(g => count((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "")) > 0)
+  let injuries = cur == null ? [] : (cur.injuries ?? [])
+  let noVig = odds == null || odds.h == null || odds.d == null || odds.a == null ? null : { h: round(100 / odds.h / (1 / odds.h + 1 / odds.d + 1 / odds.a)), d: round(100 / odds.d / (1 / odds.h + 1 / odds.d + 1 / odds.a)), a: round(100 / odds.a / (1 / odds.h + 1 / odds.d + 1 / odds.a)) }
+  let future = flatten([extra ?? [], nextup ?? []])
+  let hNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && (g.league ?? "") == league && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => g.at).take(3)
+  let aNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && (g.league ?? "") == league && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => g.at).take(3)
+  let hNextRank = count(hNext) == 0 ? "—" : fixed(avg(hNext.map(g => first(flatten((tables ?? []).map(u => u.teams ?? [])).filter(t => t.abbr == ((g.home.abbr ?? "") == hAbbr ? (g.away.abbr ?? "") : (g.home.abbr ?? "")))).filter(r => r != null).map(r => r.rank).filter(r => r != null))), 0)
+  let aNextRank = count(aNext) == 0 ? "—" : fixed(avg(aNext.map(g => first(flatten((tables ?? []).map(u => u.teams ?? [])).filter(t => t.abbr == ((g.home.abbr ?? "") == aAbbr ? (g.away.abbr ?? "") : (g.home.abbr ?? "")))).filter(r => r != null).map(r => r.rank).filter(r => r != null))), 0)
+  let verdict = hPts > aPts ? hName : aPts > hPts ? aName : ""
+  let verdictColor = hPts > aPts ? hText : aPts > hPts ? aText : muted
+
+  component Section(t, c = accent) {
+    Row { gap: 8; align: center; padding: [6, 2]; radius: 6; background: alpha(c, 0.07) Box { width: 4; height: 20; radius: 2; background: c } Text { text: t; style: title; bold: true; color: c; maxLines: 1 } }
+  }
+  component Badge(logo, name, color, textColor) {
+    Column { align: center; gap: 3
+      Box { size: 64; radius: 10; background: alpha(color, 0.15); border: 1; borderColor: alpha(color, 0.5) Image { src: logo == "" ? "" : "~/.cache/espn-logos/soccer/${logo}"; size: 52; fit: contain; label: name } }
+      Text { text: name; bold: true; fontSize: 14; color: textColor; align: center; maxLines: 2 }
+    }
+  }
+  component Chips(form) {
+    let parts = split(form, " ")
+    Row { gap: 3
+      if form == "" { Text { text: "—"; style: small; color: muted } }
+      for i in range(count(parts)) key i { Box { size: 22; radius: 5; background: parts[i] == "V" ? "#22c55e" : parts[i] == "D" ? "#ef4444" : "#f59e0b" Text { text: parts[i]; align: center; fontSize: 11; bold: true; color: background } } }
+    }
+  }
+  component Duel(label, hv, av, hc, ac) {
+    Column { gap: 3
+      Row { gap: 6; align: center
+        Text { text: str(hv); color: mix(hc, foreground, 0.3); bold: true; width: 86; align: end; maxLines: 1 }
+        Text { text: label; style: small; color: muted; weight: 1; align: center; maxLines: 1 }
+        Text { text: str(av); color: mix(ac, foreground, 0.3); bold: true; width: 86; maxLines: 1 }
+      }
+      Row { gap: 2; height: 7
+        Box { weight: max(hv, 0.1); height: 7; radius: 3.5; background: alpha(hc, 0.85) }
+        Box { weight: max(av, 0.1); height: 7; radius: 3.5; background: alpha(ac, 0.85) }
+      }
+    }
+  }
+  component Stack(hv, dv, av, hc, ac) {
+    Row { gap: 2; height: 9
+      Box { weight: max(hv, 0.1); height: 9; radius: 4.5; background: hc }
+      Box { weight: max(dv, 0.1); height: 9; radius: 4.5; background: muted }
+      Box { weight: max(av, 0.1); height: 9; radius: 4.5; background: ac }
+    }
+  }
+  component Fixture(g, team) {
+    Column { gap: 1
+      Text { text: fmtTime(g.at, "EEE d MMM HH:mm") + " · " + (g.tag ?? "") + " · " + ((g.home.abbr ?? "") == team ? "dom." : "ext."); style: label; color: muted; maxLines: 1 }
+      Text { text: ((g.home.abbr ?? "") == team ? (g.away.name ?? g.away.abbr ?? "") : (g.home.name ?? g.home.abbr ?? "")); style: small; color: foreground; maxLines: 1 }
+    }
+  }
+
+  Column {
+    scroll: true
+    padding: [12, 0]
+    gap: 12
+    if hero == null { Text { text: "Aucun match à préparer."; style: muted } }
+    else {
+      Row { gap: 6; align: center
+        Text { text: cur != null && cur.ts != null ? "données " + fmtAgo(cur.ts, now) : ""; style: label; color: muted; weight: 1; maxLines: 1 }
+        Text { text: "copier"; color: accent; style: small; onTap: copy(hName + " – " + aName + " · " + fmtTime(hero.at, "EEE d/MM HH:mm") + " · " + league) }
+      }
+      Row { gap: 0; align: center
+        Box { weight: 1; padding: 10; radius: 10; background: alpha(hColor, 0.14); borderColor: alpha(hColor, 0.45); border: 1 Badge { logo: hLogo; name: hName; color: hColor; textColor: hText } }
+        Column { width: 145; align: center; gap: 2
+          Text { text: "VS"; style: title; color: muted; align: center }
+          Text { text: fmtTime(hero.at, "HH:mm"); style: title; align: center }
+          Text { text: fmtTime(hero.at, "d MMM"); style: small; color: muted; align: center }
+          Text { text: (hero.tag ?? "") + " · #" + (hRow == null ? "—" : hRow.rank) + " / #" + (aRow == null ? "—" : aRow.rank); style: label; color: muted; align: center; maxLines: 2 }
+        }
+        Box { weight: 1; padding: 10; radius: 10; background: alpha(aColor, 0.14); borderColor: alpha(aColor, 0.45); border: 1 Badge { logo: aLogo; name: aName; color: aColor; textColor: aText } }
+      }
+      Row { gap: 8
+        Column { weight: 1; gap: 2 Text { text: "5 derniers"; style: label; color: muted } Chips { form: hForm } }
+        Column { weight: 1; gap: 2; align: end Text { text: "5 derniers"; style: label; color: muted } Chips { form: aForm } }
+      }
+      if verdict != "" { Text { text: "Forme à l'avantage de " + verdict; style: small; color: verdictColor; align: center; maxLines: 1 } }
+      Row { gap: 6
+        Button { text: "Aperçu"; weight: 1; padding: 10; color: tab == "overview" ? accent : muted; onTap: tab = "overview" }
+        Button { text: "Stats"; weight: 1; padding: 10; color: tab == "stats" ? accent : muted; onTap: tab = "stats" }
+        Button { text: "Infos"; weight: 1; padding: 10; color: tab == "infos" ? accent : muted; onTap: tab = "infos" }
+      }
+      if tab == "overview" {
+        Column { gap: 10
+          Section { t: "Tendances" }
+          Duel { label: "Pts (5)"; hv: hPts; av: aPts; hc: hColor; ac: aColor }
+          Duel { label: "Buts"; hv: hGF; av: aGF; hc: hColor; ac: aColor }
+          Duel { label: "Clean sheets"; hv: hClean; av: aClean; hc: hColor; ac: aColor }
+          Duel { label: "BTTS"; hv: hBtts; av: aBtts; hc: hColor; ac: aColor }
+          Duel { label: "+2,5"; hv: hOver; av: aOver; hc: hColor; ac: aColor }
+          Section { t: "Contexte" }
+          Row { gap: 6
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + hPPG + " PPG"; style: label; color: muted; maxLines: 1 } Text { text: "buts " + hGF + " / " + hGA; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(aColor, 0.1) Text { text: aName; style: small; color: aText; bold: true; maxLines: 1 } Text { text: "#" + (aRow == null ? "—" : aRow.rank) + " · " + aPPG + " PPG"; style: label; color: muted; maxLines: 1 } Text { text: "buts " + aGF + " / " + aGA; style: label; color: muted; maxLines: 1 } }
+          }
+          Section { t: "Prochains" }
+          Row { gap: 8
+            Column { weight: 1; gap: 2 Text { text: hName; style: label; color: hText; maxLines: 1 } if count(hNext) == 0 { Text { text: "aucun prochain match"; style: label; color: muted } } else { for g in hNext key g.id { Fixture { g: g; team: hAbbr } } } }
+            Column { weight: 1; gap: 2 Text { text: aName; style: label; color: aText; maxLines: 1 } if count(aNext) == 0 { Text { text: "aucun prochain match"; style: label; color: muted } } else { for g in aNext key g.id { Fixture { g: g; team: aAbbr } } } }
+          }
+        }
+      }
+      if tab == "stats" {
+        Column { gap: 10
+          Section { t: "Classement" }
+          Row { gap: 6
+            Column { weight: 1; gap: 1 Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + (hRow == null ? "—" : hRow.pts) + " pts · " + hPPG + " PPG"; style: label; color: muted; maxLines: 1 } Text { text: (hRow == null ? "—" : hRow.played) + " J · " + (hRow == null ? "—" : hRow.won) + "V " + (hRow == null ? "—" : hRow.drawn) + "N " + (hRow == null ? "—" : hRow.lost) + "D"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; align: end Text { text: aName; style: small; color: aText; bold: true; maxLines: 1 } Text { text: "#" + (aRow == null ? "—" : aRow.rank) + " · " + (aRow == null ? "—" : aRow.pts) + " pts · " + aPPG + " PPG"; style: label; color: muted; maxLines: 1 } Text { text: (aRow == null ? "—" : aRow.played) + " J · " + (aRow == null ? "—" : aRow.won) + "V " + (aRow == null ? "—" : aRow.drawn) + "N " + (aRow == null ? "—" : aRow.lost) + "D"; style: label; color: muted; maxLines: 1 } }
+          }
+          Section { t: "Buts et clean sheets" }
+          Row { gap: 6
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: label; color: hText; maxLines: 1 } Text { text: hGF + " marqués · " + hGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: hClean + " clean · " + hBtts + " BTTS · " + hOver + " +2,5"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(aColor, 0.1) Text { text: aName; style: label; color: aText; maxLines: 1 } Text { text: aGF + " marqués · " + aGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: aClean + " clean · " + aBtts + " BTTS · " + aOver + " +2,5"; style: label; color: muted; maxLines: 1 } }
+          }
+          Section { t: "H2H" }
+          if h2h == null { Text { text: "Pas de H2H disponible."; style: small; color: muted } }
+          else { Stack { hv: h2h.w; dv: h2h.d; av: h2h.l; hc: hColor; ac: aColor } Text { text: h2h.w + "V " + h2h.d + "N " + h2h.l + "D · " + h2hGoals + " buts · " + h2hAvg + " / match"; style: small; color: muted; maxLines: 2 } for x in h2hList key x.d + x.hs { Text { text: x.d + " · " + x.hs + "–" + x.a + (x.w ? " ✓" : ""); style: label; color: muted; maxLines: 1 } } }
+          if count(leaders) > 0 { Section { t: "Leaders" } for g in leaders key g.t + g.n { Text { text: g.t + " · " + join((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "").map(x => x.n + " " + x.v), " · "); style: label; color: muted; maxLines: 2 } } }
+          if count(injuries) > 0 { Section { t: "Blessures / suspendus" } for x in injuries key x.t + x.n { Text { text: x.t + " · " + (x.n ?? "") + (x.s == null ? "" : " · " + x.s); style: label; color: muted; maxLines: 1 } } }
+        }
+      }
+      if tab == "infos" {
+        Column { gap: 10
+          Section { t: "Cotes" }
+          if odds == null { Text { text: "Pas de cotes."; style: small; color: muted } }
+          else {
+            if noVig != null { Stack { hv: noVig.h; dv: noVig.d; av: noVig.a; hc: hColor; ac: aColor } Text { text: "1 " + noVig.h + "% · N " + noVig.d + "% · 2 " + noVig.a + "%"; style: small; color: muted; align: center } }
+            Row { gap: 6
+              Column { weight: 1; padding: 6; radius: 6; background: alpha(hColor, 0.1) Text { text: "1 · " + hName; style: label; color: hText; maxLines: 1 } Text { text: odds.h == null ? "—" : fixed(odds.h, 2); style: title; color: foreground; maxLines: 1 } }
+              Column { weight: 1; padding: 6; radius: 6; background: alpha(muted, 0.15) Text { text: "N · nul"; style: label; color: muted; maxLines: 1 } Text { text: odds.d == null ? "—" : fixed(odds.d, 2); style: title; color: foreground; maxLines: 1 } }
+              Column { weight: 1; padding: 6; radius: 6; background: alpha(aColor, 0.1) Text { text: "2 · " + aName; style: label; color: aText; maxLines: 1 } Text { text: odds.a == null ? "—" : fixed(odds.a, 2); style: title; color: foreground; maxLines: 1 } }
+            }
+            if odds.tot != null { Text { text: "Total buts · " + fixed(odds.tot, 1) + " · O " + (odds.tov == null ? "—" : fixed(odds.tov, 2)) + " / U " + (odds.tuv == null ? "—" : fixed(odds.tuv, 2)); style: small; color: muted; maxLines: 1 } }
+            if odds.sph != null { Text { text: "Handicap · " + fixed(odds.sph, 1) + " / " + (odds.spa == null ? "—" : fixed(odds.spa, 1)); style: small; color: muted; maxLines: 1 } }
+            Text { text: "Cotes indicatives, aucune mise."; style: label; color: muted; maxLines: 1 }
+          }
+          Section { t: "Compositions" }
+          if count(lineups) == 0 { Text { text: "Compos non publiées — attends ~1 h avant le coup d'envoi."; style: small; color: muted; maxLines: 2 } }
+          else { for l in lineups key l.t { Text { text: l.t + " " + (l.f ?? "") + " · " + join((l.p ?? []).map(p => p.n), " · "); style: label; color: muted; maxLines: 3 } } }
+          Section { t: "Actus" }
+          if count(news) == 0 { Text { text: "Aucune actu liée à ce match."; style: small; color: muted } }
+          else { for n in news key n.h { Text { text: n.h; style: label; color: accent; maxLines: 2 } Text { text: n.d; style: small; color: muted; maxLines: 2 } } }
+          Section { t: "Voyage" }
+          if info.venue != null { Text { text: info.venue + (info.city == null ? "" : " · " + info.city); style: small; color: muted; maxLines: 2 } }
+          if info.referee != null { Text { text: "Arbitre · " + info.referee; style: small; color: muted; maxLines: 1 } }
+          Text { text: "Coup d'envoi · " + fmtTime(hero.at, "EEE d/MM HH:mm"); style: small; color: muted; maxLines: 1 }
+        }
+      }
+    }
+  }
+}

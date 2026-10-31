@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.17.4' in text
+          "S.apropos" in text and 'copy("my-match v5.18.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -233,9 +233,15 @@ def main():
 
     # Pre-match page.
     check("Pre-match page", "component MatchPage" in text and "if showDetail{MatchPage{}}else{" in text and "component Duel" in text and "component SectionTitle" in text)
-    check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
+    check("Pre-match opens from banner", 'onTap:open("owl:prematch.owl")' in text)
     check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewNext" in text)
     check("Pre-match comparison layout", "S.trendsT" in text and "hColor" in text and "aColor" in text and "previewHomePoints5" in text and "previewAwayPoints5" in text)
+
+    # Dedicated pre-match app.
+    app_path = ROOT / "widget" / "prematch.owl"
+    app_text = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
+    check("Pre-match app exists", 'app "Avant-match"' in app_text and "source cur" in app_text and 'file("~/.cache/espn-odds/current.json")' in app_text)
+    check("Pre-match app data", "let h2h" in app_text and "let lineups" in app_text and "let news" in app_text)
 
     # Pre-match page: related news and published line-ups only.
     check("Pre-match related news", "let heroNews=" in text and "S.newsNone" in text)
@@ -356,7 +362,7 @@ def main():
           and "S.partage" in text and "S.donnees" in text and "S.apropos" in text
           and "statusTxt" in text and "Button{text:showSettings?S.close:S.settings" in text
           and text.count("if !showSettings{") >= 2)
-    check("fiche link in hero", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text and "S.preview" in text)
+    check("fiche link in hero", 'onTap:open("owl:prematch.owl")' in text and "S.preview" in text)
 
     # F01-F05: notification controls.
     check("F01 reminder lead", "state leadH=12 persist" in text and "leadH*3600" in text and "S.lead" in text)
