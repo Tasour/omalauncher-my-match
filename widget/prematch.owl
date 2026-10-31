@@ -1,14 +1,13 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.0"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.1"; license: "MIT"; category: "sport"; owl: 16 }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
 
-  source now = clock every 15s
+  source now = clock every 1m
   source cur = file("~/.cache/espn-odds/current.json") json
   source games = file("~/.cache/espn-games.json") json
   source extra = file("~/.cache/espn-extra.json") json
-  source hist = file("~/.cache/espn-history.json") json
   source nextup = file("~/.cache/espn-nextup.json") json
   source tables = file("~/.cache/espn-standings.json") json
 
@@ -29,10 +28,9 @@ app "Avant-match" {
   let aText = mix(aColor, foreground, 0.3)
   let info = cur == null ? {} : (cur.info ?? {})
   let odds = cur != null && cur.odds != null ? cur.odds : (hero == null ? null : hero.odds)
-  let pool = flatten([extra ?? [], get(hist ?? {}, league, [])])
+  let pool = extra ?? []
   let hGames = pool.filter(g => g.state == "post" && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => -g.at).take(10)
   let aGames = pool.filter(g => g.state == "post" && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => -g.at).take(10)
-  let res = games => games.map(g => (g.home.abbr ?? "") == hAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
   let hRes = hGames.map(g => (g.home.abbr ?? "") == hAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
   let aRes = aGames.map(g => (g.home.abbr ?? "") == aAbbr ? (g.home.winner ? "V" : g.away.winner ? "D" : "N") : (g.away.winner ? "V" : g.home.winner ? "D" : "N"))
   let hForm = join(reverse(hRes.take(5)), " ")
@@ -64,10 +62,8 @@ app "Avant-match" {
   let injuries = cur == null ? [] : (cur.injuries ?? [])
   let noVig = odds == null || odds.h == null || odds.d == null || odds.a == null ? null : { h: round(100 / odds.h / (1 / odds.h + 1 / odds.d + 1 / odds.a)), d: round(100 / odds.d / (1 / odds.h + 1 / odds.d + 1 / odds.a)), a: round(100 / odds.a / (1 / odds.h + 1 / odds.d + 1 / odds.a)) }
   let future = flatten([extra ?? [], nextup ?? []])
-  let hNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && (g.league ?? "") == league && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => g.at).take(3)
-  let aNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && (g.league ?? "") == league && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => g.at).take(3)
-  let hNextRank = count(hNext) == 0 ? "—" : fixed(avg(hNext.map(g => first(flatten((tables ?? []).map(u => u.teams ?? [])).filter(t => t.abbr == ((g.home.abbr ?? "") == hAbbr ? (g.away.abbr ?? "") : (g.home.abbr ?? "")))).filter(r => r != null).map(r => r.rank).filter(r => r != null))), 0)
-  let aNextRank = count(aNext) == 0 ? "—" : fixed(avg(aNext.map(g => first(flatten((tables ?? []).map(u => u.teams ?? [])).filter(t => t.abbr == ((g.home.abbr ?? "") == aAbbr ? (g.away.abbr ?? "") : (g.home.abbr ?? "")))).filter(r => r != null).map(r => r.rank).filter(r => r != null))), 0)
+  let hNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => g.at).take(3)
+  let aNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => g.at).take(3)
   let verdict = hPts > aPts ? hName : aPts > hPts ? aName : ""
   let verdictColor = hPts > aPts ? hText : aPts > hPts ? aText : muted
 

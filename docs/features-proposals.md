@@ -3,6 +3,11 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.1
+
+- ouverture corrigée : la clé du tiroir est `o:prematch.owl`, pas `owl:`
+- app allégée : plus de cache historique complet, horloge à 1 min, calculs de rang inutilisés supprimés
+
 ## App avant-match dédiée — v5.18.0
 
 - nouvel app `widget/prematch.owl`, ouverte par la bannière (`owl:prematch.owl`)
