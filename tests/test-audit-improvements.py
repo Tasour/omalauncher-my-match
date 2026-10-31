@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.17.1' in text
+          "S.apropos" in text and 'copy("my-match v5.17.2' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -236,6 +236,10 @@ def main():
     check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
     check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewNext" in text)
     check("Pre-match comparison layout", "S.trendsT" in text and "hColor" in text and "aColor" in text and "previewHomePoints5" in text and "previewAwayPoints5" in text)
+
+    # Pre-match page: related news and published line-ups only.
+    check("Pre-match related news", "let heroNews=" in text and "S.newsNone" in text)
+    check("Pre-match lineups wait", "let heroLineups=" in text and "S.lineupsWait" in text)
 
     # Pre-match page: key points and venue points.
     check("Pre-match insights", "previewInsights" in text and "S.insightsT" in text)
@@ -339,7 +343,7 @@ def main():
     check("DN05 full H2H list", "h2hAll" in text and "heroH2HObj.h2h" in text and "list??[]" in text)
     check("DN16 no-vig", "let noVig=" in text and "noVigTxt" in text)
     check("DN17 odds movement", "let moveH=" in text and "moveTxt" in text and "▼" in text)
-    check("DN24 news ticker", "heroH2HObj.news[0].h" in text and "S.newsT" in text)
+    check("DN24 news ticker", "heroNews[0].h" in text and "S.newsT" in text and "heroNews" in text)
 
     check("CU18 plain status", 'fail:"Scores peut-être en retard"' in text and 'sourceErr:"Source indisponible"' in text)
     check("CU23 day filter", 'state daySel=""' in text and "key c.k" in text and "daySel==c.k" in text and '==daySel)' in text)

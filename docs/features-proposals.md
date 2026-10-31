@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Avant-match — v5.17.2
+
+- actus filtrées sur les deux équipes du match, plus de news PSG sur un Lyon–Angers
+- compos affichées seulement si les onze sont publiés ; sinon message « ~1 h avant »
+- compositions vides et actus hors sujet ne polluent plus la page
+
 ## Avant-match — v5.17.1
 
 - bloc « À retenir » avec les tendances clés
