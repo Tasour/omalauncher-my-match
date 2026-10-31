@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Avant-match enrichi — v5.16.1
+
+- marchés total buts et handicap dans l'onglet Cotes
+- sparkline de momentum sur les 5 derniers points
+- comparaison buts / points sur 5 matchs entre les deux équipes
+- moyenne de buts H2H et libellés de journée Europa corrigés
+
 ## Page avant-match — v5.16.0
 
 - la bannière ouvre une vraie page plein écran, plus une fiche inline

@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.16.0' in text
+          "S.apropos" in text and 'copy("my-match v5.16.1' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -236,6 +236,12 @@ def main():
     check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
     check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewKeys" in text and "previewNext" in text)
     check("Pre-match tabs", 'previewTab=="odds"' in text and 'previewTab=="stats"' in text and 'previewTab=="h2h"' in text and 'previewTab=="squads"' in text and 'previewTab=="news"' in text and 'previewTab=="travel"' in text)
+
+    # Pre-match page: markets, momentum and side-by-side form.
+    check("Pre-match markets", "od1.tot" in text and "S.totalT" in text and "od1.sph" in text)
+    check("Pre-match momentum", "component PreviewSpark" in text and "previewPoints" in text)
+    check("Pre-match comparison", "previewHTeamGF" in text and "previewHTeamPts" in text and "S.compareT" in text)
+    check("Europa matchday label", "eurPos<=8" in text and "eurPos>8?S.finals" not in text)
 
     # National cups: data, tags and stages.
     for cup in ("eng.fa", "eng.league_cup", "esp.copa_del_rey", "ger.dfb_pokal", "ita.coppa_italia"):
