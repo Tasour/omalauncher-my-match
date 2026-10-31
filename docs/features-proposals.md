@@ -3,6 +3,14 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Casual/setup — v5.14.7
+
+- ligne de confiance « ESPN, sans compte, rien n'est envoyé » dans le setup
+- retry explicite si le catalogue d'équipes échoue
+- recherche vide avec suggestion et bouton pour l'effacer
+- pause globale des alertes 24 h, respectée par rappels, buts, cartons, HT/FT
+Garde-fous CU02/CU03/CU04/CU15.
+
 ## Accessibilité — v5.14.6
 
 - **AT03** haut contraste (toggle, soft = foreground, pop = accent).

@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.14.6' in text
+          "S.apropos" in text and 'copy("my-match v5.14.7' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -230,6 +230,12 @@ def main():
     check("F08 today filter", "state todayOnly=false" in text and "todayOnly?baseRaw.filter" in text and "S.todayOnly" in text)
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
+
+    # Lot 5: casual/setup and pause.
+    check("CU02 trust line", "S.trust" in text and "Données ESPN" in text)
+    check("CU03 picker retry", "S.retry" in text and "Button{text:S.retry;color:soft;onTap:refresh()" in text)
+    check("CU04 search hint", "S.searchHint" in text and "onTap:query=\"\"" in text)
+    check("CU15 pause alerts", "state pauseUntil=0 persist" in text and "S.pauseAlerts" in text and text.count("now>pauseUntil") >= 6)
 
     # Lot 4: accessibility quick wins.
     check("AT03 high contrast", "state hcMode=false persist" in text and "hcMode?foreground" in text and "S.hc" in text)

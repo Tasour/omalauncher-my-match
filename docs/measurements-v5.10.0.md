@@ -1,6 +1,6 @@
-# Mesures v5.14.6 — plan reproductible et état des preuves
+# Mesures v5.14.7 — plan reproductible et état des preuves
 
-> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; widget publié en **v5.14.6** (contraste, dates relatives, cibles tactiles).
+> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; widget publié en **v5.14.7** (setup de confiance, retry, pause alertes).
 
 Audit **I33 / ENERGY-03**. Widget `my-match` **v5.10.0**.
 Rédigé le **2026-10-30**. Références : `docs/measurements-2026-10-25.md`
