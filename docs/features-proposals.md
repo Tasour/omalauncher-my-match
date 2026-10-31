@@ -3,6 +3,20 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Page avant-match — v5.16.0
+
+- la bannière ouvre une vraie page plein écran, plus une fiche inline
+- onglets Aperçu / Cotes / Stats / H2H / Onze / Actus / Voyage
+- aperçu : rang, PPG, projection, clés, forme dom/ext, 5 derniers et 5 prochains
+- cotes : 1X2, sans marge, mouvement, cumul ; stats : classement, séries, leaders, blessures
+- voyage : stade, arbitre, repos, travel pack, chambrage, pause et rappels
+- la colonne `#rang` des fixtures est retirée
+
+## Fixtures épurées — v5.15.3
+
+- retrait de la colonne `#rang` de l'adversaire dans la liste des matchs de « Mes matchs »
+- le rang reste disponible dans la fiche/le bandeau
+
 ## Coupes nationales — v5.15.2
 
 - FA Cup, Carabao Cup, Copa del Rey, DFB-Pokal et Coppa Italia suivies avec la Coupe de France

@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.15.2' in text
+          "S.apropos" in text and 'copy("my-match v5.16.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -197,7 +197,7 @@ def main():
           "HID=" in text and "h2h: (([.seasonseries" in text
           and "heroH2H" in text and '"H2H · "' in text)
 
-    check("match centre", "state showDetail=false" in text and "S.detail" in text and "heroH2HObj.info" in text and "S.statsT" in text and "S.timeline" in text and "S.lineupsT" in text and "S.newsT" in text)
+    check("match centre", "state showDetail=false" in text and "S.preview" in text and "heroH2HObj.info" in text and "S.statsT" in text and "S.timeline" in text and "S.lineupsT" in text and "S.newsT" in text)
 
     check("H2H instant cache", "source h2hNow=file(" in text and "heroH2HObj" in text and "heroMatch.id?h2hNow" in text)
 
@@ -231,6 +231,12 @@ def main():
     check("F09 show odds", "state showOdds=true persist" in text and "showOdds&&heroMatch" in text and "S.showOdds" in text)
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
 
+    # Pre-match page.
+    check("Pre-match page", "component MatchPage" in text and "if showDetail{MatchPage{}}else{" in text and "previewTabs" in text)
+    check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
+    check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewKeys" in text and "previewNext" in text)
+    check("Pre-match tabs", 'previewTab=="odds"' in text and 'previewTab=="stats"' in text and 'previewTab=="h2h"' in text and 'previewTab=="squads"' in text and 'previewTab=="news"' in text and 'previewTab=="travel"' in text)
+
     # National cups: data, tags and stages.
     for cup in ("eng.fa", "eng.league_cup", "esp.copa_del_rey", "ger.dfb_pokal", "ita.coppa_italia"):
         check(f"National cup {cup}", f'"{cup}"' in text)
@@ -240,7 +246,7 @@ def main():
     # Cup brackets: national cups and knockout fallback.
     check("CDF bracket data", '"fra.coupe_de_france"' in text and "stage: (.season.slug" in text and text.count("stage: (.season.slug") >= 5)
     check("CDF bracket view", "let cupStages=" in text and "for st in cupStages" in text and "S.bracket" in text)
-    check("UCL bracket fallback", "knockAll=values(groupBy(flatten([knock.out??[],all.filter" in text and 'g.stage!="league-phase"' in text)
+    check("UCL bracket fallback", "knockAll=values(groupBy(flatten([knock.out??[],all.filter" in text and 'cupRoundIds.any(r=>r==(g.stage??""))' in text)
     check("CDF round labels", '"round-of-64":"32es de finale"' in text and '"round-of-32":"16es de finale"' in text)
 
     # Lot 8: data.
@@ -264,9 +270,8 @@ def main():
     check("HF25 team colours", "state teamColors=true persist" in text and "teamColors?hsl" in text)
 
     # Lot 6: match context.
-    check("DN14 opponent rank", "let oppRank=" in text and '"#"+oppRank' in text and "oppRank<=5?pop" in text)
-    check("HF rest days", "let hRest=" in text and '"repos · "' in text)
-    check("DN08 home/away form", "let hForm=" in text and "let aForm=" in text and '"dom. "' in text)
+    check("HF rest days", "let previewRest=" in text and '"repos ":"rest "' in text)
+    check("DN08 home/away form", "let previewHeroHomeForm=" in text and "let previewHeroAwayForm=" in text and 'formHomeShort' in text)
 
     # Lot 5: casual/setup and pause.
     check("CU02 trust line", "S.trust" in text and "Données ESPN" in text)
@@ -324,7 +329,7 @@ def main():
 
     check("CU18 plain status", 'fail:"Scores peut-être en retard"' in text and 'sourceErr:"Source indisponible"' in text)
     check("CU23 day filter", 'state daySel=""' in text and "key c.k" in text and "daySel==c.k" in text and '==daySel)' in text)
-    check("AT19 fiche freshness", "fmtAgo(heroH2HObj.ts,now)" in text)
+    check("AT19 fiche freshness", "fmtAgo(heroH2HObj.ts,now)" in text and "S.preview" in text)
     check("HF08 tile live chip", "let liveBadge=" in text and '"● "+S.liveWord' in text and 'if liveBadge!=""' in text and "S.next+" not in text)
 
     # Ergonomics: settings is a dedicated view with sections and a compact header.
@@ -333,7 +338,7 @@ def main():
           and "S.partage" in text and "S.donnees" in text and "S.apropos" in text
           and "statusTxt" in text and "Button{text:showSettings?S.close:S.settings" in text
           and text.count("if !showSettings{") >= 2)
-    check("fiche link in hero", "onTap:{showDetail=!showDetail;screen()}" in text and "S.detail" in text)
+    check("fiche link in hero", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text and "S.preview" in text)
 
     # F01-F05: notification controls.
     check("F01 reminder lead", "state leadH=12 persist" in text and "leadH*3600" in text and "S.lead" in text)
