@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.17.3' in text
+          "S.apropos" in text and 'copy("my-match v5.17.4' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.

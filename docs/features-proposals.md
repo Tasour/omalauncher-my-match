@@ -3,6 +3,11 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Hiérarchie avant-match — v5.17.4
+
+- les tendances passent avant le bloc « À retenir », conformément à l'audit UX
+- le reste de la refonte (hero compact, onglets) est documenté et sera livré dans un widget dédié
+
 ## Audit avant-match — v5.17.3
 
 - audits UX, accessibilité et data documentés dans `docs/audits/prematch-2026-10-31.md`
