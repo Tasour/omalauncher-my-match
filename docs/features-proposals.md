@@ -3,6 +3,11 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Avant-match — v5.16.2
+
+- difficulté des 5 prochains matchs : rang moyen des adversaires
+- comparaison clean sheets et BTTS entre les deux équipes
+
 ## Avant-match enrichi — v5.16.1
 
 - marchés total buts et handicap dans l'onglet Cotes
