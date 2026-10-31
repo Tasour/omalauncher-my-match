@@ -3,6 +3,14 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Accessibilité — v5.14.6
+
+- **AT03** haut contraste (toggle, soft = foreground, pop = accent).
+- **AT12/AT16** dates relatives « aujourd'hui / demain » dans les lignes.
+- **AT07** flèches précédent/suivant nommées, spinner déjà étiqueté.
+- **AT10** padding des onglets et flèches pour des cibles plus grandes.
+Garde-fous AT03/AT07/AT10/AT12/AT16.
+
 ## Live alerts — v5.14.5
 
 Goal Flash inclut désormais le **buteur et la minute**, une alerte **carton rouge**
