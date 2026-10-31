@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.17.0' in text
+          "S.apropos" in text and 'copy("my-match v5.17.1' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -236,6 +236,10 @@ def main():
     check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
     check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewNext" in text)
     check("Pre-match comparison layout", "S.trendsT" in text and "hColor" in text and "aColor" in text and "previewHomePoints5" in text and "previewAwayPoints5" in text)
+
+    # Pre-match page: key points and venue points.
+    check("Pre-match insights", "previewInsights" in text and "S.insightsT" in text)
+    check("Pre-match venue points", "previewHeroHomePoints" in text and "previewHeroAwayPoints" in text)
 
     # Pre-match page: opponent difficulty and both-team clean sheets.
     check("Pre-match next difficulty", "previewNextAvg" in text and "S.avgRankT" in text)

@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Avant-match — v5.17.1
+
+- bloc « À retenir » avec les tendances clés
+- points pris sur les 5 derniers matchs à domicile/extérieur
+- probabilités 1X2 visibles dès le bandeau
+
 ## Refonte avant-match — v5.17.0
 
 - page unique de comparaison, sans onglets : chaque tendance oppose les deux équipes
