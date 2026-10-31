@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.16.2' in text
+          "S.apropos" in text and 'copy("my-match v5.17.0' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -232,10 +232,10 @@ def main():
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
 
     # Pre-match page.
-    check("Pre-match page", "component MatchPage" in text and "if showDetail{MatchPage{}}else{" in text and "previewTabs" in text)
+    check("Pre-match page", "component MatchPage" in text and "if showDetail{MatchPage{}}else{" in text and "component Duel" in text and "component SectionTitle" in text)
     check("Pre-match opens from banner", 'onTap:{showDetail=true;previewTab="overview";screen()}' in text)
-    check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewKeys" in text and "previewNext" in text)
-    check("Pre-match tabs", 'previewTab=="odds"' in text and 'previewTab=="stats"' in text and 'previewTab=="h2h"' in text and 'previewTab=="squads"' in text and 'previewTab=="news"' in text and 'previewTab=="travel"' in text)
+    check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewNext" in text)
+    check("Pre-match comparison layout", "S.trendsT" in text and "hColor" in text and "aColor" in text and "previewHomePoints5" in text and "previewAwayPoints5" in text)
 
     # Pre-match page: opponent difficulty and both-team clean sheets.
     check("Pre-match next difficulty", "previewNextAvg" in text and "S.avgRankT" in text)
@@ -244,7 +244,7 @@ def main():
     # Pre-match page: markets, momentum and side-by-side form.
     check("Pre-match markets", "od1.tot" in text and "S.totalT" in text and "od1.sph" in text)
     check("Pre-match momentum", "component PreviewSpark" in text and "previewPoints" in text)
-    check("Pre-match comparison", "previewHTeamGF" in text and "previewHTeamPts" in text and "S.compareT" in text)
+    check("Pre-match comparison", "previewHomeGF" in text and "previewAwayGF" in text and "previewHomePoints5" in text and "S.bttsT" in text)
     check("Europa matchday label", "eurPos<=8" in text and "eurPos>8?S.finals" not in text)
 
     # National cups: data, tags and stages.

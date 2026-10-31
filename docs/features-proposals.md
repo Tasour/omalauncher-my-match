@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Refonte avant-match — v5.17.0
+
+- page unique de comparaison, sans onglets : chaque tendance oppose les deux équipes
+- bandeau VS avec couleurs d'équipe, forme, rang et cotes
+- duels chiffrés pts/buts/clean sheets/BTTS/+2,5 avec barres colorées
+- forme, momentum et comparaison côte à côte, puis contexte, H2H, cotes, calendrier, effectifs, actus et voyage
+
 ## Avant-match — v5.16.2
 
 - difficulté des 5 prochains matchs : rang moyen des adversaires
