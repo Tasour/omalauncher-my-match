@@ -3,6 +3,17 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Lisibilité avant-match — v5.21.2
+
+- « sans encaisser », « les 2 marquent » et « plus de 2,5 buts » sur des lignes séparées
+- moyenne de confrontations avec virgule décimale
+
+## Lisibilité avant-match — v5.21.1
+
+- stats sur deux lignes, plus de « 2 p… » ni de « 4 les 2 marq… »
+- fraîcheur « à l'instant » au lieu de « now »
+- décimales françaises sur total/handicap
+
 ## Arbres repliés et complets — v5.21.0
 
 - arbre replié par défaut, bouton afficher/masquer

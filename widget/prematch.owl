@@ -1,5 +1,5 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.11"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.13"; license: "MIT"; category: "sport"; owl: 16 }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
@@ -70,6 +70,7 @@ app "Avant-match" {
   let aNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => g.at).take(5)
   let verdict = hPts > aPts ? hName : aPts > hPts ? aName : ""
   let verdictColor = hPts > aPts ? hText : aPts > hPts ? aText : muted
+  let ageTxt = cur == null || cur.ts == null ? "" : (now - cur.ts < 60 ? "à l'instant" : fmtAgo(cur.ts, now))
   let score = (h.score ?? "0") + " – " + (a.score ?? "0")
   let stateLine = hero == null ? "" : hero.state == "in" ? "en direct · " + score : hero.state == "post" ? "terminé · " + score : "coup d'envoi dans " + fmtDuration(max(hero.at - now, 60))
   let moveH = odds == null || odds.ho == null || odds.h == null ? 0 : odds.h - odds.ho
@@ -126,7 +127,7 @@ app "Avant-match" {
     if hero == null { Text { text: "Aucun match à préparer."; style: muted } }
     else {
       Row { gap: 6; align: center
-        Text { text: cur != null && cur.ts != null ? "données " + fmtAgo(cur.ts, now) : ""; style: label; color: muted; weight: 1; maxLines: 1 }
+        Text { text: cur != null && cur.ts != null ? "données " + ageTxt : ""; style: label; color: muted; weight: 1; maxLines: 1 }
         Text { text: "actualiser"; color: accent; style: small; onTap: run("owl-send 20-my-matches.owl refresh") }
         Text { text: "copier"; color: accent; style: small; onTap: copy(hName + " – " + aName + " · " + fmtTime(hero.at, "EEE d/MM HH:mm") + " · " + league) }
       }
@@ -176,17 +177,23 @@ app "Avant-match" {
         Column { gap: 10
           Section { t: "Classement" }
           Row { gap: 6
-            Column { weight: 1; gap: 1 Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + (hRow == null ? "—" : hRow.pts) + " points · " + hPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: (hRow == null ? "—" : hRow.played) + " matchs · " + (hRow == null ? "—" : hRow.won) + " gagnés · " + (hRow == null ? "—" : hRow.drawn) + " nuls · " + (hRow == null ? "—" : hRow.lost) + " perdus"; style: label; color: muted; maxLines: 1 } }
-            Column { weight: 1; gap: 1; align: end Text { text: aName; style: small; color: aText; bold: true; maxLines: 1 } Text { text: "#" + (aRow == null ? "—" : aRow.rank) + " · " + (aRow == null ? "—" : aRow.pts) + " points · " + aPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: (aRow == null ? "—" : aRow.played) + " matchs · " + (aRow == null ? "—" : aRow.won) + " gagnés · " + (aRow == null ? "—" : aRow.drawn) + " nuls · " + (aRow == null ? "—" : aRow.lost) + " perdus"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1 Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + (hRow == null ? "—" : hRow.pts) + " points · " + hPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: (hRow == null ? "—" : hRow.played) + " matchs · " + (hRow == null ? "—" : hRow.won) + " gagnés"; style: label; color: muted; maxLines: 1 }
+            Text { text: (hRow == null ? "—" : hRow.drawn) + " nuls · " + (hRow == null ? "—" : hRow.lost) + " perdus"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; align: end Text { text: aName; style: small; color: aText; bold: true; maxLines: 1 } Text { text: "#" + (aRow == null ? "—" : aRow.rank) + " · " + (aRow == null ? "—" : aRow.pts) + " points · " + aPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: (aRow == null ? "—" : aRow.played) + " matchs · " + (aRow == null ? "—" : aRow.won) + " gagnés"; style: label; color: muted; maxLines: 1 }
+            Text { text: (aRow == null ? "—" : aRow.drawn) + " nuls · " + (aRow == null ? "—" : aRow.lost) + " perdus"; style: label; color: muted; maxLines: 1 } }
           }
           Section { t: "Buts et matchs sans encaisser" }
           Row { gap: 6
-            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: label; color: hText; maxLines: 1 } Text { text: hGF + " marqués · " + hGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: hClean + " sans encaisser · " + hBtts + " les 2 marquent · " + hOver + " plus de 2,5"; style: label; color: muted; maxLines: 1 } }
-            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(aColor, 0.1) Text { text: aName; style: label; color: aText; maxLines: 1 } Text { text: aGF + " marqués · " + aGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: aClean + " sans encaisser · " + aBtts + " les 2 marquent · " + aOver + " plus de 2,5"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: label; color: hText; maxLines: 1 } Text { text: hGF + " marqués · " + hGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: hClean + " sans encaisser"; style: label; color: muted; maxLines: 1 }
+              Text { text: hBtts + " les 2 marquent"; style: label; color: muted; maxLines: 1 }
+              Text { text: hOver + " plus de 2,5 buts"; style: label; color: muted; maxLines: 1 } }
+            Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(aColor, 0.1) Text { text: aName; style: label; color: aText; maxLines: 1 } Text { text: aGF + " marqués · " + aGA + " encaissés"; style: small; color: muted; maxLines: 1 } Text { text: aClean + " sans encaisser"; style: label; color: muted; maxLines: 1 }
+              Text { text: aBtts + " les 2 marquent"; style: label; color: muted; maxLines: 1 }
+              Text { text: aOver + " plus de 2,5 buts"; style: label; color: muted; maxLines: 1 } }
           }
           Section { t: "Confrontations" }
           if h2h == null { Text { text: "Pas de confrontations disponibles."; style: small; color: muted } }
-          else { Stack { hv: h2h.w; dv: h2h.d; av: h2h.l; hc: hColor; ac: aColor } Text { text: h2h.w + " gagnés · " + h2h.d + " nuls · " + h2h.l + " perdus · " + h2hGoals + " buts · " + h2hAvg + " / match"; style: small; color: muted; maxLines: 2 } for x in h2hList key x.d + x.hs { Text { text: x.d + " · " + x.hs + "–" + x.a + (x.w ? " ✓" : ""); style: label; color: muted; maxLines: 1 } } }
+          else { Stack { hv: h2h.w; dv: h2h.d; av: h2h.l; hc: hColor; ac: aColor } Text { text: h2h.w + " gagnés · " + h2h.d + " nuls · " + h2h.l + " perdus · " + h2hGoals + " buts · " + replace(h2hAvg, ".", ",") + " / match"; style: small; color: muted; maxLines: 2 } for x in h2hList key x.d + x.hs { Text { text: x.d + " · " + x.hs + "–" + x.a + (x.w ? " ✓" : ""); style: label; color: muted; maxLines: 1 } } }
           if count(leaders) > 0 { Section { t: "Leaders" } for g in leaders key g.t + g.n { Text { text: g.t + " · " + join((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "").map(x => x.n + " " + x.v), " · "); style: label; color: muted; maxLines: 2 } } }
           if count(injuries) > 0 { Section { t: "Blessures / suspendus" } for x in injuries key x.t + x.n { Text { text: x.t + " · " + (x.n ?? "") + (x.s == null ? "" : " · " + x.s); style: label; color: muted; maxLines: 1 } } }
         }
@@ -204,7 +211,7 @@ app "Avant-match" {
             }
             if odds.tot != null { Text { text: "Total buts · " + replace(fixed(odds.tot, 1), ".", ",") + " · plus " + (odds.tov == null ? "—" : replace(fixed(odds.tov, 2), ".", ",")) + " / moins " + (odds.tuv == null ? "—" : replace(fixed(odds.tuv, 2), ".", ",")); style: small; color: muted; maxLines: 1 } }
             if moveTxt != "" { Text { text: moveTxt; style: label; color: muted; maxLines: 1 } }
-            if odds.sph != null { Text { text: "Handicap · " + fixed(odds.sph, 1) + " / " + (odds.spa == null ? "—" : fixed(odds.spa, 1)); style: small; color: muted; maxLines: 1 } }
+            if odds.sph != null { Text { text: "Handicap · " + replace(fixed(odds.sph, 1), ".", ",") + " / " + (odds.spa == null ? "—" : replace(fixed(odds.spa, 1), ".", ",")); style: small; color: muted; maxLines: 1 } }
             Text { text: "Cotes indicatives, aucune mise."; style: label; color: muted; maxLines: 1 }
           }
           Section { t: "Compositions" }
