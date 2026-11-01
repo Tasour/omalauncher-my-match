@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Arbre de tournoi — v5.20.0
+
+- à partir des 8es : colonnes 8es / quarts / demies / finale avec lignes de liaison
+- tous les matchs du même niveau sont dans leur colonne
+- les tours antérieurs (32es, barrages) restent en liste comme avant
+
 ## Performance écran — v5.19.2
 
 - migration qui replie aussi les classements des installations existantes

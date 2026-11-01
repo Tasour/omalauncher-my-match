@@ -34,3 +34,8 @@
 
 - 12 fixtures par équipe sélectionnée, 4 par équipe en mode ALL, et une seule table par défaut.
 - L'utilisateur peut charger la suite avec le bouton « plus ».
+
+## Arbre de tournoi — v5.20.0
+
+- un Canvas dédié dessine les colonnes et les lignes à partir des 8es.
+- les tours antérieurs gardent la liste existante.
