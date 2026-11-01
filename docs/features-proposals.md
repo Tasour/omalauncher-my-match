@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.7
+
+- légende V = gagné, N = nul, D = perdu
+- bloc « 5 prochains » nommé explicitement
+- sprint de finition terminé
+
 ## App avant-match — v5.18.6
 
 - compte à rebours avant le coup d'envoi

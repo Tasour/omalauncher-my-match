@@ -1,5 +1,5 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.9"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.10"; license: "MIT"; category: "sport"; owl: 16 }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
@@ -146,6 +146,7 @@ app "Avant-match" {
         Column { weight: 1; gap: 2; align: end Text { text: aFormLabel; style: label; color: muted } Chips { form: aForm } }
       }
       if verdict != "" { Text { text: "Forme à l'avantage de " + verdict; style: small; color: verdictColor; align: center; maxLines: 1 } }
+      Text { text: "V = gagné · N = nul · D = perdu"; style: label; color: muted; align: center; maxLines: 1 }
       Row { gap: 6
         Button { text: "Aperçu"; weight: 1; padding: 10; color: tab == "overview" ? accent : mix(muted, foreground, 0.45); onTap: tab = "overview" }
         Button { text: "Stats"; weight: 1; padding: 10; color: tab == "stats" ? accent : mix(muted, foreground, 0.45); onTap: tab = "stats" }
@@ -164,7 +165,7 @@ app "Avant-match" {
             Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + hPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: "buts " + hGF + " / " + hGA; style: label; color: muted; maxLines: 1 } }
             Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(aColor, 0.1) Text { text: aName; style: small; color: aText; bold: true; maxLines: 1 } Text { text: "#" + (aRow == null ? "—" : aRow.rank) + " · " + aPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: "buts " + aGF + " / " + aGA; style: label; color: muted; maxLines: 1 } }
           }
-          Section { t: "Prochains" }
+          Section { t: "5 prochains" }
           Row { gap: 8
             Column { weight: 1; gap: 2 Text { text: hName; style: label; color: hText; maxLines: 1 } if count(hNext) == 0 { Text { text: "aucun prochain match"; style: label; color: muted } } else { for g in hNext key g.id { Fixture { g: g; team: hAbbr } } } }
             Column { weight: 1; gap: 2 Text { text: aName; style: label; color: aText; maxLines: 1 } if count(aNext) == 0 { Text { text: "aucun prochain match"; style: label; color: muted } } else { for g in aNext key g.id { Fixture { g: g; team: aAbbr } } } }
