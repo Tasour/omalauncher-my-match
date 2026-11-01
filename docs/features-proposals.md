@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Performance — v5.18.8
+
+- audit dans `docs/audits/performance-2026-10-31.md`
+- historique avant-match toutes les 6 h, limité au championnat
+- horloge principale à 1 min ; cutoffs et calendrier sur l'horloge horaire
+- calculs de rang inutilisés supprimés
+
 ## App avant-match — v5.18.7
 
 - légende V = gagné, N = nul, D = perdu

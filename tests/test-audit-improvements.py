@@ -147,7 +147,7 @@ def main():
     # I17 - postponed/cancelled matches are kept and named.
     check("I17 match status wording",
           'postponed:"reporté"' in text and 'let special=contains(gdet' in text
-          and 'g.at>now-7200||contains(lower(g.detail' in text)
+          and 'g.at>slow-7200||contains(lower(g.detail' in text)
     check("I17 two-leg aggregate",
           "aggH:" in text and "aggDone:" in text and "S.agg+" in text and 'agg:"cumul "' in text)
 
@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.18.7' in text
+          "S.apropos" in text and 'copy("my-match v5.18.8' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
