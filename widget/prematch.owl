@@ -1,11 +1,12 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.15"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.17"; license: "MIT"; category: "sport"; owl: 16 }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
 
   source now = clock every 5m
   source cur = file("~/.cache/espn-odds/current.json") json
+  source selected = file("~/.cache/prematch-match.json") json
   source games = file("~/.cache/espn-games.json") json
   source extra = file("~/.cache/espn-extra.json") json
   source nextup = file("~/.cache/espn-nextup.json") json
@@ -14,7 +15,9 @@ app "Avant-match" {
   source teams = file("~/.cache/espn-teams.json") json
 
   let all = flatten([games ?? [], extra ?? []])
-  let hero = first(all.filter(g => g.id == (cur == null ? "" : (cur.id ?? "")))) ?? first((extra ?? []).filter(g => g.state == "pre")) ?? first(all)
+  let selMatch = selected != null && selected.id != null ? selected : null
+  let hero = selMatch != null ? selMatch : first(all.filter(g => g.id == (cur == null ? "" : (cur.id ?? "")))) ?? first((extra ?? []).filter(g => g.state == "pre")) ?? first(all)
+  let curMatch = hero != null && cur != null && (cur.id ?? "") == (hero.id ?? "") ? cur : null
   let h = hero == null ? {} : (hero.home ?? {})
   let a = hero == null ? {} : (hero.away ?? {})
   let hAbbr = h.abbr ?? ""
@@ -28,8 +31,8 @@ app "Avant-match" {
   let aColor = hsl(hash(aAbbr) * 360, 0.65, 0.55)
   let hText = mix(hColor, foreground, 0.3)
   let aText = mix(aColor, foreground, 0.3)
-  let info = cur == null ? {} : (cur.info ?? {})
-  let odds = cur != null && cur.odds != null ? cur.odds : (hero == null ? null : hero.odds)
+  let info = curMatch == null ? {} : (curMatch.info ?? {})
+  let odds = curMatch != null && curMatch.odds != null ? curMatch.odds : (hero == null ? null : hero.odds)
   let leaguePool = values(groupBy(flatten([extra ?? [], get(hist ?? {}, league, [])]), g => g.id)).map(a => first(a))
   let pool = leaguePool
   let hGames = pool.filter(g => g.state == "post" && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => -g.at).take(10)
@@ -57,21 +60,21 @@ app "Avant-match" {
   let aRow = tb == null ? null : first((tb.teams ?? []).filter(t => t.abbr == aAbbr))
   let hPPG = hRow == null || (hRow.played ?? 0) == 0 ? "—" : fixed((hRow.pts ?? 0) / (hRow.played ?? 1), 2)
   let aPPG = aRow == null || (aRow.played ?? 0) == 0 ? "—" : fixed((aRow.pts ?? 0) / (aRow.played ?? 1), 2)
-  let h2h = cur == null ? null : (cur.h2h ?? null)
+  let h2h = curMatch == null ? null : (curMatch.h2h ?? null)
   let h2hList = h2h == null ? [] : (h2h.list ?? [])
   let h2hGoals = sum(h2hList.map(x => int(x.hs ?? 0) + int(x.a ?? 0)))
   let h2hAvg = count(h2hList) == 0 ? "—" : fixed(h2hGoals / count(h2hList), 1)
-  let news = (cur == null ? [] : (cur.news ?? [])).filter(n => contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(hName)) || contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(aName)))
-  let lineups = (cur == null ? [] : (cur.lineups ?? [])).filter(l => count(l.p ?? []) > 0)
-  let leaders = (cur == null ? [] : (cur.leaders ?? [])).filter(g => count((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "")) > 0)
-  let injuries = cur == null ? [] : (cur.injuries ?? [])
+  let news = (curMatch == null ? [] : (curMatch.news ?? [])).filter(n => contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(hName)) || contains(lower((n.h ?? "") + " " + (n.d ?? "")), lower(aName)))
+  let lineups = (curMatch == null ? [] : (curMatch.lineups ?? [])).filter(l => count(l.p ?? []) > 0)
+  let leaders = (curMatch == null ? [] : (curMatch.leaders ?? [])).filter(g => count((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "")) > 0)
+  let injuries = curMatch == null ? [] : (curMatch.injuries ?? [])
   let noVig = odds == null || odds.h == null || odds.d == null || odds.a == null ? null : { h: round(100 / odds.h / (1 / odds.h + 1 / odds.d + 1 / odds.a)), d: round(100 / odds.d / (1 / odds.h + 1 / odds.d + 1 / odds.a)), a: round(100 / odds.a / (1 / odds.h + 1 / odds.d + 1 / odds.a)) }
   let future = values(groupBy(flatten([leaguePool, nextup ?? []]), g => g.id)).map(a => first(a))
   let hNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && ((g.home.abbr ?? "") == hAbbr || (g.away.abbr ?? "") == hAbbr)).sortBy(g => g.at).take(5)
   let aNext = future.filter(g => g.state == "pre" && (hero == null ? "" : g.id) != (hero == null ? "" : hero.id) && ((g.home.abbr ?? "") == aAbbr || (g.away.abbr ?? "") == aAbbr)).sortBy(g => g.at).take(5)
   let verdict = hPts > aPts ? hName : aPts > hPts ? aName : ""
   let verdictColor = hPts > aPts ? hText : aPts > hPts ? aText : muted
-  let ageTxt = cur == null || cur.ts == null ? "" : (now - cur.ts < 60 ? "à l'instant" : fmtAgo(cur.ts, now))
+  let ageTxt = curMatch == null || curMatch.ts == null ? "" : (now - curMatch.ts < 60 ? "à l'instant" : fmtAgo(curMatch.ts, now))
   let score = (h.score ?? "0") + " – " + (a.score ?? "0")
   let stateLine = hero == null ? "" : hero.state == "in" ? "en direct · " + score : hero.state == "post" ? "terminé · " + score : "coup d'envoi dans " + fmtDuration(max(hero.at - now, 60))
   let moveH = odds == null || odds.ho == null || odds.h == null ? 0 : odds.h - odds.ho
@@ -147,7 +150,7 @@ app "Avant-match" {
     if hero == null { Text { text: "Aucun match à préparer."; style: muted } }
     else {
       Row { gap: 6; align: center
-        Text { text: cur != null && cur.ts != null ? "données " + ageTxt : ""; style: label; color: muted; weight: 1; maxLines: 1 }
+        Text { text: curMatch != null && curMatch.ts != null ? "données " + ageTxt : ""; style: label; color: muted; weight: 1; maxLines: 1 }
         Text { text: "actualiser"; color: accent; style: small; onTap: run("owl-send 20-my-matches.owl refresh") }
         Text { text: "copier"; color: accent; style: small; onTap: copy(hName + " – " + aName + " · " + fmtTime(hero.at, "EEE d/MM HH:mm") + " · " + league) }
       }
