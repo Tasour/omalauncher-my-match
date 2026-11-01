@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.5
+
+- forme et calendrier récupérés depuis l'historique complet : 5 avant et 5 après pour les deux équipes
+- un seul cadre coloré par carte équipe, logos nets
+- libellés explicites : points, sans encaisser, les 2 marquent, plus de 2,5 buts, pts/match, confrontations
+- prochains matchs affichés pour les deux équipes
+
 ## App avant-match — v5.18.4
 
 - bouton actualiser qui relance les sources du widget principal
