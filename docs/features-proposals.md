@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Classement complet — v5.22.2
+
+- classement dans Stats avec Place / Équipe / J / G / N / P / DB / Pts / Forme
+- logos via les données de classement ou le cache équipes, initiales en dernier recours
+- forme sur cinq résultats, titre de compétition nettoyé
+
 ## Lisibilité avant-match — v5.21.2
 
 - « sans encaisser », « les 2 marquent » et « plus de 2,5 buts » sur des lignes séparées
