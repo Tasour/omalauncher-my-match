@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.20.0' in text
+          "S.apropos" in text and 'copy("my-match v5.20.1' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -269,7 +269,7 @@ def main():
 
     # Cup brackets: national cups and knockout fallback.
     check("CDF bracket data", '"fra.coupe_de_france"' in text and "stage: (.season.slug" in text and text.count("stage: (.season.slug") >= 5)
-    check("CDF bracket view", "let cupStages=" in text and "for st in cupStages" in text and "S.bracket" in text)
+    check("CDF bracket view", "let cupPreRounds=" in text and "for st in cupPreRounds" in text and "Bracket{games:cupBracketGames}" in text)
     check("UCL bracket fallback", "knockAll=values(groupBy(flatten([knock.out??[],all.filter" in text and 'cupRoundIds.any(r=>r==(g.stage??""))' in text)
     check("CDF round labels", '"round-of-64":"32es de finale"' in text and '"round-of-32":"16es de finale"' in text)
 

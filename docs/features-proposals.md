@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Arbre dans Mes matchs — v5.20.1
+
+- même arbre Canvas 8es → finale pour la coupe suivie dans « Mes matchs »
+- tours antérieurs conservés en liste
+- composant Bracket réutilisable pour l'Europe et les coupes nationales
+
 ## Arbre de tournoi — v5.20.0
 
 - à partir des 8es : colonnes 8es / quarts / demies / finale avec lignes de liaison
