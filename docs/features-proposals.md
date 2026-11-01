@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.6
+
+- compte à rebours avant le coup d'envoi
+- score et mention « en direct » / « terminé » selon l'état
+- mouvement des cotes ouverture → fermeture
+
 ## App avant-match — v5.18.5
 
 - forme et calendrier récupérés depuis l'historique complet : 5 avant et 5 après pour les deux équipes

@@ -1,6 +1,6 @@
-# Mesures v5.18.5 — plan reproductible et état des preuves
+# Mesures v5.18.6 — plan reproductible et état des preuves
 
-> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; app avant-match en **v5.18.5** (5 avant/après, cadres uniques, libellés clairs).
+> Lot audit v5.10.0 (I01–I10) + backlog I11–I33 ; app avant-match en **v5.18.6** (compte à rebours, direct, mouvement des cotes).
 
 Audit **I33 / ENERGY-03**. Widget `my-match` **v5.10.0**.
 Rédigé le **2026-10-30**. Références : `docs/measurements-2026-10-25.md`
