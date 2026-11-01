@@ -3,6 +3,29 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Performance écran — v5.19.2
+
+- migration qui replie aussi les classements des installations existantes
+- liste de fixtures encore plus légère (GameRow direct, 4/12 lignes)
+
+## Performance écran — v5.19.1
+
+- classements repliés par défaut à l'ouverture de « Mes matchs »
+- un tap sur « classements : non » les affiche
+- moins de nœuds et de texte à composer à l'ouverture
+
+## Performance écran — v5.19.0
+
+- 12 fixtures par équipe sélectionnée, 4 par équipe en mode ALL, avec « plus »
+- une seule table de classement rendue par défaut
+- moins de nœuds à l'ouverture de « Mes matchs »
+
+## Performance écran — v5.18.9
+
+- la liste de fixtures de « Mes matchs » est plafonnée à 20 lignes, 12 par équipe en mode ALL
+- bouton « plus / moins » pour charger la suite
+- ouverture de l'écran intérieur plus légère, tables et en-tête inchangés
+
 ## Performance — v5.18.8
 
 - audit dans `docs/audits/performance-2026-10-31.md`

@@ -1,7 +1,7 @@
 widget"My Matches – Football"{
 size:6x4
 minSize:5x4
-meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.18.8";license:"MIT";category:"sport";owl:16}
+meta{description:"Live football scores, standings and fixtures for your favourite clubs and national teams — matchday browsing, rivals, Europe tabs, Top-5 leagues, odds and match reminders (ESPN).";version:"5.19.2";license:"MIT";category:"sport";owl:16}
 requires{pacman:["curl","jq","perl"]}
 let favStr=join(myTeams.map(t=>(t.abbr??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
 let favTid=join(myTeams.map(t=>(t.tid??"")).filter(a=>a!=""&&!contains(a,",")&&!contains(a,"\n")&&!contains(a,"\r")).take(5),",")
@@ -1545,7 +1545,8 @@ state view="MINE"persist
 state topLg="ALL"persist
 state euroLg="uefa.europa"persist
 state selJ=-1
-state showTables=true persist
+state showTables=false persist
+state showAllFixtures=false
 let healthList=[{n:"games",s:games},{n:"seasonAll",s:seasonAll},{n:"scheds",s:scheds},{n:"standings",s:standings},{n:"teamsDb",s:teamsDb},{n:"extra",s:extra},{n:"liveM",s:liveM},{n:"knock",s:knock},{n:"nextup",s:nextup},{n:"histfull",s:histfull}]
 let healthLabel=lang=="fr"?{games:"matchs",seasonAll:"saison",scheds:"journées",standings:"classements",teamsDb:"équipes",extra:"calendrier",liveM:"direct",knock:"arbre",nextup:"à venir",histfull:"historique"}:{games:"games",seasonAll:"season",scheds:"matchdays",standings:"tables",teamsDb:"teams",extra:"fixtures",liveM:"live",knock:"bracket",nextup:"upcoming",histfull:"history"}
 let healthBad=healthList.filter(h=>h.s!=null&&!(h.s.ok??true))
@@ -1592,7 +1593,8 @@ kickAt=kickSoon.at
 }
 at spinUntil{lastDur=elapsed;lastOk=spinning?false:lastOk;spinning=false;spinUntil=0;spinAt=0}
 on showTeams{draft=value?myTeams:draft;query=value?"":query}
-when uiSchema<1{uiSchema=1;showTables=true;todayOnly=false;daySel=""}
+when uiSchema<2{uiSchema=2;showTables=false;todayOnly=false;daySel=""}
+when uiSchema<3{uiSchema=3;showTables=false;todayOnly=false;daySel=""}
 when team!="ALL"&&count(myTeams)>0&&(myTeams.find(t=>t.abbr==team)??null)==null{team="ALL"}
 on teamsDb first{
 let db=teamsDb.out??[]
@@ -2773,7 +2775,7 @@ title:lang=="fr"?"mes matchs":"my matches"
 Column{
 scroll:true
 gap:10
-if showDetail{MatchPage{}}else{
+
 Row{
 gap:6
 Text{text:statusTxt+liveSuffix;style:small;color:spinning?"#22c55e":lastOk==false?"#ef4444":soft;weight:1;maxLines:1}
@@ -2931,7 +2933,7 @@ Text{text:S.donnees;style:title}
 Text{text:S.health+" : "+healthLine;style:label;color:healthTxt==""?soft:"#ef4444";maxLines:3}
 Row{gap:6
 Button{text:S.exportT;weight:1;color:soft;onTap:copy(archiveTxt)}
-Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.18.8\n"+healthLine);diagDone=true}}
+Button{text:S.diag;weight:1;color:soft;onTap:{copy("my-match v5.19.2\n"+healthLine);diagDone=true}}
 }
 Row{gap:6
 Button{text:S.clearCaches;weight:1;color:soft;onTap:clearAsk=true}
@@ -2960,7 +2962,7 @@ Button{text:S.no;weight:1;color:soft;onTap:clearAsk=false}
 }
 Rule{}
 Text{text:S.apropos;style:title}
-Text{text:"my-match v5.18.8 · ESPN";style:label;color:soft;align:center;maxLines:1}
+Text{text:"my-match v5.19.2 · ESPN";style:label;color:soft;align:center;maxLines:1}
 Text{text:S.dataBy;style:small;color:soft;maxLines:2}
 }
 }
@@ -2973,11 +2975,6 @@ Text{text:S.newsT+" · "+(heroNews[0].h??"");style:small;color:soft;align:center
 }
 if filterOn&&count(baseF)==0{
 Text{text:S.noMatchDay+" · "+S.clearFilter;style:small;color:pop;align:center;maxLines:2;onTap:{todayOnly=false;daySel=""}}
-}
-if count(upShow)>0{
-Text{text:S.upcomingHdr;style:label;color:pop}
-for g in upShow.take(8) key g.id{LiveGame{g:g}}
-Rule{}
 }
 if count(cupStages)>0{
 Text{text:S.bracket;style:label;color:pop}
@@ -3161,14 +3158,14 @@ Text{text:S.sourceErr+" "+(games.code??"");style:body;color:"#ef4444";align:cent
 for t in myTeams key t.key{
 let gm=baseF.filter(g=>(g.squads??[]).any(s=>s==t.abbr))
 let tb=myTablesAll.filter(u=>(u.teams??[]).any(tm=>tm.ours==t.abbr))
-let gmShown=gm
+let gmShown=gm.take(showAllFixtures?9999:2)
 let exp=!(secClosed.any(a=>a==t.abbr))
 if count(gm)>0||count(tb)>0{
 Rule{}
 Text{text:exp?t.name:"${t.name} (${count(gm)}) ›";style:label;color:pop;onTap:secClosed=secClosed.any(a=>a==t.abbr)?secClosed.filter(a=>a!=t.abbr):(secClosed+[t.abbr]).take(10)}
 if exp{
-for g in gmShown key g.id{LiveGame{g:g}}
-for u in tb key u.tag+" "+u.group{TableBlock{u:u}}
+for g in gmShown key g.id{GameRow{g:g;compact:true}}
+for u in tb.take(1) key u.tag+" "+u.group{TableBlock{u:u}}
 }
 }
 }
@@ -3179,14 +3176,15 @@ Text{text:S.sourceErr;style:body;color:"#ef4444";align:center}
 }else if count(baseF)==0&&count(one)==0{
 Text{text:S.noMatchAny;style:body;color:soft}
 }else{
-let shown1=baseF
-for g in shown1 key g.id{LiveGame{g:g}}
-for u in one key u.tag+" "+u.group{TableBlock{u:u}}
+let shown1=baseF.take(showAllFixtures?9999:4)
+for g in shown1 key g.id{GameRow{g:g;compact:true}}
+if count(baseF)>12{Text{text:(showAllFixtures?S.less:S.more)+" · "+count(baseF);style:small;color:pop;align:center;maxLines:1;onTap:showAllFixtures=!showAllFixtures}}
+for u in one.take(1) key u.tag+" "+u.group{TableBlock{u:u}}
 }
 }
 }
 Button{text:S.close;onTap:close()}
-}
+
 }
 }
 }

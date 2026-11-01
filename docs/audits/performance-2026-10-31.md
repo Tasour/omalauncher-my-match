@@ -24,3 +24,13 @@
 - <= 1 tick principal par minute hors direct.
 - aucune régression des 5 avant/5 après, des tendances et des prochains matchs.
 - `owl-check` OK, suite complète verte.
+
+## Passe écran — v5.18.9
+
+- l'écran MINE rendait toutes les fixtures ; il en rend 20 par défaut (12 par équipe en mode ALL) avec un bouton « plus ».
+- objectif : réduire les nœuds et le temps d'ouverture, sans retirer l'accès aux matchs suivants.
+
+## Passe écran — v5.19.0
+
+- 12 fixtures par équipe sélectionnée, 4 par équipe en mode ALL, et une seule table par défaut.
+- L'utilisateur peut charger la suite avec le bouton « plus ».

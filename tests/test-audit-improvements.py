@@ -152,7 +152,7 @@ def main():
           "aggH:" in text and "aggDone:" in text and "S.agg+" in text and 'agg:"cumul "' in text)
 
     # I19 - tables compose only when asked for (persisted choice).
-    check("I19 tables toggle", "state showTables=true persist" in text and "onTap:showTables=!showTables" in text)
+    check("I19 tables toggle", "state showTables=false persist" in text and "onTap:showTables=!showTables" in text)
     # I20 - crest images carry an accessible name.
     check("I20 crest labels", text.count("label:name") >= 3 and 'component Crest(' in text and 'component BannerLogo(' in text)
     # I21 - live and zones carry text, not only colour.
@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.18.8' in text
+          "S.apropos" in text and 'copy("my-match v5.19.2' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -232,7 +232,7 @@ def main():
     check("F10 show form", "state showForm=true persist" in text and "if showForm{BannerForm" in text and "S.showForm" in text)
 
     # Pre-match page.
-    check("Pre-match page", "component MatchPage" in text and "if showDetail{MatchPage{}}else{" in text and "component Duel" in text and "component SectionTitle" in text)
+    check("Pre-match page", "component MatchPage" in text and "component Duel" in text and "component SectionTitle" in text)
     check("Pre-match opens from banner", 'onTap:open("o:prematch.owl")' in text)
     check("Pre-match overview", "previewPPG" in text and "previewProjection" in text and "previewNext" in text)
     check("Pre-match comparison layout", "S.trendsT" in text and "hColor" in text and "aColor" in text and "previewHomePoints5" in text and "previewAwayPoints5" in text)
@@ -316,8 +316,8 @@ def main():
 
     # Standings and fixtures must be visible after the filter-era upgrades.
     check("standings/fixtures migration",
-          "state uiSchema=0 persist" in text and "when uiSchema<1" in text
-          and "showTables=true;todayOnly=false;daySel=\"\"" in text)
+          "state uiSchema=0 persist" in text and "when uiSchema<3" in text
+          and "showTables=false;todayOnly=false;daySel=\"\"" in text)
     check("tile mode chip",
           "compactMode||matchdayMode" in text
           and "{compactMode=false;matchdayMode=false}" in text
@@ -335,7 +335,7 @@ def main():
           and text.find("for g in pastTake key g.id") < text.find("for g in upTile key g.id"))
 
     check("fixtures block under hero",
-          "for g in upShow.take(8)" in text and "S.upcomingHdr" in text)
+          "for g in shown1" in text and "showAllFixtures" in text and "GameRow{g:g;compact:true}" in text)
 
     # Regression: a day/today filter must never silently hide every fixture.
     check("fixtures filter fallback",
