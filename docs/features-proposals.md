@@ -3,6 +3,12 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Arbres repliés et complets — v5.21.0
+
+- arbre replié par défaut, bouton afficher/masquer
+- les matchs du tour viennent du cache complet, plus seulement du club suivi
+- si les 8es manquent, l'arbre commence aux quarts avec les bons libellés
+
 ## Arbre dans Mes matchs — v5.20.1
 
 - même arbre Canvas 8es → finale pour la coupe suivie dans « Mes matchs »
