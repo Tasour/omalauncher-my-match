@@ -1,5 +1,5 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.17"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.18"; license: "MIT"; category: "sport"; owl: 16 }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
@@ -12,6 +12,7 @@ app "Avant-match" {
   source nextup = file("~/.cache/espn-nextup.json") json
   source hist = cmd("cat ~/.cache/espn-history.json") every 6h json
   source tables = file("~/.cache/espn-standings.json") json
+  source colors = file("~/.cache/espn-logos/colors.json") json
   source teams = file("~/.cache/espn-teams.json") json
 
   let all = flatten([games ?? [], extra ?? []])
@@ -27,8 +28,16 @@ app "Avant-match" {
   let hLogo = h.logo ?? ""
   let aLogo = a.logo ?? ""
   let league = hero == null ? "" : (hero.league ?? "")
-  let hColor = hsl(hash(hAbbr) * 360, 0.65, 0.55)
-  let aColor = hsl(hash(aAbbr) * 360, 0.65, 0.55)
+  let hp = colors == null ? null : get(colors, hLogo, null)
+  let ap = colors == null ? null : get(colors, aLogo, null)
+  let hHash = hsl(hash(hAbbr) * 360, 0.65, 0.55)
+  let aHash = hsl(hash(aAbbr) * 360, 0.65, 0.55)
+  let hHue = hp == null ? hash(hAbbr) * 360 : hp.h
+  let aHue = ap == null ? hash(aAbbr) * 360 : ap.h
+  let aPrimary = ap == null ? aHash : ap.c
+  let aSecondary = ap == null ? "#f59e0b" : (ap.c2 ?? "#f59e0b")
+  let hColor = hp == null ? hHash : hp.c
+  let aColor = abs(aHue - hHue) >= 55 ? aPrimary : (ap != null && abs((ap.h2 ?? aHue) - hHue) >= 55 ? aSecondary : (hHue >= 180 ? "#f59e0b" : "#38bdf8"))
   let hText = mix(hColor, foreground, 0.3)
   let aText = mix(aColor, foreground, 0.3)
   let info = curMatch == null ? {} : (curMatch.info ?? {})
