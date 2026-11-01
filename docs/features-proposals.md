@@ -3,6 +3,13 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## App avant-match — v5.18.4
+
+- bouton actualiser qui relance les sources du widget principal
+- onglets inactifs plus contrastés
+- cotes et totaux avec virgule décimale française
+- horloge de fraîcheur ralentie à 5 min
+
 ## App avant-match — v5.18.3
 
 - cartes équipes compactes, sans vide sous les noms
