@@ -3,6 +3,54 @@
 Catalogue proposé le 2026-10-30. Les lignes **Fait** sont implémentées et
 poussées ; les autres attendent une décision.
 
+## Handoff avant-match — v5.22.9
+
+- le bandeau écrit le match dans le fichier **et** pose l’état `handoff` de l’app déjà ouverte
+- l’app préfère ce handoff au fichier, puis retombe sur le fichier au démarrage à froid
+- corrige l’affichage d’un ancien match quand l’app était encore en mémoire
+- app `1.0.23`
+
+## Trajectoire xG — v5.22.8
+
+- remplace les deux courbes xG/xGA par une trajectoire de 20 matchs, lissée sur 5
+- trait plein réel `G − encaissés`, pointillé attendu `xG − xGA`, axe symétrique autour de zéro
+- rubans vert/rouge entre les courbes, marqueurs de croisement et badge de signal
+- lecture guidée : position, pente, écart réel/attendu, croisement, limites
+- source Understat pour les 20 matchs des cinq grands championnats ; Football-Data en secours
+- sélection de l’équipe dans le graphique, synthèse comparée des deux équipes
+- réflexion complète et sources dans `docs/trajectory-xg-2026-11-01.md`
+- app `1.0.22`
+
+## Graphes xG avancés — v5.22.7
+
+- nouvel onglet Analyse dans l’app avant-match : rolling xG/xGA/xGD/xPts sur 5 matchs
+- deux courbes xG vs xGA par équipe, séries glissantes alignées sur les 10 derniers matchs
+- barres xGD par match, radar de percentiles et carte attaque/défense avec les deux équipes mises en avant
+- calculs JavaScript dans `scripts/fd-analysis.js`, cache `~/.cache/espn-fd-analysis.json`
+- percentile dans le championnat, tendance xGD et lecture rapide des volumes de tirs
+- app `1.0.21`
+
+## xG Football-Data — v5.22.6
+
+- source gratuite Football-Data.co.uk synchronisée toutes les 12 h pour les cinq grands championnats et la Ligue 2
+- xG, xGA et xPts sur les cinq derniers matchs, écart finition vs xG, provenance affichée
+- lecture par nom normalisé avec alias, jamais par abréviation ESPN (collisions MUN/MNC)
+- app `1.0.20`, cache `~/.cache/espn-fd.json` et script `scripts/fd-sync.py`
+
+## Couleurs des logos — v5.22.4
+
+- couleurs primaire et secondaire extraites des logos, contraste garanti sur le hero et les cartes
+- cache `~/.cache/espn-logos/colors.json` ; repli sur les couleurs par défaut
+
+## Sélection depuis Mes matchs — v5.22.3
+
+- un tap sur le bandeau ouvre l’app avant-match sur le match choisi
+- sélection transmise par `~/.cache/prematch-match.json` ; clé `o:prematch.owl`
+
+## Forme centrée — v5.22.5
+
+- lettres V/N/D centrées dans les carrés de forme de l’app avant-match
+
 ## Classement complet — v5.22.2
 
 - classement dans Stats avec Place / Équipe / J / G / N / P / DB / Pts / Forme

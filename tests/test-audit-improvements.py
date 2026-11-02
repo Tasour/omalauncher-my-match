@@ -182,7 +182,7 @@ def main():
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
-          "S.apropos" in text and 'copy("my-match v5.22.5' in text
+          "S.apropos" in text and 'copy("my-match v5.22.9' in text
           and 'run("rm -rf ~/.cache/espn-*")' in text and "state clearAsk=false" in text)
 
     # I30 - a development extractor dumps every embedded script.
@@ -242,7 +242,23 @@ def main():
     app_text = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
     check("Pre-match app exists", 'app "Avant-match"' in app_text and "source selected" in app_text and 'file("~/.cache/prematch-match.json")' in app_text)
     check("Pre-match app data", "let h2h" in app_text and "let lineups" in app_text and "let news" in app_text)
+    check("Pre-match handoff", "state handoff = null" in app_text
+          and "handoff.id" in app_text
+          and 'owl-send prematch.owl set handoff' in text)
 
+    # Football-Data xG source: script, cached source and app rendering.
+    fd_analysis_path = ROOT / "scripts" / "fd-analysis.js"
+    fd_analysis_text = fd_analysis_path.read_text(encoding="utf-8") if fd_analysis_path.exists() else ""
+    check("FD xG source", (ROOT / "scripts" / "fd-sync.py").exists()
+          and "fd-sync.py" in fd_analysis_text
+          and 'source fd = file("~/.cache/espn-fd.json") json' in app_text
+          and "fdxh.xg5" in app_text and "Football-Data.co.uk" in app_text)
+    check("FD advanced graphs", fd_analysis_path.exists()
+          and "fd-analysis.js" in app_text and "loadUnderstat" in fd_analysis_text
+          and 'source fa = file("~/.cache/espn-fd-analysis.json") json' in app_text
+          and "component Trajectory" in app_text and "component Radar" in app_text
+          and "component AttackMap" in app_text and "anCur.lastCross" in app_text
+          and "Understat" in app_text and "20 derniers matchs" in app_text)
     # Pre-match page: related news and published line-ups only.
     check("Pre-match related news", "let heroNews=" in text and "S.newsNone" in text)
     check("Pre-match lineups wait", "let heroLineups=" in text and "S.lineupsWait" in text)

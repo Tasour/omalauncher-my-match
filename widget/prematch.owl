@@ -1,8 +1,11 @@
 app "Avant-match" {
-  meta { description: "Comparaison avant-match : tendances, forme, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.19"; license: "MIT"; category: "sport"; owl: 16 }
+  meta { description: "Comparaison avant-match : tendances, forme, trajectoire xG, graphs, stats, H2H, cotes, compos, actus et voyage"; version: "1.0.23"; license: "MIT"; category: "sport"; owl: 16 }
+  requires { pacman: ["curl", "python"] }
   title: "Avant-match"
   icon: """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6"/><path d="M15 15l5 5M33 33l-5-5M33 15l-5 5M15 33l5-5"/></svg>"""
   state tab = "overview"
+  state anTeam = "h"
+  state handoff = null
 
   source now = clock every 5m
   source cur = file("~/.cache/espn-odds/current.json") json
@@ -13,10 +16,14 @@ app "Avant-match" {
   source hist = cmd("cat ~/.cache/espn-history.json") every 6h json
   source tables = file("~/.cache/espn-standings.json") json
   source colors = file("~/.cache/espn-logos/colors.json") json
+  source fd = file("~/.cache/espn-fd.json") json
+  source fa = file("~/.cache/espn-fd-analysis.json") json
+  source faSync = cmd("sh ~/.config/omalauncher/widgets/fd-analysis.sh") every 12h json timeout 120s
   source teams = file("~/.cache/espn-teams.json") json
 
   let all = flatten([games ?? [], extra ?? []])
-  let selMatch = selected != null && selected.id != null ? selected : null
+  let fileMatch = selected != null && selected.id != null ? selected : null
+  let selMatch = handoff != null && handoff.id != null ? handoff : fileMatch
   let hero = selMatch != null ? selMatch : first(all.filter(g => g.id == (cur == null ? "" : (cur.id ?? "")))) ?? first((extra ?? []).filter(g => g.state == "pre")) ?? first(all)
   let curMatch = hero != null && cur != null && (cur.id ?? "") == (hero.id ?? "") ? cur : null
   let h = hero == null ? {} : (hero.home ?? {})
@@ -32,6 +39,12 @@ app "Avant-match" {
   let ap = colors == null ? null : get(colors, aLogo, null)
   let hHash = hsl(hash(hAbbr) * 360, 0.65, 0.55)
   let aHash = hsl(hash(aAbbr) * 360, 0.65, 0.55)
+  let fdh = fd == null ? null : get((fd.by_name ?? {}), lower(hName), null)
+  let fda = fd == null ? null : get((fd.by_name ?? {}), lower(aName), null)
+  let fdhAbbr = fa == null ? null : get((fa.by_name ?? {}), lower(hName), null)
+  let fdaAbbr = fa == null ? null : get((fa.by_name ?? {}), lower(aName), null)
+  let fdhA = get((fa.teams ?? {}), fdhAbbr, null)
+  let fdaA = get((fa.teams ?? {}), fdaAbbr, null)
   let hHue = hp == null ? hash(hAbbr) * 360 : hp.h
   let aHue = ap == null ? hash(aAbbr) * 360 : ap.h
   let aPrimary = ap == null ? aHash : ap.c
@@ -40,6 +53,10 @@ app "Avant-match" {
   let aColor = abs(aHue - hHue) >= 55 ? aPrimary : (ap != null && abs((ap.h2 ?? aHue) - hHue) >= 55 ? aSecondary : (hHue >= 180 ? "#f59e0b" : "#38bdf8"))
   let hText = mix(hColor, foreground, 0.3)
   let aText = mix(aColor, foreground, 0.3)
+  let anCur = anTeam == "h" ? fdhA : fdaA
+  let anCol = anTeam == "h" ? hColor : aColor
+  let fdxh = fdhA ?? fdh
+  let fdxa = fdaA ?? fda
   let info = curMatch == null ? {} : (curMatch.info ?? {})
   let odds = curMatch != null && curMatch.odds != null ? curMatch.odds : (hero == null ? null : hero.odds)
   let leaguePool = values(groupBy(flatten([extra ?? [], get(hist ?? {}, league, [])]), g => g.id)).map(a => first(a))
@@ -128,9 +145,9 @@ app "Avant-match" {
   component Duel(label, hv, av, hc, ac) {
     Column { gap: 3
       Row { gap: 6; align: center
-        Text { text: str(hv); color: mix(hc, foreground, 0.3); bold: true; width: 86; align: end; maxLines: 1 }
+        Text { text: replace(str(hv), ".", ","); color: mix(hc, foreground, 0.3); bold: true; width: 86; align: end; maxLines: 1 }
         Text { text: label; style: small; color: muted; weight: 1; align: center; maxLines: 1 }
-        Text { text: str(av); color: mix(ac, foreground, 0.3); bold: true; width: 86; maxLines: 1 }
+        Text { text: replace(str(av), ".", ","); color: mix(ac, foreground, 0.3); bold: true; width: 86; maxLines: 1 }
       }
       Row { gap: 2; height: 7
         Box { weight: max(hv, 0.1); height: 7; radius: 3.5; background: alpha(hc, 0.85) }
@@ -143,6 +160,164 @@ app "Avant-match" {
       Box { weight: max(hv, 0.1); height: 9; radius: 4.5; background: hc }
       Box { weight: max(dv, 0.1); height: 9; radius: 4.5; background: muted }
       Box { weight: max(av, 0.1); height: 9; radius: 4.5; background: ac }
+    }
+  }
+  component SignalPill(t, tone) {
+    let c = tone == "bad" ? "#ef4444" : tone == "warn" ? "#f59e0b" : tone == "good" ? "#22c55e" : muted
+    Text { text: t; style: label; bold: true; color: c; padding: [6, 1]; radius: 5; background: alpha(c, 0.12); maxLines: 1 }
+  }
+  component Metric(label, value, color) {
+    Column { gap: 1; weight: 1
+      Text { text: label; style: label; color: muted; maxLines: 1 }
+      Text { text: value == null ? "—" : (value > 0 ? "+" : "") + replace(fixed(value, 2), ".", ","); style: small; bold: true; color: color; maxLines: 1 }
+    }
+  }
+  component Trajectory(an, color) {
+    Column { gap: 4
+      Row { gap: 6; align: center
+        Text { text: an.name; style: small; bold: true; color: color; weight: 1; maxLines: 1 }
+        SignalPill { t: an.signal; tone: an.tone }
+      }
+      Row { gap: 4
+        Metric { label: "Réel"; value: an.gd5; color: color }
+        Metric { label: "Attendu"; value: an.xgd5; color: mix(color, foreground, 0.55) }
+        Metric { label: "Écart"; value: an.gap5; color: an.gap5 >= 0 ? "#22c55e" : "#ef4444" }
+        Metric { label: "Tendance"; value: an.trendXgd; color: an.trendXgd == null ? muted : an.trendXgd >= 0 ? "#22c55e" : "#ef4444" }
+      }
+      Canvas {
+        fill: width
+        height: 246
+        let s = (an.rolls ?? []).take(20)
+        let n = count(s)
+        let padL = 27
+        let padR = 6
+        let padT = 12
+        let padB = 22
+        let cw = max(width - padL - padR, 20)
+        let ch = max(height - padT - padB, 20)
+        let vals = flatten([s.map(p => p.gd), s.map(p => p.xd)])
+        let vmin = reduce(vals, (m, v) => min(m, v), 0)
+        let vmax = reduce(vals, (m, v) => max(m, v), 0)
+        let span = max(max(abs(vmin), abs(vmax), 0.45), 0.45)
+        let zeroY = padT + span / (2 * span) * ch
+        let pG = s.map((p, i) => [padL + i * cw / max(n - 1, 1), padT + (span - p.gd) / (2 * span) * ch])
+        let pX = s.map((p, i) => [padL + i * cw / max(n - 1, 1), padT + (span - p.xd) / (2 * span) * ch])
+        if n == 0 { text("Pas de données", width / 2, height / 2, size: 10, align: center, color: muted) }
+        else {
+          for j in range(4) {
+            let v = span - span * j / 1.5
+            let yy = padT + (span - v) / (2 * span) * ch
+            line(padL, yy, padL + cw, yy, stroke: alpha(muted, 0.14), width: 1)
+            text((v > 0 ? "+" : "") + replace(fixed(v, 1), ".", ","), padL - 4, yy, size: 7, align: end, color: muted)
+          }
+          line(padL, zeroY, padL + cw, zeroY, stroke: alpha(foreground, 0.38), width: 1.2)
+          text("0", padL - 4, zeroY, size: 7, align: end, color: muted)
+          for i in range(n - 1) {
+            let g1 = s[i].gd - s[i].xd
+            let g2 = s[i + 1].gd - s[i + 1].xd
+            let same = (g1 >= 0 && g2 >= 0) || (g1 <= 0 && g2 <= 0)
+            if same { path([pG[i], pG[i + 1], pX[i + 1], pX[i]], closed: true, fill: alpha(g1 >= 0 ? "#22c55e" : "#ef4444", 0.07)) }
+          }
+          if count(pG) > 1 { path(pG, stroke: color, width: 2.6, cap: round) }
+          for i in range(n - 1) {
+            let x1 = pX[i][0]
+            let y1 = pX[i][1]
+            let x2 = pX[i + 1][0]
+            let y2 = pX[i + 1][1]
+            for k in range(5) {
+              if k % 2 == 0 { line(x1 + (x2 - x1) * k / 5, y1 + (y2 - y1) * k / 5, x1 + (x2 - x1) * (k + 1) / 5, y1 + (y2 - y1) * (k + 1) / 5, stroke: mix(color, foreground, 0.6), width: 1.7) }
+            }
+          }
+          for i in range(n) { circle(pG[i][0], pG[i][1], 1.8, fill: color) }
+          for i in range(n) { circle(pX[i][0], pX[i][1], 1.1, fill: mix(color, foreground, 0.6)) }
+          if an.lastCross != null {
+            let xx = padL + an.lastCross.i * cw / max(n - 1, 1)
+            line(xx, padT, xx, padT + ch, stroke: alpha(an.lastCross.dir == "down" ? "#ef4444" : "#22c55e", 0.45), width: 1)
+            text(an.lastCross.dir == "down" ? "▾" : "▴", xx, padT + 6, size: 9, align: center, color: an.lastCross.dir == "down" ? "#ef4444" : "#22c55e")
+          }
+          text(fmtTime(parseTime(first(s).d), "d/M"), padL, height - 5, size: 7, align: start, color: muted)
+          text(fmtTime(parseTime(s[floor((n - 1) / 2)].d), "d/M"), padL + cw / 2, height - 5, size: 7, align: center, color: muted)
+          text(fmtTime(parseTime(last(s).d), "d/M"), padL + cw, height - 5, size: 7, align: end, color: muted)
+        }
+      }
+      Row { gap: 10; align: center
+        Text { text: "— réel"; style: label; color: color; maxLines: 1 }
+        Text { text: "┄ attendu"; style: label; color: mix(color, foreground, 0.55); maxLines: 1 }
+        Text { text: "vert = au-dessus"; style: label; color: muted; maxLines: 1 }
+        Text { text: "rouge = en dessous"; style: label; color: muted; maxLines: 1 }
+      }
+      Text { text: "Source : " + an.src + " · " + an.seriesN + " matchs · fenêtre 5"; style: label; color: muted; maxLines: 1 }
+    }
+  }
+  component Radar(anH, anA, hc, ac) {
+    Column { gap: 3
+      Row { gap: 10; align: center
+        Text { text: anH.name; style: label; color: hc; weight: 1; maxLines: 1 }
+        Text { text: anA.name; style: label; color: ac; weight: 1; align: end; maxLines: 1 }
+      }
+      Canvas {
+        fill: width
+        height: 302
+        let labels = ["Att", "Déf", "Vol", "Préc", "Fin", "xPts"]
+        let hv = [anH.axes.att, anH.axes.def, anH.axes.vol, anH.axes.acc, anH.axes.fin, anH.axes.xpts]
+        let av = [anA.axes.att, anA.axes.def, anA.axes.vol, anA.axes.acc, anA.axes.fin, anA.axes.xpts]
+        let n = count(labels)
+        let cx = width / 2
+        let cy = height / 2 + 5
+        let r = min(width, height) / 2 - 40
+        let hp = hv.map((v, k) => [cx + cos(rad(-90 + k * 360 / n)) * r * clamp(v, 0, 100) / 100, cy + sin(rad(-90 + k * 360 / n)) * r * clamp(v, 0, 100) / 100])
+        let ap = av.map((v, k) => [cx + cos(rad(-90 + k * 360 / n)) * r * clamp(v, 0, 100) / 100, cy + sin(rad(-90 + k * 360 / n)) * r * clamp(v, 0, 100) / 100])
+        for l in [0.25, 0.5, 0.75, 1] {
+          let gp = range(n).map(k => [cx + cos(rad(-90 + k * 360 / n)) * r * l, cy + sin(rad(-90 + k * 360 / n)) * r * l])
+          path(gp, closed: true, stroke: alpha(muted, 0.22), width: 1)
+        }
+        for k in range(n) {
+          let a = rad(-90 + k * 360 / n)
+          line(cx, cy, cx + cos(a) * r, cy + sin(a) * r, stroke: alpha(muted, 0.22), width: 1)
+          text(labels[k], cx + cos(a) * (r + 18), cy + sin(a) * (r + 18), size: 8, align: center, color: muted)
+        }
+        path(hp, closed: true, fill: alpha(hc, 0.14), stroke: hc, width: 2)
+        path(ap, closed: true, fill: alpha(ac, 0.14), stroke: ac, width: 2)
+        for i in range(n) { circle(hp[i][0], hp[i][1], 2, fill: hc) }
+        for i in range(n) { circle(ap[i][0], ap[i][1], 2, fill: ac) }
+      }
+      Text { text: "Percentiles dans le championnat · Att attaque, Déf défense, Vol volume, Préc précision, Fin finition, xPts points attendus"; style: label; color: muted; align: center; maxLines: 2 }
+    }
+  }
+  component AttackMap(pts, mx, my, hAbbr, aAbbr, hc, ac) {
+    Column { gap: 3
+      Row { gap: 10; align: center
+        Text { text: "xG pour →"; style: label; color: muted; maxLines: 1 }
+        Text { text: hAbbr; style: label; color: hc; weight: 1; align: end; maxLines: 1 }
+        Text { text: aAbbr; style: label; color: ac; maxLines: 1 }
+      }
+      Canvas {
+        fill: width
+        height: 270
+        let padL = 27
+        let padR = 9
+        let padT = 12
+        let padB = 23
+        let cw = max(width - padL - padR, 20)
+        let ch = max(height - padT - padB, 20)
+        for j in range(4) {
+          let xx = padL + cw * j / 3
+          let yy = padT + ch * j / 3
+          line(xx, padT, xx, padT + ch, stroke: alpha(muted, 0.14), width: 1)
+          line(padL, yy, padL + cw, yy, stroke: alpha(muted, 0.14), width: 1)
+        }
+        line(padL + cw / 2, padT, padL + cw / 2, padT + ch, stroke: alpha(muted, 0.28), width: 1)
+        line(padL, padT + ch / 2, padL + cw, padT + ch / 2, stroke: alpha(muted, 0.28), width: 1)
+        for p in pts { circle(padL + p.x / mx * cw, padT + (my - p.y) / my * ch, 2, fill: alpha(muted, 0.42)) }
+        let hp = first(pts.filter(p => p.a == hAbbr))
+        let ap = first(pts.filter(p => p.a == aAbbr))
+        if hp != null { circle(padL + hp.x / mx * cw, padT + (my - hp.y) / my * ch, 5, fill: hc) text(hAbbr, padL + hp.x / mx * cw, padT + (my - hp.y) / my * ch - 10, size: 9, align: center, bold: true, color: hc) }
+        if ap != null { circle(padL + ap.x / mx * cw, padT + (my - ap.y) / my * ch, 5, fill: ac) text(aAbbr, padL + ap.x / mx * cw, padT + (my - ap.y) / my * ch - 10, size: 9, align: center, bold: true, color: ac) }
+        text("xGA ↑ = défense fragile", padL, padT - 3, size: 7, align: start, color: muted)
+        text("xG / match", padL + cw, height - 5, size: 7, align: end, color: muted)
+        text("Attaque faible", padL, padT + ch + 7, size: 7, align: start, color: muted)
+        text("Attaque forte", padL + cw, padT + ch + 7, size: 7, align: end, color: muted)
+      }
     }
   }
   component Fixture(g, team) {
@@ -181,9 +356,10 @@ app "Avant-match" {
       if verdict != "" { Text { text: "Forme à l'avantage de " + verdict; style: small; color: verdictColor; align: center; maxLines: 1 } }
       Text { text: "V = gagné · N = nul · D = perdu"; style: label; color: muted; align: center; maxLines: 1 }
       Row { gap: 6
-        Button { text: "Aperçu"; weight: 1; padding: 10; color: tab == "overview" ? accent : mix(muted, foreground, 0.45); onTap: tab = "overview" }
-        Button { text: "Stats"; weight: 1; padding: 10; color: tab == "stats" ? accent : mix(muted, foreground, 0.45); onTap: tab = "stats" }
-        Button { text: "Infos"; weight: 1; padding: 10; color: tab == "infos" ? accent : mix(muted, foreground, 0.45); onTap: tab = "infos" }
+        Button { text: "Aperçu"; weight: 1; padding: 8; color: tab == "overview" ? accent : mix(muted, foreground, 0.45); onTap: tab = "overview" }
+        Button { text: "Stats"; weight: 1; padding: 8; color: tab == "stats" ? accent : mix(muted, foreground, 0.45); onTap: tab = "stats" }
+        Button { text: "Analyse"; weight: 1; padding: 8; color: tab == "analyse" ? accent : mix(muted, foreground, 0.45); onTap: tab = "analyse" }
+        Button { text: "Infos"; weight: 1; padding: 8; color: tab == "infos" ? accent : mix(muted, foreground, 0.45); onTap: tab = "infos" }
       }
       if tab == "overview" {
         Column { gap: 10
@@ -193,6 +369,14 @@ app "Avant-match" {
           Duel { label: "Sans encaisser"; hv: hClean; av: aClean; hc: hColor; ac: aColor }
           Duel { label: "Les 2 marquent"; hv: hBtts; av: aBtts; hc: hColor; ac: aColor }
           Duel { label: "Plus de 2,5 buts"; hv: hOver; av: aOver; hc: hColor; ac: aColor }
+          if fdxh != null && fdxa != null {
+            Section { t: "Qualité des chances" }
+            Duel { label: "xG (5)"; hv: fdxh.xg5; av: fdxa.xg5; hc: hColor; ac: aColor }
+            Duel { label: "xGA (5)"; hv: fdxh.xga5; av: fdxa.xga5; hc: hColor; ac: aColor }
+            Duel { label: "xPts (5)"; hv: fdxh.xpts5; av: fdxa.xpts5; hc: hColor; ac: aColor }
+            Text { text: "Finition vs xG · " + hName + " " + replace(fixed(fdxh.fin5, 2), ".", ",") + " / " + aName + " " + replace(fixed(fdxa.fin5, 2), ".", ","); style: label; color: muted; align: center; maxLines: 2 }
+            Text { text: "xG " + (fdhA == null ? "Football-Data.co.uk" : "Understat") + " · " + min(fdxh.n, 5) + " matchs"; style: label; color: muted; align: center; maxLines: 1 }
+          }
           Section { t: "Contexte" }
           Row { gap: 6
             Column { weight: 1; gap: 1; padding: 8; radius: 8; background: alpha(hColor, 0.1) Text { text: hName; style: small; color: hText; bold: true; maxLines: 1 } Text { text: "#" + (hRow == null ? "—" : hRow.rank) + " · " + hPPG + " pts/match"; style: label; color: muted; maxLines: 1 } Text { text: "buts " + hGF + " / " + hGA; style: label; color: muted; maxLines: 1 } }
@@ -244,6 +428,48 @@ app "Avant-match" {
           else { Stack { hv: h2h.w; dv: h2h.d; av: h2h.l; hc: hColor; ac: aColor } Text { text: h2h.w + " gagnés · " + h2h.d + " nuls · " + h2h.l + " perdus · " + h2hGoals + " buts · " + replace(h2hAvg, ".", ",") + " / match"; style: small; color: muted; maxLines: 2 } for x in h2hList key x.d + x.hs { Text { text: x.d + " · " + x.hs + "–" + x.a + (x.w ? " ✓" : ""); style: label; color: muted; maxLines: 1 } } }
           if count(leaders) > 0 { Section { t: "Leaders" } for g in leaders key g.t + g.n { Text { text: g.t + " · " + join((g.l ?? []).filter(x => (x.n ?? "") != "" && (x.v ?? "") != "").map(x => x.n + " " + x.v), " · "); style: label; color: muted; maxLines: 2 } } }
           if count(injuries) > 0 { Section { t: "Blessures / suspendus" } for x in injuries key x.t + x.n { Text { text: x.t + " · " + (x.n ?? "") + (x.s == null ? "" : " · " + x.s); style: label; color: muted; maxLines: 1 } } }
+        }
+      }
+      if tab == "analyse" {
+        Column { gap: 10
+          if fdhA == null || fdaA == null {
+            Section { t: "Analyse avancée" }
+            Text { text: "Les séries xG arrivent avec la prochaine synchronisation."; style: small; color: muted; maxLines: 2 }
+            Text { text: "Lance actualiser dans quelques secondes."; style: label; color: muted; maxLines: 1 }
+          } else {
+            Section { t: "Trajectoire · " + anCur.seriesN + " matchs" }
+            Text { text: "Moyenne glissante sur 5 matchs · buts réels contre buts attendus · chaque point = après un match"; style: label; color: muted; align: center; maxLines: 2 }
+            Row { gap: 5
+              Button { text: hName; weight: 1; padding: 8; color: anTeam == "h" ? accent : mix(muted, foreground, 0.45); onTap: anTeam = "h" }
+              Button { text: aName; weight: 1; padding: 8; color: anTeam == "a" ? accent : mix(muted, foreground, 0.45); onTap: anTeam = "a" }
+            }
+            Trajectory { an: anCur; color: anCol }
+            Row { gap: 6
+              Column { weight: 1; gap: 2; padding: 8; radius: 8; background: alpha(hColor, 0.08)
+                Row { gap: 5; align: center Text { text: hName; style: label; bold: true; color: hText; weight: 1; maxLines: 1 } SignalPill { t: fdhA.signal; tone: fdhA.tone } }
+                Text { text: "Réel " + (fdhA.gd5 > 0 ? "+" : "") + replace(fixed(fdhA.gd5, 2), ".", ",") + " · xGD " + (fdhA.xgd5 > 0 ? "+" : "") + replace(fixed(fdhA.xgd5, 2), ".", ","); style: label; color: muted; maxLines: 2 }
+                Text { text: "Écart " + (fdhA.gap5 > 0 ? "+" : "") + replace(fixed(fdhA.gap5, 2), ".", ",") + " · tendance " + (fdhA.trendXgd == null ? "n/a" : (fdhA.trendXgd > 0 ? "+" : "") + replace(fixed(fdhA.trendXgd, 2), ".", ",")); style: label; color: muted; maxLines: 2 }
+              }
+              Column { weight: 1; gap: 2; padding: 8; radius: 8; background: alpha(aColor, 0.08)
+                Row { gap: 5; align: center Text { text: aName; style: label; bold: true; color: aText; weight: 1; maxLines: 1 } SignalPill { t: fdaA.signal; tone: fdaA.tone } }
+                Text { text: "Réel " + (fdaA.gd5 > 0 ? "+" : "") + replace(fixed(fdaA.gd5, 2), ".", ",") + " · xGD " + (fdaA.xgd5 > 0 ? "+" : "") + replace(fixed(fdaA.xgd5, 2), ".", ","); style: label; color: muted; maxLines: 2 }
+                Text { text: "Écart " + (fdaA.gap5 > 0 ? "+" : "") + replace(fixed(fdaA.gap5, 2), ".", ",") + " · tendance " + (fdaA.trendXgd == null ? "n/a" : (fdaA.trendXgd > 0 ? "+" : "") + replace(fixed(fdaA.trendXgd, 2), ".", ",")); style: label; color: muted; maxLines: 2 }
+              }
+            }
+            Section { t: "Comment lire" }
+            Text { text: "Trait plein = différence de buts réelle (G − encaissés). Trait pointillé = différence attendue (xG − xGA)."; style: small; color: foreground; maxLines: 3 }
+            Text { text: "Au-dessus de zéro, l'équipe domine. Le pointillé sous zéro est le signal de fond : elle concède plus de qualité qu'elle n'en crée."; style: small; color: muted; maxLines: 3 }
+            Text { text: "Le réel au-dessus de l'attendu = finition ou gardien en avance (souvent à confirmer). Le réel en dessous = résultats en retard sur le jeu."; style: small; color: muted; maxLines: 3 }
+            Text { text: "Un croisement seul ne prouve pas une crise. Deux courbes sous zéro, ou un réel qui décroche durablement sous l'attendu, sont les vrais signaux d'alerte."; style: small; color: muted; maxLines: 3 }
+            Section { t: "Lecture datée" }
+            Text { text: anCur.lastCross == null ? "Aucun croisement réel/attendu sur les 20 derniers matchs." : "Dernier croisement · " + fmtTime(parseTime(anCur.lastCross.d), "d MMM") + " · le réel est passé " + (anCur.lastCross.dir == "down" ? "sous l'attendu." : "au-dessus de l'attendu."); style: small; color: foreground; maxLines: 2 }
+            Text { text: anCur.lastZeroCross == null ? "xGD n'a pas changé de signe sur la période." : "xGD a changé de signe · " + fmtTime(parseTime(anCur.lastZeroCross.d), "d MMM") + " · " + (anCur.lastZeroCross.dir == "down" ? "passage sous zéro." : "retour au-dessus de zéro."); style: small; color: muted; maxLines: 2 }
+            Text { text: anCur.tone == "bad" ? "Alerte : réel et attendu sont négatifs. La crise n'est pas certaine, mais le signal est fort." : anCur.tone == "warn" ? "Vigilance : l'écart entre réel et attendu est négatif. Les résultats sont en retard sur le jeu." : anCur.tone == "good" ? "Signal favorable : les résultats soutiennent la performance attendue." : "Pas de signal fort : les deux courbes restent proches de leur niveau."; style: small; color: anCur.tone == "bad" ? "#ef4444" : anCur.tone == "warn" ? "#f59e0b" : anCur.tone == "good" ? "#22c55e" : muted; maxLines: 3 }
+            Section { t: "Aller plus loin" }
+            Radar { anH: fdhA; anA: fdaA; hc: hColor; ac: aColor }
+            AttackMap { pts: fa.scatter ?? []; mx: (fa.meta ?? {}).xgMax ?? 3.6; my: (fa.meta ?? {}).xgaMax ?? 3.2; hAbbr: hAbbr; aAbbr: aAbbr; hc: hColor; ac: aColor }
+            Text { text: "Radar et carte : percentiles et repères sur les 5 derniers matchs."; style: label; color: muted; align: center; maxLines: 2 }
+          }
         }
       }
       if tab == "infos" {

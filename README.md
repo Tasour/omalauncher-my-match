@@ -22,7 +22,7 @@ Audit de qualité, réécriture optimisée et mesures avant/après du widget **m
 - Audit multi-agents initial : [`docs/audit-my-match.html`](docs/audit-my-match.html) — rapports détaillés dans [`docs/audit/`](docs/audit/).
 - Audit multi-expert 360° v5.9.8 (28/10/2026) : [`docs/audit-multi-expert-my-matches-2026-10-28.html`](docs/audit-multi-expert-my-matches-2026-10-28.html) — 17 expertises, 66 constats, cycle en V, RTM, registre des features et de validation.
 - Mesures brutes : [`measurements/`](measurements/).
-- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.22.5).
+- Widget original et version optimisée : [`widget/my-match.owl`](widget/my-match.owl) (v5.7) et [`widget/my-match.optimized.owl`](widget/my-match.optimized.owl) (v5.22.9).
 
 ## Audits datés et traçabilité
 
@@ -78,6 +78,7 @@ tests/       fixtures ESPN, faux curl, garde-fous statiques
 - [x] N07 : forme H2H des 5 dernières confrontations dans la carte du prochain match
 - [x] 20 features F01–F20 : rappels intelligents, digests, matchday/compact, aujourd'hui, cotes/forme, partage, accent équipe, daltonien, révélation, préchargement, dédup, AET/PEN, calendrier, dernier H2H
 - [x] Fiche match : stade/arbitre, stats, temps forts, compositions, actus ESPN
+- [x] App avant-match 1.0.23 : handoff direct du match cliqué, trajectoire sur 20 matchs, réel vs xGD, lecture des croisements et radar/carte via `scripts/fd-analysis.js`
 - [x] Refonte ergonomique v5.14.0 : réglages en vue dédiée et sections, en-tête compact, libellés courts, lien Fiche dans la carte
 - [ ] N02–N24 : voir [`docs/features-proposals.md`](docs/features-proposals.md)
 - [ ] Mesures device v5.10.0 + test de décharge
@@ -92,7 +93,7 @@ Les scripts de mesure ne contiennent plus d'adresse LAN : ils lisent `OMA_BASE` 
 
 ## Données & attribution
 
-Les scores, classements, calendriers, cotes et écussons viennent de l'API publique **ESPN** (`site.api.espn.com`, `a.espncdn.com`). Le widget n'est ni affilié, ni sponsorisé, ni approuvé par ESPN : les données, logos et marques restent la propriété d'ESPN et de leurs ayants droit. Aucune donnée personnelle n'est envoyée ; seuls des caches publics sont conservés sous `~/.cache/espn-*`.
+Les scores, classements, calendriers, cotes et écussons viennent de l'API publique **ESPN** (`site.api.espn.com`, `a.espncdn.com`). Les xG détaillés viennent d'**Understat** quand disponibles, avec **Football-Data.co.uk** en secours pour la Ligue 2. Le widget n'est ni affilié, ni sponsorisé, ni approuvé par ESPN : les données, logos et marques restent la propriété d'ESPN et de leurs ayants droit. Aucune donnée personnelle n'est envoyée ; seuls des caches publics sont conservés sous `~/.cache/espn-*` et `~/.cache/understat/`.
 
 Détail des données stockées, absence d'affiliation, effacement (`rm -rf ~/.cache/espn-*`, réglages) et précautions d'usage : [`docs/data-notice.md`](docs/data-notice.md).
 

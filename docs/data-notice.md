@@ -12,6 +12,9 @@ pas les données ni les marques d'ESPN.
   `https://site.api.espn.com/apis/site/v2/sports/soccer/…`.
 - Les écussons et visuels d'équipes sont téléchargés depuis
   `https://a.espncdn.com/…` (logos servis via le combiner ESPN).
+- Les séries xG détaillées viennent d'**Understat**
+  (`https://understat.com`) quand elles couvrent le championnat, avec
+  **Football-Data.co.uk** en secours pour les divisions non couvertes.
 
 Le widget effectue uniquement des requêtes HTTP `GET` vers ces deux hôtes. Il
 n'envoie **aucune donnée personnelle** : pas de compte, pas d'identifiant, pas
@@ -66,6 +69,8 @@ Les réponses ESPN et les visuels sont mis en cache sous `~/.cache/` :
 - `~/.cache/espn-live-index.json`, `~/.cache/espn-live.json` : index du direct ;
 - `~/.cache/espn-odds/` : cotes mises en cache ;
 - `~/.cache/espn-logos/` : écussons téléchargés, sprite et fichier vide ;
+- `~/.cache/espn-fd.json`, `~/.cache/espn-fd-analysis.json` et
+  `~/.cache/understat/` : xG et séries glissantes Understat/Football-Data ;
 - fichiers annexes `*.json.meta`, `*.sig` : horodatage, schéma et empreinte de
   validité des caches.
 
@@ -75,7 +80,7 @@ supprimés sans perte : le widget les reconstruira au prochain rafraîchissement
 
 ## Effacer les données locales
 
-- **Caches** : `rm -rf ~/.cache/espn-*`
+- **Caches** : `rm -rf ~/.cache/espn-* ~/.cache/understat`
 - **Réglages et équipes suivies** : modifier ou retirer les équipes via
   « mes équipes », réinitialiser les réglages du widget, ou supprimer puis
   recréer la tuile (l'état persistant repart alors de zéro).
