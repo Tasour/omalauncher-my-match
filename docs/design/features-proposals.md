@@ -18,10 +18,12 @@ poussées ; les autres attendent une décision.
 - lecture guidée : position, pente, écart réel/attendu, croisement, limites
 - source Understat pour les 20 matchs des cinq grands championnats ; Football-Data en secours
 - sélection de l’équipe dans le graphique, synthèse comparée des deux équipes
-- réflexion complète et sources dans `docs/trajectory-xg-2026-11-01.md`
+- réflexion complète et sources dans `trajectory-xg-2026-11-01.md`
 - app `1.0.22`
 
 ## Graphes xG avancés — v5.22.7
+
+> Remplacé par la trajectoire 20 matchs de la v5.22.8.
 
 - nouvel onglet Analyse dans l’app avant-match : rolling xG/xGA/xGD/xPts sur 5 matchs
 - deux courbes xG vs xGA par équipe, séries glissantes alignées sur les 10 derniers matchs
@@ -111,7 +113,7 @@ poussées ; les autres attendent une décision.
 
 ## Performance — v5.18.8
 
-- audit dans `docs/audits/performance-2026-10-31.md`
+- audit dans `../audits/performance-2026-10-31.md`
 - historique avant-match toutes les 6 h, limité au championnat
 - horloge principale à 1 min ; cutoffs et calendrier sur l'horloge horaire
 - calculs de rang inutilisés supprimés
@@ -173,7 +175,7 @@ poussées ; les autres attendent une décision.
 
 ## Audit avant-match — v5.17.3
 
-- audits UX, accessibilité et data documentés dans `docs/audits/prematch-2026-10-31.md`
+- audits UX, accessibilité et data documentés dans `../audits/prematch-2026-10-31.md`
 - projection trompeuse remplacée par les points réels
 - leaders vides masqués ; actus filtrées sur les noms complets des deux équipes
 - refonte en onglets/hero compact et corrections de barres zéro planifiées

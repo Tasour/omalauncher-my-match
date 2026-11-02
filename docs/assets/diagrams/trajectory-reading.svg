@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">How to read the 20-match xG trajectory</title>
+  <desc id="desc">A schematic of actual goal difference and expected goal difference over 20 matches, with the four reading rules.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7ee787"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="620" rx="24" fill="#08111d"/>
+  <text x="48" y="52" fill="#e6edf3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Read the trajectory, not the last scoreline</text>
+  <text x="48" y="78" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13">Rolling mean over 5 matches, plotted after each of the last 20 matches.</text>
+
+  <rect x="48" y="108" width="720" height="430" rx="16" fill="#0c1621" stroke="#294052"/>
+  <text x="72" y="140" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1.3">GOAL DIFFERENCE PER MATCH</text>
+
+  <line x1="100" y1="170" x2="100" y2="490" stroke="#31475b" stroke-width="1"/>
+  <line x1="100" y1="330" x2="730" y2="330" stroke="#7c8c9c" stroke-width="1.2"/>
+  <line x1="100" y1="490" x2="730" y2="490" stroke="#31475b" stroke-width="1"/>
+  <text x="82" y="175" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" text-anchor="end">+2</text>
+  <text x="82" y="334" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" text-anchor="end">0</text>
+  <text x="82" y="494" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" text-anchor="end">−2</text>
+
+  <path d="M100 462 L144 334 L188 326 L232 348 L276 330 L320 302 L364 376 L408 392 L452 408 L496 372 L540 354 L584 380 L628 304 L672 286 L716 272"
+        fill="none" stroke="#79c0ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 484 L144 360 L188 342 L232 310 L276 316 L320 290 L364 354 L408 370 L452 386 L496 350 L540 332 L584 358 L628 286 L672 264 L716 252"
+        fill="none" stroke="#f0f6fc" stroke-width="2.5" stroke-dasharray="12 10" stroke-linecap="round"/>
+
+  <line x1="628" y1="252" x2="628" y2="490" stroke="#7ee787" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="628" y="242" fill="#7ee787" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" text-anchor="middle">crossing</text>
+
+  <text x="100" y="530" fill="#79c0ff" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">— actual GD (G − conceded)</text>
+  <text x="310" y="530" fill="#f0f6fc" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">--- expected xGD (xG − xGA)</text>
+
+  <rect x="800" y="108" width="352" height="430" rx="16" fill="#0c1621" stroke="#294052"/>
+  <text x="826" y="144" fill="#ffa657" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.3">FOUR QUESTIONS</text>
+
+  <rect x="826" y="166" width="300" height="78" rx="10" fill="#111e2b" stroke="#2a4052"/>
+  <text x="844" y="191" fill="#e6edf3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">1 · Position</text>
+  <text x="844" y="212" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Above zero: the team dominates.</text>
+  <text x="844" y="230" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Below zero: it is being outplayed.</text>
+
+  <rect x="826" y="258" width="300" height="78" rx="10" fill="#111e2b" stroke="#2a4052"/>
+  <text x="844" y="283" fill="#e6edf3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">2 · Slope</text>
+  <text x="844" y="304" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Rising: form is improving.</text>
+  <text x="844" y="322" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Falling: warning, not a verdict.</text>
+
+  <rect x="826" y="350" width="300" height="78" rx="10" fill="#111e2b" stroke="#2a4052"/>
+  <text x="844" y="375" fill="#e6edf3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">3 · Gap</text>
+  <text x="844" y="396" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Actual above expected: finishing/keeper</text>
+  <text x="844" y="414" fill="#9eb1c1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">is ahead, often due to regress.</text>
+
+  <rect x="826" y="442" width="300" height="78" rx="10" fill="#2a1e10" stroke="#6f5221"/>
+  <text x="844" y="467" fill="#ffd18a" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">4 · Crossings</text>
+  <text x="844" y="488" fill="#d8b77c" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">A crossing is a regime change.</text>
+  <text x="844" y="506" fill="#d8b77c" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11">Crisis needs both lines below zero.</text>
+
+  <text x="48" y="582" fill="#8fa2b5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">Short windows are noisy: 5 matches are a signal, not proof. Schedule, cards and penalties still sit outside the model.</text>
+</svg>

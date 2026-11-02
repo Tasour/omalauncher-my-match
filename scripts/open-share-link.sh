@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Ouvre un lien de partage dans Omalauncher sur le téléphone (ADB).
-# Usage: ./scripts/open-share-link.sh "$(./scripts/encode-share-link.py widget/my-match.owl)"
+# Usage: ./scripts/open-share-link.sh "$(./scripts/encode-share-link.py widget/my-match.optimized.owl)"
 set -euo pipefail
 LINK=${1:?usage: $0 '<share link>'}
 adb get-state >/dev/null 2>&1 || { echo "ADB indisponible" >&2; exit 1; }

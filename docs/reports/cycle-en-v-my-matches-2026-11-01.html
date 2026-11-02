@@ -1,0 +1,1746 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Matches — Cycle en V complet (v5.22.8 / app 1.0.22)</title>
+<style>
+  :root{
+    --bg:#080d13; --bg2:#0c131b; --panel:#111a23; --panel2:#16212c; --panel3:#1b2835;
+    --line:#293746; --line2:#35475a; --text:#d9e3ed; --muted:#8fa2b5; --soft:#6f8499;
+    --accent:#7ee787; --accent2:#79c0ff; --accent3:#ffa657; --danger:#ff7b72;
+    --ok:#3fb950; --warn:#d29922; --prop:#a371f7; --shadow:0 12px 40px rgba(0,0,0,.38);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:radial-gradient(1100px 600px at 15% -10%,#12202c 0%,transparent 55%),var(--bg);color:var(--text);font:15px/1.62 var(--sans)}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd,pre{font-family:var(--mono)}
+  code{font-size:.9em;background:#0b141c;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#c9d8e6}
+  pre{margin:10px 0;background:#070c11;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;font-size:12.5px;line-height:1.55}
+  pre code{background:none;border:0;padding:0}
+  .wrap{max-width:1340px;margin:0 auto;padding:30px 22px 80px}
+  .hero{border:1px solid var(--line);background:linear-gradient(155deg,#101b25 0%,#0a1118 62%);border-radius:20px;padding:34px 32px 30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero:before{content:"";position:absolute;inset:-40% -10% auto auto;width:520px;height:520px;background:radial-gradient(circle,rgba(126,231,135,.10),transparent 62%);pointer-events:none}
+  .kicker{letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:var(--muted);font-weight:700}
+  h1{font-size:clamp(26px,4vw,40px);line-height:1.12;margin:8px 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:15px;max-width:900px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .badge{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#0c151d;color:var(--muted)}
+  .badge.ok{border-color:#1f4d2b;color:var(--ok);background:#0d1a12}
+  .badge.info{border-color:#1f3a57;color:var(--accent2);background:#0c1722}
+  .badge.warn{border-color:#5a4318;color:var(--warn);background:#1a150b}
+  .badge.prop{border-color:#3d2a5c;color:var(--prop);background:#151020}
+  .hero-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--soft)}
+  .hero-meta b{color:var(--text);font-weight:600}
+  .layout{display:grid;grid-template-columns:286px minmax(0,1fr);gap:30px;margin-top:28px}
+  nav.toc{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;border:1px solid var(--line);background:rgba(17,26,35,.72);backdrop-filter:blur(8px);border-radius:14px;padding:16px 14px}
+  nav.toc .toc-title{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700;margin:0 0 10px 4px}
+  nav.toc a{display:block;font-size:12.7px;color:var(--muted);padding:4px 7px;border-radius:6px;line-height:1.35}
+  nav.toc a:hover{background:var(--panel2);color:var(--text);text-decoration:none}
+  nav.toc .grp{margin:11px 0 3px;padding:0 7px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:700}
+  main{min-width:0}
+  section{margin-top:38px;scroll-margin-top:18px}
+  section:first-child{margin-top:0}
+  h2{font-size:24px;line-height:1.2;margin:0 0 8px;letter-spacing:-.015em}
+  h2 .num{color:var(--accent);font-family:var(--mono);font-size:16px;margin-right:8px;font-weight:500}
+  h3{font-size:17px;margin:24px 0 8px;letter-spacing:-.01em}
+  h4{font-size:14.5px;margin:18px 0 6px;color:#c8d6e3}
+  p{margin:9px 0}
+  .lead{font-size:16px;color:#c7d5e2;max-width:1000px}
+  .small{font-size:12.5px;color:var(--muted)}
+  .muted{color:var(--muted)}
+  .mono{font-family:var(--mono)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin:16px 0}
+  .card{background:linear-gradient(180deg,var(--panel),#0e161e);border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+  .card .v{font-size:28px;font-weight:750;letter-spacing:-.03em;line-height:1.1}
+  .card .l{font-size:12px;color:var(--muted);margin-top:4px}
+  .card .v.green{color:var(--ok)} .card .v.blue{color:var(--accent2)} .card .v.orange{color:var(--accent3)} .card .v.purple{color:var(--prop)}
+  .callout{border-left:3px solid var(--accent2);background:#0c1722;border-radius:0 12px 12px 0;padding:14px 17px;margin:16px 0}
+  .callout.good{border-left-color:var(--ok);background:#0d1a12}
+  .callout.warn{border-left-color:var(--warn);background:#1a150b}
+  .callout.danger{border-left-color:var(--danger);background:#1b1012}
+  .callout.prop{border-left-color:var(--prop);background:#151020}
+  .callout p:first-child{margin-top:0} .callout p:last-child{margin-bottom:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 17px}
+  .panel h4{margin-top:0}
+  ul,ol{margin:8px 0 8px 22px;padding:0}
+  li{margin:4px 0}
+  .tight li{margin:2px 0}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;margin:14px 0;background:var(--panel)}
+  table{width:100%;border-collapse:collapse;font-size:13.2px;min-width:640px}
+  th,td{padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  th{background:#0d161e;color:#b9c9d8;font-size:11.5px;letter-spacing:.055em;text-transform:uppercase;font-weight:700;position:sticky;top:0}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#0f1922}
+  td.id{font-family:var(--mono);font-size:12px;color:var(--accent2);white-space:nowrap}
+  td.c{text-align:center}
+  .st{display:inline-block;font-size:10.5px;font-weight:750;letter-spacing:.05em;padding:2px 8px;border-radius:999px;border:1px solid;white-space:nowrap;line-height:1.5}
+  .st.ok{color:var(--ok);border-color:#1f4d2b;background:#0d1a12}
+  .st.dev{color:var(--accent2);border-color:#1f3a57;background:#0c1722}
+  .st.part{color:var(--warn);border-color:#5a4318;background:#1a150b}
+  .st.prop{color:var(--prop);border-color:#3d2a5c;background:#151020}
+  .st.no{color:var(--danger);border-color:#5a2a2a;background:#1d1113}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0 0}
+  .legend span{display:inline-flex;gap:6px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .dot.ok{background:var(--ok)} .dot.dev{background:var(--accent2)} .dot.part{background:var(--warn)} .dot.prop{background:var(--prop)}
+  .vwrap{background:linear-gradient(180deg,#0c141c,#0a1117);border:1px solid var(--line);border-radius:16px;padding:12px;margin:16px 0}
+  .vwrap svg{width:100%;height:auto;display:block}
+  .svgbox{fill:#111c26;stroke:#2d4053;stroke-width:1.4;rx:12}
+  .svgbox.left{stroke:#2f6b3b;fill:#0e1a13}
+  .svgbox.right{stroke:#24557e;fill:#0c1722}
+  .svgbox.bottom{stroke:#8a5a1f;fill:#1a150b}
+  .svgtext{fill:#d9e3ed;font-family:var(--sans);font-size:15px;font-weight:650}
+  .svgsub{fill:#8fa2b5;font-family:var(--sans);font-size:11.5px}
+  .svgline{stroke:#3b5065;stroke-width:2.4;fill:none}
+  .svgdot{fill:#7ee787;stroke:#0a1117;stroke-width:2}
+  .search{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line2);background:#0a131b;color:var(--text);font:14px var(--sans);margin:10px 0 4px}
+  .search:focus{outline:2px solid rgba(121,192,255,.35);border-color:var(--accent2)}
+  .phase{display:grid;grid-template-columns:120px 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;background:var(--panel)}
+  .phase .ph{padding:12px 14px;background:#0d161e;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--accent2);font-weight:700}
+  .phase .pc{padding:12px 15px;border-bottom:1px solid var(--line)}
+  .phase .ph:last-of-type,.phase .pc:last-of-type{border-bottom:0}
+  .phase .pc b{color:#dbe7f1}
+  .kv{display:grid;grid-template-columns:180px 1fr;gap:8px 14px;font-size:13.2px}
+  .kv dt{color:var(--soft);font-weight:600}
+  .kv dd{margin:0;color:var(--text)}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:5px;background:#0d1720;border:1px solid var(--line);color:var(--muted);margin:1px 3px 1px 0;white-space:nowrap}
+  .tag.green{color:var(--ok);border-color:#1f4d2b;background:#0d1a12}
+  .tag.blue{color:var(--accent2);border-color:#1f3a57;background:#0c1722}
+  .tag.orange{color:var(--accent3);border-color:#5a4318;background:#1a150b}
+  .tag.purple{color:var(--prop);border-color:#3d2a5c;background:#151020}
+  .anchor{scroll-margin-top:18px}
+  .toc a.active{background:#13202c;color:var(--accent)}
+  .foot{margin-top:48px;border-top:1px solid var(--line);padding-top:18px;color:var(--soft);font-size:12.5px}
+  .nowrap{white-space:nowrap}
+  .center{text-align:center}
+  .hr{height:1px;background:var(--line);margin:22px 0;border:0}
+  @media(max-width:1050px){.layout{grid-template-columns:1fr}nav.toc{position:static;max-height:none}.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+  @media(max-width:620px){.wrap{padding:18px 14px 60px}.hero{padding:24px 20px}.phase{grid-template-columns:1fr}.phase .ph{border-bottom:0}.kv{grid-template-columns:1fr}.hero-meta{gap:10px}}
+  @media print{body{background:#fff;color:#111}nav.toc{display:none}.layout{display:block}.hero,.panel,.card,.tablewrap,.vwrap{box-shadow:none;background:#fff;border-color:#bbb}th{background:#eee;color:#111}a{color:#0645ad}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Omalauncher · Widget football · Dossier de cycle en V</div>
+  <h1>My Matches — cycle en V complet</h1>
+  <p class="sub">Feuille de route de bout en bout de l’application <b>My Matches – Football</b> : besoin, exigences, architecture, conception détaillée, implémentation, tests, validation et exploitation. Le document couvre le widget principal <b>v5.22.8</b> (OWL 16), l’app avant-match <b>1.0.22</b>, les sources de données ESPN / Understat / Football-Data, les notifications, l’accessibilité et le harnais de vérification.</p>
+  <div class="badges">
+    <span class="badge ok">Widget v5.22.8</span>
+    <span class="badge info">App avant-match 1.0.22</span>
+    <span class="badge info">OWL 16</span>
+    <span class="badge ok">MIT</span>
+    <span class="badge">ESPN · Understat · Football-Data</span>
+    <span class="badge warn">Validation device partielle</span>
+    <span class="badge prop">Backlog documenté</span>
+  </div>
+  <div class="hero-meta">
+    <span><b>Date</b> 2 novembre 2026</span>
+    <span><b>Périmètre</b> 2 applications, 1 widget, 20 sources OWL, 11 harnais de test</span>
+    <span><b>Référence</b> <code>omalauncher-my-match</code></span>
+    <span><b>Statut</b> implémenté, testé hors appareil, validation terrain à compléter</span>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+  <div class="toc-title">Sommaire</div>
+  <div class="grp">Comprendre</div>
+  <a href="#synthese">Synthèse exécutive</a>
+  <a href="#lecture">Comment lire ce document</a>
+  <a href="#cycle">Le cycle en V de My Matches</a>
+  <a href="#phases">Phases, livrables et critères</a>
+  <div class="grp">Branche exigences</div>
+  <a href="#besoins">B0 · Besoin et périmètre</a>
+  <a href="#exigences">B1 · Exigences fonctionnelles</a>
+  <a href="#features">Registre complet des features</a>
+  <a href="#nfr">B1 · Exigences non fonctionnelles</a>
+  <a href="#cas">Cas d’utilisation</a>
+  <a href="#hypothese">Hypothèses et exclusions</a>
+  <a href="#acceptation">Critères d’acceptation</a>
+  <div class="grp">Conception</div>
+  <a href="#architecture">B2 · Architecture</a>
+  <a href="#contexte">Contexte et modèle d’exécution</a>
+  <a href="#modules">Modules et responsabilités</a>
+  <a href="#flux">Flux de données</a>
+  <a href="#sources">Sources et caches</a>
+  <a href="#etats">Modèle d’état</a>
+  <a href="#triggers">Triggers et notifications</a>
+  <a href="#ui">Architecture d’interface</a>
+  <a href="#caches">Robustesse et caches</a>
+  <a href="#securite">Sécurité et vie privée</a>
+  <a href="#decisions">Décisions de conception</a>
+  <div class="grp">Branche vérification</div>
+  <a href="#verification">A · Stratégie de vérification</a>
+  <a href="#tests">Inventaire des tests</a>
+  <a href="#ci">CI et commandes</a>
+  <a href="#device">Mesures et validation device</a>
+  <a href="#rtm">Matrice de traçabilité</a>
+  <a href="#limites">Limites connues</a>
+  <a href="#risques">Registre des risques</a>
+  <div class="grp">Exploitation</div>
+  <a href="#exploitation">Exploitation et maintenance</a>
+  <a href="#backlog">Backlog et roadmap</a>
+  <a href="#annexes">Annexes</a>
+</nav>
+
+<main>
+
+<section id="synthese">
+  <h2><span class="num">00</span>Synthèse exécutive</h2>
+  <p class="lead">My Matches est un widget de suivi football pour Omalauncher. Il suit de 1 à 5 clubs ou sélections, agrège les matchs, classements, cotes, historiques et arbres de coupe depuis l’API publique ESPN, et ouvre une application avant-match dédiée qui ajoute la trajectoire xG et les graphes avancés. Le tout fonctionne sans compte, sans clé API et sans envoi de données personnelles.</p>
+
+  <div class="cards">
+    <div class="card"><div class="v green">97</div><div class="l">capacités cataloguées dans ce document (CFG, MAT, NOT, A11Y, SHR, PRE, DATA, OPS)</div></div>
+    <div class="card"><div class="v blue">20</div><div class="l">déclarations <code>source</code> dans le widget principal, dont 13 sources actives et 7 lectures de cache</div></div>
+    <div class="card"><div class="v orange">11</div><div class="l">harnais de test hors ligne : fixtures ESPN, faux <code>curl</code>, pannes, concurrence, garde-fous</div></div>
+    <div class="card"><div class="v purple">2</div><div class="l">applications livrées : le widget <b>My Matches</b> et l’app <b>Avant-match</b></div></div>
+  </div>
+
+  <div class="callout good">
+    <p><b>Ce qui est solide.</b> La chaîne de données est décrite, testée hors ligne et durcie : HTTPS, redirections interdites, taille bornée, timeouts, jitter, caches atomiques, métadonnées de cache, repli en panne, déduplication des matchs et des notifications. Les fonctions de rappel utilisent des triggers <code>at</code> persistés, pas un polling de compte à rebours : elles survivent à l’écran éteint et rattrapent les échéances au démarrage du launcher.</p>
+  </div>
+  <div class="callout warn">
+    <p><b>Ce qui reste à prouver.</b> Les mesures CPU / réseau / batterie sur appareil et les notifications Android réelles ne sont pas exécutées dans ce dossier. Les listes <code>lazy</code> (I18), les cibles 48 dp et TalkBack restent partiels. Les sources ClubElo, météo et API-Football sont proposées, pas intégrées.</p>
+  </div>
+
+  <h3>Lecture en une minute</h3>
+  <div class="grid3">
+    <div class="panel">
+      <h4>Branche gauche — ce que l’app doit faire</h4>
+      <p class="small">Suivre mes équipes, montrer le prochain match, les résultats, les classements, les rivaux, les coupes, les cotes, la forme, la fiche match, les rappels, les alertes live, les digests, le partage et l’analyse avant-match.</p>
+    </div>
+    <div class="panel">
+      <h4>Centre — comment elle le fait</h4>
+      <p class="small">Un widget OWL mono-fichier, des sources shell en cache, un modèle normalisé <code>{id, league, tag, at, state, squads, home, away}</code>, des états persistés, des triggers <code>at</code>, une UI tuile + écran, et une app avant-match qui lit les mêmes caches.</p>
+    </div>
+    <div class="panel">
+      <h4>Branche droite — comment on le prouve</h4>
+      <p class="small"><code>owl-check</code> et previews, <code>bash -n</code>, fixtures ESPN, faux <code>curl</code>, tests de pannes, de concurrence, de périmètre de ligues, garde-fous Python, protocole de mesure device et matrice de traçabilité.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lecture">
+  <h2><span class="num">01</span>Comment lire ce document</h2>
+  <p>Le document suit la logique du cycle en V : la branche descendante fixe le besoin, les exigences, l’architecture et la conception ; la branche montante vérifie chaque niveau par des tests et des preuves. Chaque fonctionnalité est reliée à une implémentation, un test et un statut. Les statuts sont volontairement séparés : <b>implémenté</b> ne veut pas dire <b>validé sur appareil</b>.</p>
+  <div class="legend">
+    <span><i class="dot ok"></i><span class="st ok">OK</span> implémenté et vérifié hors appareil (owl-check, test, preview)</span>
+    <span><i class="dot dev"></i><span class="st dev">DEVICE</span> implémenté, validation appareil ou notification réelle à faire</span>
+    <span><i class="dot part"></i><span class="st part">PARTIEL</span> implémenté partiellement ou preuve incomplète</span>
+    <span><i class="dot prop"></i><span class="st prop">PROPOSÉ</span> backlog, non implémenté</span>
+  </div>
+  <div class="callout">
+    <p><b>Convention d’identifiants.</b> Les identifiants de ce document sont stables et uniques : <code>CFG</code> configuration, <code>MAT</code> matchs et navigation, <code>NOT</code> notifications, <code>A11Y</code> accessibilité, <code>SHR</code> partage/export, <code>PRE</code> app avant-match, <code>DATA</code> données et fiabilité, <code>OPS</code> qualité et exploitation. L’annexe contient la correspondance avec les anciens identifiants <code>F01–F32</code>, <code>N01–N24</code> et <code>I01–I33</code> des audits précédents.</p>
+  </div>
+</section>
+
+<section id="cycle">
+  <h2><span class="num">02</span>Le cycle en V de My Matches</h2>
+  <p>Le V est orienté « application de données temps réel sur un runtime de widget ». La difficulté principale n’est pas l’affichage : c’est la <b>fraîcheur sans batterie</b>, la <b>fiabilité hors écran</b> et la <b>non-régression</b> quand les sources ESPN changent. Les niveaux de vérification reprennent donc les niveaux de conception, avec une insistance sur les tests hors ligne et les preuves reproductibles.</p>
+
+  <div class="vwrap">
+    <svg viewBox="0 0 1040 560" role="img" aria-label="Schéma du cycle en V : besoin, exigences, architecture et conception à gauche ; tests unitaires, intégration, système et recette à droite ; implémentation au centre bas.">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#4a6379"/>
+        </marker>
+      </defs>
+      <text x="30" y="18" class="svgsub" font-weight="700" fill="#7ee787">BRANCHE DESCENDANTE · EXIGENCES ET CONCEPTION</text>
+      <text x="700" y="18" class="svgsub" font-weight="700" fill="#79c0ff">BRANCHE MONTANTE · VÉRIFICATION</text>
+
+      <line x1="350" y1="62" x2="520" y2="450" class="svgline" marker-end="url(#arrow)"/>
+      <line x1="690" y1="62" x2="520" y2="450" class="svgline" marker-end="url(#arrow)"/>
+
+      <rect x="30" y="32" width="320" height="62" rx="12" class="svgbox left"/>
+      <text x="48" y="58" class="svgtext">B0 · Besoin</text>
+      <text x="48" y="78" class="svgsub">Suivre mes équipes sans surveiller la tuile</text>
+
+      <rect x="30" y="128" width="320" height="62" rx="12" class="svgbox left"/>
+      <text x="48" y="154" class="svgtext">B1 · Exigences</text>
+      <text x="48" y="174" class="svgsub">Fonctionnelles, non fonctionnelles, recette</text>
+
+      <rect x="30" y="224" width="320" height="62" rx="12" class="svgbox left"/>
+      <text x="48" y="250" class="svgtext">B2 · Architecture</text>
+      <text x="48" y="270" class="svgsub">Sources, caches, états, triggers, UI</text>
+
+      <rect x="30" y="320" width="320" height="62" rx="12" class="svgbox left"/>
+      <text x="48" y="346" class="svgtext">B3 · Conception détaillée</text>
+      <text x="48" y="366" class="svgsub">Schémas, composants, contrats, garde-fous</text>
+
+      <rect x="690" y="32" width="320" height="62" rx="12" class="svgbox right"/>
+      <text x="708" y="58" class="svgtext">A0 · Recette</text>
+      <text x="708" y="78" class="svgsub">Scénarios utilisateur, acceptation</text>
+
+      <rect x="690" y="128" width="320" height="62" rx="12" class="svgbox right"/>
+      <text x="708" y="154" class="svgtext">A1 · Tests système</text>
+      <text x="708" y="174" class="svgsub">Preview, données live, notifications</text>
+
+      <rect x="690" y="224" width="320" height="62" rx="12" class="svgbox right"/>
+      <text x="708" y="250" class="svgtext">A2 · Tests d’intégration</text>
+      <text x="708" y="270" class="svgsub">Fixtures, faux curl, caches, pannes</text>
+
+      <rect x="690" y="320" width="320" height="62" rx="12" class="svgbox right"/>
+      <text x="708" y="346" class="svgtext">A3 · Tests unitaires</text>
+      <text x="708" y="366" class="svgsub">owl-check, bash -n, garde-fous statiques</text>
+
+      <rect x="330" y="450" width="380" height="76" rx="14" class="svgbox bottom"/>
+      <text x="520" y="480" text-anchor="middle" class="svgtext">IMPLÉMENTATION</text>
+      <text x="520" y="500" text-anchor="middle" class="svgsub">Widget v5.22.8 · App avant-match 1.0.22</text>
+      <text x="520" y="516" text-anchor="middle" class="svgsub">Mono-fichier OWL + caches locaux + scripts</text>
+
+      <circle cx="350" cy="62" r="5" class="svgdot"/>
+      <circle cx="690" cy="62" r="5" class="svgdot"/>
+      <circle cx="520" cy="450" r="5" class="svgdot"/>
+
+      <text x="520" y="548" text-anchor="middle" class="svgsub">Chaque niveau de gauche est vérifié par le niveau correspondant de droite.</text>
+    </svg>
+  </div>
+
+  <h3>Correspondance des niveaux</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Niveau</th><th>Branche gauche</th><th>Branche droite</th><th>Question posée</th><th>Preuve attendue</th></tr></thead>
+      <tbody>
+        <tr><td class="id">N0</td><td>B0 · Besoin</td><td>A0 · Recette</td><td>Le besoin métier est-il satisfait dans l’usage réel ?</td><td>Scénarios d’acceptation, retour utilisateur, capture device</td></tr>
+        <tr><td class="id">N1</td><td>B1 · Exigences</td><td>A1 · Tests système</td><td>Chaque exigence observable est-elle couverte ?</td><td>Matrice exigence → test → statut</td></tr>
+        <tr><td class="id">N2</td><td>B2 · Architecture</td><td>A2 · Tests d’intégration</td><td>Les modules et les flux coopèrent-ils correctement ?</td><td>Fixtures, faux curl, tests de sources, de caches et de pannes</td></tr>
+        <tr><td class="id">N3</td><td>B3 · Conception détaillée</td><td>A3 · Tests unitaires</td><td>Les contrats, schémas et scripts sont-ils corrects ?</td><td><code>owl-check</code>, <code>bash -n</code>, garde-fous statiques</td></tr>
+        <tr><td class="id">N4</td><td>Implémentation</td><td>Intégration continue</td><td>Le code livré est-il compilable et non régressif ?</td><td><code>make test</code>, <code>make test-all</code>, <code>scripts/ci.sh</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="phases">
+  <h2><span class="num">03</span>Phases, livrables et critères de sortie</h2>
+  <p>La feuille de cycle en V se lit comme un contrat de phase : à chaque étape, une entrée, des activités, des livrables et un critère de sortie vérifiable. Les phases ne sont pas strictement séquentielles dans le temps : les correctifs v5.9 à v5.22 ont itéré entre conception, tests et mesure, mais chaque incrément respecte ce contrat.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Phase</th><th>Entrée</th><th>Activités</th><th>Livrables</th><th>Critère de sortie</th><th>Preuve / état</th></tr></thead>
+      <tbody>
+        <tr><td class="id">B0</td><td>Besoin utilisateur, contexte Omalauncher, contrainte batterie</td><td>Cadrage, acteurs, périmètre, scénarios</td><td>Ce document §B0 ; README ; audits</td><td>Périmètre et exclusions validés</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">B1</td><td>B0 validé</td><td>Exigences fonctionnelles et non fonctionnelles, critères d’acceptation</td><td>Registre des features, NFR, cas d’utilisation</td><td>Chaque exigence a un test ou une preuve</td><td><span class="st ok">OK</span> hors device</td></tr>
+        <tr><td class="id">B2</td><td>B1 validé</td><td>Architecture des sources, caches, états, triggers, UI, sécurité</td><td>§Architecture, tableaux sources/états/triggers, décisions DES</td><td>Aucune dépendance non maîtrisée ; alternatives rejetées documentées</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">B3</td><td>B2 validé</td><td>Schémas de données, contrats de scripts, composants, garde-fous</td><td>Schéma match, contrats de cache, liste des composants, tests statiques</td><td>Les contrats sont implémentables et testables</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">IMP</td><td>B3 validé</td><td>Implémentation OWL, scripts shell, app avant-match, scripts Python/JS</td><td>Widget v5.22.8, app 1.0.22, <code>fd-sync.py</code>, <code>fd-analysis.js</code></td><td><code>owl-check</code> sans erreur</td><td><span class="st ok">OK</span> compile</td></tr>
+        <tr><td class="id">A3</td><td>Implémentation</td><td>Tests unitaires et statiques</td><td><code>owl-check</code>, <code>bash -n</code>, garde-fous Python</td><td>100 % des scripts extraits valides, garde-fous verts</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">A2</td><td>B2 + implémentation</td><td>Tests d’intégration hors ligne</td><td>Fixtures ESPN, faux <code>curl</code>, tests sources, caches, pannes, concurrence</td><td>Tous les tests passent sans réseau</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">A1</td><td>B1 + implémentation</td><td>Tests système et previews</td><td>Preview tuile 7×12, écran 1080×2186, données live</td><td>Rendu correct, pas de débordement, états vides explicites</td><td><span class="st part">PARTIEL</span> preview OK, device non</td></tr>
+        <tr><td class="id">A0</td><td>B0 + application</td><td>Recette utilisateur</td><td>Scénarios 1 et 5 équipes, notifications, offline, accessibilité</td><td>Tous les scénarios passent sur appareil</td><td><span class="st dev">DEVICE</span> à exécuter</td></tr>
+        <tr><td class="id">EXPL</td><td>A0 accepté</td><td>Exploitation, mises à jour, caches, attribution</td><td>Release checklist, notice de données, licence</td><td>Version publiée, données attribuées, caches effaçables</td><td><span class="st ok">OK</span> documenté</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <p><b>Règle de sortie.</b> Une phase n’est « validée » que si la preuve est reproductible et datée. Les cases <span class="st dev">DEVICE</span> et <span class="st part">PARTIEL</span> ne sont pas des échecs : ce sont des preuves manquantes, explicitement identifiées, avec un protocole d’exécution en §<a href="#device">Mesures et validation device</a>.</p>
+  </div>
+</section>
+
+<section id="besoins">
+  <h2><span class="num">B0</span>Besoin, périmètre et contraintes</h2>
+  <p class="lead">Le besoin est simple à énoncer et difficile à tenir : <b>savoir où en sont mes équipes sans ouvrir une application, sans vider la batterie et sans dépendre d’un compte</b>. L’utilisateur veut être prévenu avant le match, voir le score en direct, comprendre la forme et le contexte, et retrouver les mêmes données dans une fiche avant-match lisible.</p>
+
+  <div class="grid2">
+    <div class="panel">
+      <h4>B0.1 Énoncé du besoin</h4>
+      <ul class="tight">
+        <li>Suivre 1 à 5 clubs ou sélections, sans liste blanche de ligues imposée.</li>
+        <li>Voir le prochain match, les résultats récents, la forme et le classement.</li>
+        <li>Recevoir un rappel avant le coup d’envoi et au coup d’envoi, même écran éteint.</li>
+        <li>Recevoir les buts, cartons rouges, mi-temps et fins de match de mes équipes.</li>
+        <li>Accéder à une analyse avant-match : tendances, cotes, H2H, compos, actus, xG.</li>
+        <li>Partager un match, un déplacement ou une configuration en un tap.</li>
+        <li>Rester lisible, accessible et utilisable hors ligne ou en données dégradées.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>B0.2 Acteurs</h4>
+      <ul class="tight">
+        <li><b>Utilisateur</b> : fan d’un ou plusieurs clubs, sur téléphone Android.</li>
+        <li><b>Omalauncher</b> : hôte du widget, fournit OWL, les sources, les notifications et les gestes.</li>
+        <li><b>Widget My Matches</b> : collecte, normalise, affiche, alerte.</li>
+        <li><b>App Avant-match</b> : analyse détaillée d’un match choisi.</li>
+        <li><b>Sources</b> : ESPN (maître), Understat et Football-Data (enrichissement xG).</li>
+        <li><b>Android</b> : notifications, permissions, écran, réseau, batterie.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>B0.3 Contexte d’utilisation</h3>
+  <div class="grid3">
+    <div class="panel"><h4>Jour de match</h4><p class="small">L’utilisateur jette un œil à la tuile, ouvre l’écran, vérifie l’heure, le score et la forme. Le rappel doit arriver sans qu’il ait à surveiller.</p></div>
+    <div class="panel"><h4>Veille / écran éteint</h4><p class="small">Le launcher gèle les sources hors écran. Les échéances doivent être portées par des triggers <code>at</code> persistés, pas par un compte à rebours pollé.</p></div>
+    <div class="panel"><h4>Réseau instable</h4><p class="small">ESPN peut renvoyer 429, 5xx, une réponse tronquée ou rien. L’app doit garder le dernier cache valide, afficher la fraîcheur et proposer un retry ciblé.</p></div>
+  </div>
+
+  <h3>B0.4 Contraintes</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Contrainte</th><th>Valeur</th><th>Conséquence de conception</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime</td><td>Omalauncher 0.12.0, Android 14, OWL 16</td><td>Un seul fichier <code>.owl</code> par widget ; pas de backend applicatif ; <code>let</code>, <code>if</code>, <code>on … first</code> disponibles.</td></tr>
+        <tr><td>Dépendances</td><td><code>curl</code>, <code>jq</code>, <code>perl</code> ; app : <code>python</code>, <code>nodejs</code></td><td>Les sources sont des scripts shell embarqués ; l’app avant-match lit des caches et lance des scripts Python/Node.</td></tr>
+        <tr><td>Données</td><td>API publique ESPN, Understat, Football-Data</td><td>Aucune clé, aucun compte, aucune donnée personnelle envoyée ; attribution obligatoire.</td></tr>
+        <tr><td>Énergie</td><td>Téléphone, batterie, écran souvent éteint</td><td>Pas de polling permanent ; gate live conditionnel ; horloge principale à 1 min ; sources lentes à 6 h/12 h/24 h.</td></tr>
+        <tr><td>Fraîcheur</td><td>Score live à la minute, cotes à l’heure, saison à 12 h</td><td>Sources séparées par période et timeout ; caches avec TTL et repli.</td></tr>
+        <tr><td>Robustesse</td><td>ESPN peut changer ou tomber</td><td>Validation de schéma, fusion anti-trous, déduplication, backoff, jitter, cache de secours.</td></tr>
+        <tr><td>Langue</td><td>FR / EN, initialisée depuis Android</td><td>Dictionnaire <code>S</code>, formats de date et de nombre localisés.</td></tr>
+        <tr><td>Accessibilité</td><td>WCAG 2.2 AA visé, runtime limité</td><td>Contraste, mode daltonien, plancher typographique, libellés, tailles S/M/L/XL.</td></tr>
+        <tr><td>Distribution</td><td>Widget mono-fichier, licence MIT</td><td>Pas de dépendance à un dépôt de composants ; scripts extraits pour revue mais non séparés à l’exécution.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>B0.5 Périmètre</h3>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Dans le périmètre</h4>
+      <ul class="tight">
+        <li>Suivi des équipes, matchs, scores, classements, coupes et rivaux.</li>
+        <li>Rappels, alertes live, digests, préchauffage, anti-spoiler.</li>
+        <li>Fiche match, app avant-match, xG et graphes avancés.</li>
+        <li>Partage, export, import, diagnostic, effacement des caches.</li>
+        <li>Tests hors ligne, CI, previews, mesures.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>Hors périmètre</h4>
+      <ul class="tight">
+        <li>Compte utilisateur, synchronisation multi-appareils, cloud.</li>
+        <li>Paris ou conseil de pari : les cotes sont indicatives.</li>
+        <li>Streaming vidéo, commentaire audio, billetterie.</li>
+        <li>Notifications push serveur : tout est local.</li>
+        <li>Football féminin exhaustif, API-Football, météo (proposés).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><b>Indicateur de succès.</b> L’utilisateur ne rate plus le début d’un match de ses équipes, comprend le contexte en moins de 30 secondes, et le widget reste utilisable après une panne réseau sans afficher de fausses données. La batterie ne doit pas être consommée par un polling permanent : hors fenêtre live, le gate doit produire <b>zéro requête réseau</b>.</p>
+  </div>
+</section>
+
+<section id="exigences">
+  <h2><span class="num">B1</span>Exigences fonctionnelles</h2>
+  <p>Les exigences sont regroupées par domaine. Chaque ligne du registre ci-dessous est une capacité observable, avec son implémentation et sa preuve. Le registre est volontairement exhaustif : il couvre le widget principal, l’app avant-match, les notifications, l’accessibilité, le partage, la plateforme de données et l’exploitation.</p>
+
+  <div class="callout">
+    <p><b>Trois niveaux de lecture.</b> <b>Le produit</b> (ce que voit l’utilisateur) est dans CFG, MAT, NOT, A11Y, SHR et PRE. <b>La plateforme</b> (ce qui rend le produit possible) est dans DATA. <b>La qualité</b> (ce qui rend le produit livrable) est dans OPS. Une feature produit sans feature plateforme est fragile ; une feature plateforme sans feature produit est inutile.</p>
+  </div>
+</section>
+
+<section id="features">
+  <h2><span class="num">B1.1</span>Registre complet des features</h2>
+  <p>Le registre contient <b>97 capacités</b>. Utilisez la recherche pour filtrer par identifiant, mot-clé ou statut. Les statuts sont ceux de la dernière revue documentée ; une capacité marquée <span class="st dev">DEVICE</span> est implémentée mais attend une preuve sur téléphone.</p>
+  <input id="featureSearch" class="search" type="search" placeholder="Filtrer les features : rappel, xG, cache, accessibilité, NOT-05…" aria-label="Filtrer les features">
+  <p class="small" id="featureCount">97 capacités affichées.</p>
+
+  <h3 id="features-cfg">CFG — Configuration et identité</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="cfg-01 selection 1 a 5 equipes recherche brouillon validation plafond"><td class="id">CFG-01</td><td><b>Sélection 1–5 équipes</b></td><td>Recherche par nom ou sigle, brouillon <code>draft</code>, validation, retrait, plafond à 5, compteur <code>n/5</code>. Les équipes sont persistées dans <code>myTeams</code>.</td><td><span class="st dev">DEVICE</span></td><td>Parcours d’accueil et d’édition ; test statique du plafond ; validation device à faire.</td></tr>
+        <tr class="feature-row" data-text="cfg-02 identite equipes tid abbr kind club selection league alias"><td class="id">CFG-02</td><td><b>Identité des équipes</b></td><td>Clé stable <code>tid</code> quand ESPN la fournit, sinon <code>abbr</code> ; distinction club / sélection via <code>kind</code> <code>c</code>/<code>n</code> ; ligue conservée pour dériver le périmètre des sources.</td><td><span class="st ok">OK</span></td><td>Fixtures <code>fra.1</code> / <code>eng.1</code> ; tests de périmètre de ligues.</td></tr>
+        <tr class="feature-row" data-text="cfg-03 accueil setup edition equipes welcome"><td class="id">CFG-03</td><td><b>Accueil, setup, édition</b></td><td>Écran de bienvenue si aucune équipe, bloc de configuration dédié, bouton « modifier mes équipes », compteur et hint de plafond.</td><td><span class="st dev">DEVICE</span></td><td>Preview ; scénario 0 / 1 / 5 équipes à exécuter sur appareil.</td></tr>
+        <tr class="feature-row" data-text="cfg-04 import export json configuration equipes"><td class="id">CFG-04</td><td><b>Import / export JSON</b></td><td>Copie de <code>toJson(myTeams)</code> ; import par collage JSON avec validation de liste non vide et rafraîchissement immédiat.</td><td><span class="st ok">OK</span></td><td>Garde-fou HF24 « config import » ; test de chaîne.</td></tr>
+        <tr class="feature-row" data-text="cfg-05 langue fr en android i18n dictionnaire s"><td class="id">CFG-05</td><td><b>Langue FR / EN</b></td><td>Dictionnaire <code>S</code> complet, choix manuel, initialisation depuis <code>lang()</code> Android. Les libellés ESPN inconnus restent partiellement anglais.</td><td><span class="st part">PARTIEL</span></td><td>Preview FR/EN ; I18N-02..04 ouverts sur les libellés inconnus.</td></tr>
+        <tr class="feature-row" data-text="cfg-06 taille affichage s m l xl tuile minimum 5x4"><td class="id">CFG-06</td><td><b>Taille et contraintes de tuile</b></td><td><code>uiSize</code> S/M/L/XL, plancher typographique 12, largeurs calculées depuis <code>fz</code>, <code>minSize:5x4</code>, tuile adaptative 8/12/60 lignes.</td><td><span class="st ok">OK</span></td><td>I22, I23, I24 ; preview 7×12 ; 3×3 volontairement refusé.</td></tr>
+        <tr class="feature-row" data-text="cfg-07 persistance preferences schema migration uischema"><td class="id">CFG-07</td><td><b>Persistance et migration</b></td><td>Préférences <code>persist</code>, schéma <code>uiSchema</code>, migration des classements repliés et des anciennes installations.</td><td><span class="st ok">OK</span></td><td>I04, I31 ; test de présence <code>persist</code> ; migration v5.19.2.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-mat">MAT — Matchs, navigation et fiches</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="mat-01 mes matchs mine equipe filtre"><td class="id">MAT-01</td><td><b>Vue Mes matchs</b></td><td>Liste des matchs des équipes suivies, filtre par équipe, mode <code>ALL</code>, hero du prochain match, résultats récents et à venir.</td><td><span class="st ok">OK</span></td><td>Preview 7×12 ; données live ; audit F04/F06.</td></tr>
+        <tr class="feature-row" data-text="mat-02 rivaux concurrents explicites 12 recents 10 prochains journee"><td class="id">MAT-02</td><td><b>Vue Rivaux</b></td><td>Rivaux explicites par codes séparés par virgules, prioritaires sur les concurrents de ligue ; 12 matchs récents / 10 prochains ; navigation par journée.</td><td><span class="st ok">OK</span></td><td>N15, HF01 ; test « rivals next excludes my teams ».</td></tr>
+        <tr class="feature-row" data-text="mat-03 top 5 championnats all"><td class="id">MAT-03</td><td><b>Vue Top 5</b></td><td>Premier League, Liga, Bundesliga, Serie A, Ligue 1 et mode <code>ALL</code>, avec navigation par journée et matchs à venir.</td><td><span class="st ok">OK</span></td><td>Preview ; audit F15.</td></tr>
+        <tr class="feature-row" data-text="mat-04 europe c1 europa conference journee"><td class="id">MAT-04</td><td><b>Vue Europe</b></td><td>Ligue des champions, Ligue Europa, Conference League ; navigation par journée et arbre à partir des 8es.</td><td><span class="st ok">OK</span></td><td>Preview ; UCL bracket fallback test.</td></tr>
+        <tr class="feature-row" data-text="mat-05 calendrier 7 jours aujourd hui filtre jour daySel"><td class="id">MAT-05</td><td><b>Calendrier et filtres</b></td><td>Bandeau 7 jours avec nombre de matchs, filtre « aujourd’hui », sélection d’un jour, effacement du filtre.</td><td><span class="st ok">OK</span></td><td>F08, F19 ; preview.</td></tr>
+        <tr class="feature-row" data-text="mat-06 matchday compact mode jour de match"><td class="id">MAT-06</td><td><b>Matchday et compact</b></td><td>Mode jour de match (tuile recentrée, liste bornée), mode compact (moins de lignes, liste réduite), réglages persistants ou session selon le mode.</td><td><span class="st ok">OK</span></td><td>F06, F07 ; preview.</td></tr>
+        <tr class="feature-row" data-text="mat-07 hero prochain match compte a rebours cotes h2h forme fiche"><td class="id">MAT-07</td><td><b>Hero du prochain match</b></td><td>Carte à écussons réels, noms, heure locale, jour, compte à rebours, badge live, cotes 1/N/2, H2H, forme domicile/extérieur, lien vers la fiche.</td><td><span class="st ok">OK</span></td><td>Preview ; F20 ; test H2H.</td></tr>
+        <tr class="feature-row" data-text="mat-08 lignes match score minute tag aet pen agg report annule"><td class="id">MAT-08</td><td><b>Lignes de match</b></td><td>Tag de compétition, écussons, noms courts, score, minute, état, journée estimée ou réelle, AET/PEN, agrégat aller-retour, report/annulation/suspension, dates relatives.</td><td><span class="st ok">OK</span></td><td>I16, I17, F18 ; fixtures.</td></tr>
+        <tr class="feature-row" data-text="mat-09 a venir recents liste bornee plus n"><td class="id">MAT-09</td><td><b>Listes bornées</b></td><td>12 fixtures par équipe sélectionnée, 4 par équipe en mode ALL, 20 lignes à l’écran, bouton « plus / moins », compteur <code>+N</code> dans la tuile.</td><td><span class="st ok">OK</span></td><td>I05, I19 ; audit performance v5.18.9 / v5.19.0.</td></tr>
+        <tr class="feature-row" data-text="mat-10 classements table zones forme logos showtables"><td class="id">MAT-10</td><td><b>Classements</b></td><td>Table par ligue ou groupe, colonnes J/G/N/P/BP:BC/DB/Pts, zones nommées, forme sur 5, logos, affichage à la demande <code>showTables</code>.</td><td><span class="st ok">OK</span></td><td>I19, I21 ; test « tables toggle » ; preview.</td></tr>
+        <tr class="feature-row" data-text="mat-11 arbre coupe bracket c1 cdf fa league cup cdr dfb coppa"><td class="id">MAT-11</td><td><b>Arbres de coupe</b></td><td>Arbre Canvas à partir des 8es (C1, Coupe de France, FA Cup, League Cup, Copa del Rey, DFB-Pokal, Coppa Italia), tours antérieurs en liste, replié par défaut, libellés de tours.</td><td><span class="st ok">OK</span></td><td>CDF bracket data/view, UCL fallback, CDF round labels.</td></tr>
+        <tr class="feature-row" data-text="mat-12 fiche match stade arbitre stats temps forts compos actus h2h"><td class="id">MAT-12</td><td><b>Fiche match</b></td><td>Stade, ville, affluence, arbitre, statistiques, temps forts (buts, cartons, remplacements), compositions, actus ESPN, H2H, cotes, voyage.</td><td><span class="st ok">OK</span></td><td>Test statique « match centre » + fixture <code>summary-h2h.json</code>.</td></tr>
+        <tr class="feature-row" data-text="mat-13 live direct fraicheur age gate index"><td class="id">MAT-13</td><td><b>Live et fraîcheur</b></td><td>Source live conditionnelle, index live local, score/minute, avertissement si la donnée live a plus de 15 min, âge affiché, gate sans réseau hors fenêtre.</td><td><span class="st part">PARTIEL</span></td><td>Gate testé hors ligne ; live réel non exécuté sur appareil.</td></tr>
+        <tr class="feature-row" data-text="mat-14 dedupe fusion doublons report annulation agregation"><td class="id">MAT-14</td><td><b>Déduplication et reports</b></td><td>Fusion <code>unique_by(.id)</code>, dédoublonnage des sources, statut ESPN conservé, agrégats aller/retour quand disponibles, purge des matchs périmés.</td><td><span class="st part">PARTIEL</span></td><td>F17, I16, I17 ; agrégats complets encore dépendants d’un fixture ESPN dédié.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-not">NOT — Rappels et notifications</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="not-01 rappel avant match 1 3 6 12 24 heures lead"><td class="id">NOT-01</td><td><b>Rappel avant match</b></td><td>Délai configurable 1/3/6/12/24 h, trigger <code>at h12At</code>, titre « équipe ⚔️ équipe », texte ligue · date · délai restant, rattrapage si le seuil est déjà passé.</td><td><span class="st dev">DEVICE</span></td><td>F01 ; logique statique ; notification réelle à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-02 rappel coup d envoi kickoff"><td class="id">NOT-02</td><td><b>Rappel coup d’envoi</b></td><td>Second trigger indépendant <code>at kickAt</code>, titre « équipe ⚔️ équipe », texte « Ça commence · heure · tag ». Aucune notification si le match est déjà terminé.</td><td><span class="st dev">DEVICE</span></td><td>F02 ; logique statique ; notification réelle à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-03 deduplication nextdone kickdone une seule notification"><td class="id">NOT-03</td><td><b>Déduplication</b></td><td>Listes persistées <code>nextDone</code> et <code>kickDone</code>, plafond 30, garde avant écriture : une seule notification par match et par type, même si <code>at</code> double-tire.</td><td><span class="st dev">DEVICE</span></td><td>FC1 ; logique statique ; test de double feu à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-04 rearmement report nouvelle heure"><td class="id">NOT-04</td><td><b>Réarmement après report</b></td><td>Réarmement à chaque battement des données (≥ 15 min), suit le nouvel <code>.at</code>, couverture de la fenêtre ±90 jours.</td><td><span class="st dev">DEVICE</span></td><td>FC4 ; logique statique ; scénario report à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-05 goal flash but buteur minute score"><td class="id">NOT-05</td><td><b>Goal Flash</b></td><td>Comparaison des snapshots <code>liveM</code>, notification à chaque but de mes équipes avec score, buteur et minute ; maximum deux buts par tick ; silencieux au premier snapshot, si le score baisse (VAR) ou en anti-spoiler.</td><td><span class="st dev">DEVICE</span></td><td>N01 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-06 carton rouge red card"><td class="id">NOT-06</td><td><b>Alerte carton rouge</b></td><td>Détection dans les plays live, notification avec joueur et minute, déduplication par play, respect du mute et des heures calmes.</td><td><span class="st dev">DEVICE</span></td><td>HF03 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-07 mi temps half time"><td class="id">NOT-07</td><td><b>Alerte mi-temps</b></td><td>Détection du passage à <code>HT</code> / <code>Half</code>, notification avec score et compétition.</td><td><span class="st dev">DEVICE</span></td><td>HF04 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-08 fin de match full time"><td class="id">NOT-08</td><td><b>Alerte fin de match</b></td><td>Détection du passage à <code>post</code> dans <code>games</code>, notification avec score final, rattrapage toutes les 15 min.</td><td><span class="st dev">DEVICE</span></td><td>HF02 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-09 heures calmes quiet hours 22 07"><td class="id">NOT-09</td><td><b>Heures calmes</b></td><td>Fenêtre 22–07, appliquée aux rappels, buts, cartons, mi-temps et fin de match ; les digests restent à leur heure fixe.</td><td><span class="st ok">OK</span></td><td>F02 ; garde-fou « quiet hours » ; logique statique.</td></tr>
+        <tr class="feature-row" data-text="not-10 pause alertes 24h"><td class="id">NOT-10</td><td><b>Pause globale 24 h</b></td><td><code>pauseUntil</code> persistant, respecté par toutes les alertes ; bouton dans les réglages.</td><td><span class="st ok">OK</span></td><td>CU15 ; garde-fou « pause alerts ».</td></tr>
+        <tr class="feature-row" data-text="not-11 mute par club alertes"><td class="id">NOT-11</td><td><b>Coupure par club</b></td><td><code>muteTeams</code> persistant : rappels, buts, cartons, HT/FT sont filtrés par abréviation d’équipe.</td><td><span class="st ok">OK</span></td><td>HF01 ; garde-fou « per-club mute ».</td></tr>
+        <tr class="feature-row" data-text="not-12 anti spoiler masquer score forme"><td class="id">NOT-12</td><td><b>Anti-spoiler</b></td><td>Scores et pastilles V/N/D masqués pour les matchs en direct ou terminés ; révélation par tap ; notifications de but supprimées.</td><td><span class="st ok">OK</span></td><td>N04, F15 ; garde-fou « colour-blind » et « per-match reveal ».</td></tr>
+        <tr class="feature-row" data-text="not-13 digest quotidien 08 00"><td class="id">NOT-13</td><td><b>Digest quotidien</b></td><td>Trigger <code>at digestAt</code> à 08:00, trois premiers matchs du jour, « +N » au-delà, heure recalculée localement.</td><td><span class="st dev">DEVICE</span></td><td>F03 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-14 digest hebdomadaire lundi"><td class="id">NOT-14</td><td><b>Digest hebdomadaire</b></td><td>Résumé du lundi sur les cinq prochains matchs, dates localisées, jours et heures.</td><td><span class="st dev">DEVICE</span></td><td>F04 ; logique statique ; device à exécuter.</td></tr>
+        <tr class="feature-row" data-text="not-15 reinitialiser rappels reset"><td class="id">NOT-15</td><td><b>Réarmer les rappels</b></td><td>Remise à zéro de <code>h12Id</code>, <code>h12At</code>, <code>kickId</code>, <code>kickAt</code>, <code>nextDone</code>, <code>kickDone</code>, <code>digestAt</code>, <code>revealed</code>.</td><td><span class="st ok">OK</span></td><td>F05 ; garde-fou « reset reminders ».</td></tr>
+        <tr class="feature-row" data-text="not-16 prechargement 06 00 prewarm"><td class="id">NOT-16</td><td><b>Préchauffage 06:00</b></td><td>Trigger <code>at prewarmAt</code>, préchargement des cotes, du H2H et des écussons avant la journée, sans requête utilisateur.</td><td><span class="st ok">OK</span></td><td>F16 ; garde-fou « prewarm » ; test de prefetch.</td></tr>
+        <tr class="feature-row" data-text="not-17 fiable ecran eteint at trigger rattrapage"><td class="id">NOT-17</td><td><b>Fiabilité écran éteint</b></td><td>Mécanisme exclusif <code>at</code> persisté, rattrapage au démarrage du launcher, aucun polling de compte à rebours, purge obligatoire des états après le feu.</td><td><span class="st ok">OK</span></td><td>Conception FC2 ; README triggers ; protocole device §<a href="#device">device</a>.</td></tr>
+        <tr class="feature-row" data-text="not-18 permission notification bandeau degrade"><td class="id">NOT-18</td><td><b>Repli sans permission</b></td><td>Bandeau permanent dans la tuile et l’écran tant qu’un match est à moins du délai de rappel ou en direct, même si Android refuse les notifications.</td><td><span class="st part">PARTIEL</span></td><td>FP3 ; logique statique ; capture device à faire.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-a11y">A11Y — Accessibilité et personnalisation</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="a11y-01 haut contraste high contrast"><td class="id">A11Y-01</td><td><b>Haut contraste</b></td><td><code>hcMode</code> persistant : fond doux, texte foreground, accents pop, lisibilité renforcée.</td><td><span class="st ok">OK</span></td><td>AT03 ; garde-fou « high contrast ».</td></tr>
+        <tr class="feature-row" data-text="a11y-02 daltonien colour blind formes textes"><td class="id">A11Y-02</td><td><b>Mode daltonien</b></td><td><code>cbMode</code> persistant, zones nommées, live écrit, pastilles de forme avec lettres V/N/D, pas d’information par la couleur seule.</td><td><span class="st ok">OK</span></td><td>F14, N22 ; garde-fou « colour-blind ».</td></tr>
+        <tr class="feature-row" data-text="a11y-03 couleurs equipe contraste logo accent"><td class="id">A11Y-03</td><td><b>Couleurs d’équipe</b></td><td>Couleurs primaire/secondaire extraites des logos, contraste garanti, cache <code>colors.json</code>, repli sur les couleurs par défaut, désactivable.</td><td><span class="st ok">OK</span></td><td>v5.22.4 ; HF25 ; garde-fou « team colours ».</td></tr>
+        <tr class="feature-row" data-text="a11y-04 typographie plancher 12 largeurs dynamiques 48dp"><td class="id">A11Y-04</td><td><b>Typographie et largeurs</b></td><td>Plancher 12 en taille S, tags à 11, largeurs de score/détail/tour calculées depuis <code>fz</code>, minimum 5×4.</td><td><span class="st part">PARTIEL</span></td><td>I22, I23, I24 ; cibles 48 dp non généralisées.</td></tr>
+        <tr class="feature-row" data-text="a11y-05 libelles talkback images boutons fleches"><td class="id">A11Y-05</td><td><b>Libellés et TalkBack</b></td><td><code>label</code> sur les écussons, libellé « actualiser », flèches précédent/suivant nommées, onglets avec padding.</td><td><span class="st part">PARTIEL</span></td><td>I20, AT07, AT10 ; TalkBack non exécuté.</td></tr>
+        <tr class="feature-row" data-text="a11y-06 dates relatives aujourd hui demain i18n nombres"><td class="id">A11Y-06</td><td><b>Dates et formats locaux</b></td><td>« aujourd’hui / demain », dates FR/EN, virgule décimale française, durées lisibles, fuseau local.</td><td><span class="st ok">OK</span></td><td>AT12, AT16, F30 ; preview FR/EN.</td></tr>
+        <tr class="feature-row" data-text="a11y-07 revelation score tap anti spoiler"><td class="id">A11Y-07</td><td><b>Révélation par match</b></td><td>Un tap sur un score masqué révèle ce match uniquement ; <code>revealed</code> persisté, plafonné, remis à zéro par « réarmer les rappels ».</td><td><span class="st ok">OK</span></td><td>F15 ; garde-fou « per-match reveal ».</td></tr>
+        <tr class="feature-row" data-text="a11y-08 masquer cotes forme show odds form"><td class="id">A11Y-08</td><td><b>Masquer cotes et forme</b></td><td><code>showOdds</code> et <code>showForm</code> persistants ; la forme disparaît des cartes et des classements sans casser la mise en page.</td><td><span class="st ok">OK</span></td><td>F09, F10 ; garde-fous « show odds » / « show form ».</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+<h3 id="features-shr">SHR — Partage, export et données utilisateur</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="shr-01 copier match texte presse papier"><td class="id">SHR-01</td><td><b>Copier le match</b></td><td>Texte prêt à coller : équipes, date/heure locale, compétition, H2H résumé.</td><td><span class="st ok">OK</span></td><td>F11 ; garde-fou « copy match ».</td></tr>
+        <tr class="feature-row" data-text="shr-02 copier equipes json configuration"><td class="id">SHR-02</td><td><b>Copier mes équipes</b></td><td><code>toJson(myTeams)</code> dans le presse-papiers pour sauvegarde ou partage.</td><td><span class="st ok">OK</span></td><td>F12 ; garde-fou « copy teams ».</td></tr>
+        <tr class="feature-row" data-text="shr-03 travel pack deplacement heure locale stade"><td class="id">SHR-03</td><td><b>Travel pack</b></td><td>Équipes, heure locale, compétition, stade/ville, rappel « prépare ton déplacement ».</td><td><span class="st ok">OK</span></td><td>AT20 ; garde-fou « travel pack ».</td></tr>
+        <tr class="feature-row" data-text="shr-04 chambrage banter"><td class="id">SHR-04</td><td><b>Ligne de chambrage</b></td><td>Phrase courte localisée pour l’équipe suivie du match, copiable.</td><td><span class="st ok">OK</span></td><td>HF23 ; garde-fou « banter ».</td></tr>
+        <tr class="feature-row" data-text="shr-05 archive csv markdown export"><td class="id">SHR-05</td><td><b>Archive exportable</b></td><td>CSV des matchs terminés : date, compétition, domicile, extérieur, score ; copiable en un tap.</td><td><span class="st ok">OK</span></td><td>DN25 ; garde-fou « archive export ».</td></tr>
+        <tr class="feature-row" data-text="shr-06 lien partage encode decode"><td class="id">SHR-06</td><td><b>Lien de partage</b></td><td>Scripts <code>encode-share-link.py</code> / <code>decode-share-link.py</code> et <code>open-share-link.sh</code> pour transporter une sélection de match.</td><td><span class="st ok">OK</span></td><td>Scripts présents ; à raccorder à l’UI si nécessaire.</td></tr>
+        <tr class="feature-row" data-text="shr-07 import configuration json"><td class="id">SHR-07</td><td><b>Importer la configuration</b></td><td>Collage JSON, validation de liste, remplacement de <code>myTeams</code>, rafraîchissement.</td><td><span class="st ok">OK</span></td><td>HF24 ; garde-fou « config import » ; voir CFG-04.</td></tr>
+        <tr class="feature-row" data-text="shr-08 diagnostic copier sante sources"><td class="id">SHR-08</td><td><b>Copier le diagnostic</b></td><td>Version, santé de chaque source, codes d’erreur, horodatage ; utile pour un rapport de bug.</td><td><span class="st ok">OK</span></td><td>I32 ; bouton « copier le diagnostic ».</td></tr>
+        <tr class="feature-row" data-text="shr-09 effacer caches confirmation"><td class="id">SHR-09</td><td><b>Effacer les caches</b></td><td>Confirmation en deux temps, <code>rm -rf ~/.cache/espn-*</code>, rafraîchissement immédiat.</td><td><span class="st ok">OK</span></td><td>I32 ; garde-fou « about and privacy UI ».</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-pre">PRE — Application Avant-match</h3>
+  <p>L’app <b>Avant-match 1.0.22</b> est un <code>app</code> OWL séparé, ouvert depuis la bannière du widget principal. Elle lit les caches ESPN déjà produits et ne refait pas la collecte. Elle est organisée en quatre onglets : <b>Aperçu</b>, <b>Stats</b>, <b>Analyse</b>, <b>Infos</b>.</p>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="pre-01 app dediee ouverture banniere selection cache"><td class="id">PRE-01</td><td><b>App dédiée</b></td><td>Ouverture par la bannière via <code>owl:prematch.owl</code> ; sélection du match transmise par <code>~/.cache/prematch-match.json</code> ; clé <code>o:prematch.owl</code>.</td><td><span class="st ok">OK</span></td><td>v5.18.0, v5.22.3 ; correctif de clé.</td></tr>
+        <tr class="feature-row" data-text="pre-02 hero vs couleurs logos heure compte a rebours rang"><td class="id">PRE-02</td><td><b>Hero VS</b></td><td>Deux cartes équipe colorées, logos 160 px, VS, heure, date, état live/terminé, compte à rebours, rang et tag, forme des deux équipes.</td><td><span class="st ok">OK</span></td><td>v5.18.2, v5.18.6, v5.22.4 ; preview.</td></tr>
+        <tr class="feature-row" data-text="pre-03 apercu tendances points buts clean sheets btts over xg xpts contexte"><td class="id">PRE-03</td><td><b>Aperçu</b></td><td>Tendances : points sur 5, buts, clean sheets, BTTS, +2,5. Qualité des chances : xG, xGA, xPts, finition vs xG. Contexte : rang, PPG, buts. Cinq prochains matchs des deux équipes.</td><td><span class="st ok">OK</span></td><td>v5.16, v5.18.5, v5.22.6 ; tests FD.</td></tr>
+        <tr class="feature-row" data-text="pre-04 stats classement complet reperes h2h leaders blessures"><td class="id">PRE-04</td><td><b>Stats</b></td><td>Classement complet Place/Équipe/J/G/N/P/DB/Pts/Forme avec logos, repères, buts et clean sheets, confrontations, leaders, blessures/suspendus.</td><td><span class="st ok">OK</span></td><td>v5.22.2 ; DN22, DN23.</td></tr>
+        <tr class="feature-row" data-text="pre-05 analyse trajectoire xg 20 matchs lisse 5 radar carte attaque defense"><td class="id">PRE-05</td><td><b>Analyse xG</b></td><td>Trajectoire sur 20 matchs lissée sur 5, réel (G − encaissés) vs attendu (xG − xGA), rubans vert/rouge, croisements, badge de signal, synthèse par équipe, radar de percentiles, carte attaque/défense, guide de lecture.</td><td><span class="st ok">OK</span></td><td>v5.22.7 / v5.22.8 ; <code>fd-analysis.js</code> ; tests « FD advanced graphs ».</td></tr>
+        <tr class="feature-row" data-text="pre-06 infos cotes sans marge mouvement total handicap compos actus voyage"><td class="id">PRE-06</td><td><b>Infos</b></td><td>Cotes 1/N/2, probabilités sans marge, mouvement ouverture → fermeture, total buts et handicap, compositions, actus liées au match, stade/ville/arbitre, coup d’envoi.</td><td><span class="st ok">OK</span></td><td>v5.16, v5.18.6, v5.21.1/2 ; fixtures.</td></tr>
+        <tr class="feature-row" data-text="pre-07 actualiser fraicheur copier"><td class="id">PRE-07</td><td><b>Actualiser et fraîcheur</b></td><td>Bouton « actualiser » qui relaie <code>owl-send 20-my-matches.owl refresh</code>, âge des données, copie du match, horloge à 5 min.</td><td><span class="st ok">OK</span></td><td>v5.18.4 ; performance audit 2026-10-31.</td></tr>
+        <tr class="feature-row" data-text="pre-08 sources espn understat football data caches"><td class="id">PRE-08</td><td><b>Sources de l’app</b></td><td>ESPN (cotes, H2H, classements, historique), Understat (xG 20 matchs), Football-Data (xG de secours), caches <code>espn-*</code>, <code>espn-fd.json</code>, <code>espn-fd-analysis.json</code>.</td><td><span class="st ok">OK</span></td><td><code>fd-sync.py</code>, <code>fd-analysis.js</code> ; audit sources 2026-11-01.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-data">DATA — Plateforme de données et fiabilité</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="data-01 games scoreboard 15m mois cache signature"><td class="id">DATA-01</td><td><b>Source <code>games</code></b></td><td>Scoreboards ESPN toutes les 15 min, fenêtre ±90 jours, cache mensuel par signature de suivi, fusion frais + cache anti-trous, écriture atomique.</td><td><span class="st ok">OK</span></td><td>Test-games, fixtures, SIG, faux curl.</td></tr>
+        <tr class="feature-row" data-text="data-02 seasonall saison complete 12h"><td class="id">DATA-02</td><td><b>Source <code>seasonAll</code></b></td><td>Saison complète toutes les 12 h, cache 900 s, fusion avec les matchs frais, repli cache.</td><td><span class="st ok">OK</span></td><td>Test-cache-meta ; fixtures.</td></tr>
+        <tr class="feature-row" data-text="data-03 scheds journees rounds anchors 24h"><td class="id">DATA-03</td><td><b>Source <code>scheds</code></b></td><td>Journées et ancres de calendrier, 24 h, timeout 900 s, utilisée pour estimer les journées et les dates.</td><td><span class="st ok">OK</span></td><td>Test-sources ; garde-fou timeout.</td></tr>
+        <tr class="feature-row" data-text="data-04 standings classements 6h"><td class="id">DATA-04</td><td><b>Source <code>standings</code></b></td><td>Classements Top 5 + Europe + ligues suivies, 6 h, timeout 300 s, périmètre réduit au premier lancement.</td><td><span class="st ok">OK</span></td><td>I06, I07 ; test-cache-meta.</td></tr>
+        <tr class="feature-row" data-text="data-05 teamsdb catalogue equipes 168h"><td class="id">DATA-05</td><td><b>Source <code>teamsDb</code></b></td><td>Catalogue d’équipes, identifiants, ligues, 168 h, timeout 900 s ; sert la recherche et la dérivation des ligues.</td><td><span class="st ok">OK</span></td><td>Test-sources ; fixtures teams.</td></tr>
+        <tr class="feature-row" data-text="data-06 extra fixtures calendrier 1h"><td class="id">DATA-06</td><td><b>Source <code>extra</code></b></td><td>Calendrier élargi des ligues suivies, 1 h, timeout 360 s, dérivé de <code>favLg</code>, sans liste blanche de ligues.</td><td><span class="st ok">OK</span></td><td>I11 ; test-league-scope.</td></tr>
+        <tr class="feature-row" data-text="data-07 livem direct gate index conditionnel"><td class="id">DATA-07</td><td><b>Source <code>liveM</code></b></td><td>Direct toutes les minutes <b>seulement</b> dans la fenêtre live (match en direct ou coup d’envoi ±2 h), index <code>liveIdx</code>, sinon commande minimale sans réseau.</td><td><span class="st ok">OK</span></td><td>I15 ; test du gate live ; audit énergie.</td></tr>
+        <tr class="feature-row" data-text="data-08 knock arbre tournoi 12h"><td class="id">DATA-08</td><td><b>Source <code>knock</code></b></td><td>Arbre des compétitions à élimination, 12 h, timeout 120 s, complété par les matchs de saison si un tour manque.</td><td><span class="st ok">OK</span></td><td>v5.20 ; test CDF/UCL.</td></tr>
+        <tr class="feature-row" data-text="data-09 nextup prochains matchs 12h"><td class="id">DATA-09</td><td><b>Source <code>nextup</code></b></td><td>Prochains matchs des rivaux et des équipes, 12 h, timeout 360 s, cache <code>espn-nextup.json</code>.</td><td><span class="st ok">OK</span></td><td>Test-league-scope ; fixtures.</td></tr>
+        <tr class="feature-row" data-text="data-10 histfull historique complet 24h"><td class="id">DATA-10</td><td><b>Source <code>histfull</code></b></td><td>Historique complet, 24 h, timeout 300 s, utilisé pour la forme, le H2H et les cinq prochains.</td><td><span class="st ok">OK</span></td><td>Test-sources ; fixtures.</td></tr>
+        <tr class="feature-row" data-text="data-11 cotes h2h current.json cache 1h"><td class="id">DATA-11</td><td><b>Cotes et H2H</b></td><td><code>heroOdds</code> toutes les heures, <code>oddsNow</code> et <code>h2hNow</code> lus depuis <code>~/.cache/espn-odds/</code>, TTL 6 h / 1 h, pas de clignotement.</td><td><span class="st ok">OK</span></td><td>Test-h2h ; fixture <code>summary-h2h.json</code>.</td></tr>
+        <tr class="feature-row" data-text="data-12 logos sprite banner prefetch"><td class="id">DATA-12</td><td><b>Écussons et prefetch</b></td><td>Téléchargements atomiques et verrouillés, cache 48 px pour les listes et 160 px pour la bannière, sprite, préchargement des cotes/H2H.</td><td><span class="st ok">OK</span></td><td>I13 ; test-prefetch ; test de téléchargement réel.</td></tr>
+        <tr class="feature-row" data-text="data-13 understat xg 20 matchs"><td class="id">DATA-13</td><td><b>Understat xG</b></td><td>20 matchs avec xG pour les cinq grands championnats, source préférée de la trajectoire, cache et synchronisation.</td><td><span class="st ok">OK</span></td><td><code>fd-sync.py</code>, <code>fd-analysis.js</code> ; doc trajectoire xG.</td></tr>
+        <tr class="feature-row" data-text="data-14 football data xg secours ligue 2"><td class="id">DATA-14</td><td><b>Football-Data xG</b></td><td>CSV libres, cache brut daté avec URL/SHA-256, 2 téléchargements/jour, secours pour la Ligue 2 ou une équipe absente d’Understat.</td><td><span class="st ok">OK</span></td><td>Audit sources 2026-11-01 ; <code>fd-sync.py</code>.</td></tr>
+        <tr class="feature-row" data-text="data-15 clubelo elo rating propose"><td class="id">DATA-15</td><td><b>ClubElo</b></td><td>Snapshot quotidien, rating as-of avant le coup d’envoi, probabilités et force ajustée ; intégration non bloquante avec cache.</td><td><span class="st prop">PROPOSÉ</span></td><td>Audit sources 2026-11-01 ; non implémenté.</td></tr>
+        <tr class="feature-row" data-text="data-16 meta cache v at ttl exp migration"><td class="id">DATA-16</td><td><b>Métadonnées de cache</b></td><td>Sidecar <code>.meta</code> <code>{v,at,ttl,exp}</code>, validation à la lecture, migration des anciens caches, refus d’un cache expiré.</td><td><span class="st ok">OK</span></td><td>I12 ; test-cache-meta ; correctif migration 2026-10-30.</td></tr>
+        <tr class="feature-row" data-text="data-17 atomique verrou temp lock"><td class="id">DATA-17</td><td><b>Écritures atomiques</b></td><td>Fichier temporaire privé, <code>mv</code> atomique, verrou <code>mkdir</code> par écusson, purge des verrous/temp de plus de 15 min.</td><td><span class="st ok">OK</span></td><td>I13 ; test de concurrence.</td></tr>
+        <tr class="feature-row" data-text="data-18 curl https redirection taille timeout retry jitter"><td class="id">DATA-18</td><td><b>Durcissement réseau</b></td><td>HTTPS, <code>--max-redirs 0</code>, taille bornée 2 Mio, <code>--connect-timeout 5</code>, retry/backoff, <code>Retry-After</code>, jitter 0–2 s par source.</td><td><span class="st ok">OK</span></td><td>I01, I14 ; tests 429/5xx/offline/tronqué.</td></tr>
+        <tr class="feature-row" data-text="data-19 sante sources status retry offline degrade"><td class="id">DATA-19</td><td><b>Santé et mode dégradé</b></td><td><code>status</code> sur chaque source, ligne de santé, bannière hors ligne avec âge, retry par source, messages d’erreur distincts.</td><td><span class="st ok">OK</span></td><td>I08, AT18, AT25 ; test-degraded.</td></tr>
+        <tr class="feature-row" data-text="data-20 basse data low data initiales"><td class="id">DATA-20</td><td><b>Mode basse data</b></td><td>Initiales à la place des logos, sections allégées, moins de téléchargements, préférence persistante.</td><td><span class="st ok">OK</span></td><td>AT22 ; garde-fou « low data ».</td></tr>
+        <tr class="feature-row" data-text="data-21 dedupe fusion anti trous purge"><td class="id">DATA-21</td><td><b>Fusion anti-trous</b></td><td>Fusion du frais par-dessus le dernier bon résultat, purge des matchs passés, des scores live périmés et des « à venir » déjà commencés, <code>unique_by(.id)</code>.</td><td><span class="st ok">OK</span></td><td>F32 ; fixtures ; test-games.</td></tr>
+        <tr class="feature-row" data-text="data-22 vie privee attribution aucune donnee personnelle"><td class="id">DATA-22</td><td><b>Vie privée et attribution</b></td><td>Aucun compte, aucune donnée personnelle envoyée ; caches publics locaux ; attribution ESPN ; licence MIT pour le code, pas pour les données/logos.</td><td><span class="st ok">OK</span></td><td>I32 ; <code>docs/data-notice.md</code> ; LICENSE.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="features-ops">OPS — Qualité, tests et exploitation</h3>
+  <div class="tablewrap">
+    <table class="features">
+      <thead><tr><th style="width:84px">ID</th><th style="width:190px">Capacité</th><th>Détail d’implémentation</th><th style="width:112px">Statut</th><th style="width:210px">Preuve</th></tr></thead>
+      <tbody>
+        <tr class="feature-row" data-text="ops-01 owl 16 mono fichier distribution"><td class="id">OPS-01</td><td><b>OWL 16 mono-fichier</b></td><td>Widget autonome, <code>meta { owl: 16 }</code>, composants, <code>let</code>/<code>if</code> dans les handlers, aucune dépendance applicative externe.</td><td><span class="st ok">OK</span></td><td><code>owl-check</code> ; widget installé.</td></tr>
+        <tr class="feature-row" data-text="ops-02 version changelog meta"><td class="id">OPS-02</td><td><b>Version et changelog</b></td><td><code>meta.version</code>, historique des versions, notes de release, app 1.0.22.</td><td><span class="st ok">OK</span></td><td>README, <code>features-proposals.md</code>, git log.</td></tr>
+        <tr class="feature-row" data-text="ops-03 tests hors ligne fixtures faux curl"><td class="id">OPS-03</td><td><b>Tests hors ligne</b></td><td>Fixtures ESPN, faux <code>curl</code>, extraction des scripts, tests shell et Python, aucun appel réseau réel.</td><td><span class="st ok">OK</span></td><td><code>tests/run.sh</code>, <code>tests/run-all.sh</code>.</td></tr>
+        <tr class="feature-row" data-text="ops-04 ci portable"><td class="id">OPS-04</td><td><b>CI portable</b></td><td><code>scripts/ci.sh</code>, compilation Python, tests, modèle de workflow GitHub Actions.</td><td><span class="st ok">OK</span></td><td><code>docs/ci-workflow.yml</code> ; test CI.</td></tr>
+        <tr class="feature-row" data-text="ops-05 owl check preview tuile ecran"><td class="id">OPS-05</td><td><b>owl-check et previews</b></td><td>Compilation, preview tuile 7×12, capture écran 1080×2186, données live.</td><td><span class="st ok">OK</span></td><td><code>owl-check</code> exit 0 ; PNG de preview.</td></tr>
+        <tr class="feature-row" data-text="ops-06 mesures device cpu reseau batterie"><td class="id">OPS-06</td><td><b>Mesures</b></td><td>Scripts <code>measure*.sh</code>, collecteur, protocole device, mesures v5.7/v5.8, modèle v5.10.0.</td><td><span class="st part">PARTIEL</span></td><td>Mesures v5.7/v5.8 réelles ; v5.22.8 non exécutée (appareil requis).</td></tr>
+        <tr class="feature-row" data-text="ops-07 documentation licence data notice"><td class="id">OPS-07</td><td><b>Documentation et licence</b></td><td>README, audits, cycle en V, notice de données, attribution ESPN, LICENSE MIT.</td><td><span class="st ok">OK</span></td><td><code>docs/</code> ; <code>LICENSE</code>.</td></tr>
+        <tr class="feature-row" data-text="ops-08 budgets performance requetes horloges"><td class="id">OPS-08</td><td><b>Budgets de performance</b></td><td>Horloge principale 1 min, horloge lente 1 h, listes bornées, classements à la demande, gate live, sources 6 h/12 h/24 h.</td><td><span class="st ok">OK</span></td><td>I09, I15, I19, v5.18.9/19.0 ; audit performance.</td></tr>
+        <tr class="feature-row" data-text="ops-09 securite injection sh secrets"><td class="id">OPS-09</td><td><b>Sécurité</b></td><td><code>sh()</code> pour les entrées, validation d’hôte, aucune IP LAN codée en dur, aucun secret, aucune redirection HTTP.</td><td><span class="st ok">OK</span></td><td>I01, I02 ; test d’injection par apostrophe.</td></tr>
+        <tr class="feature-row" data-text="ops-10 maintenabilite extracteur scripts"><td class="id">OPS-10</td><td><b>Maintenabilité</b></td><td><code>scripts/dump-widget-scripts.sh</code> extrait les scripts pour revue/shellcheck ; widget mono-fichier conservé pour la distribution.</td><td><span class="st ok">OK</span></td><td>I30 ; tests <code>bash -n</code>.</td></tr>
+        <tr class="feature-row" data-text="ops-11 qualite accessibilite i18n garde-fous"><td class="id">OPS-11</td><td><b>Garde-fous qualité</b></td><td>Tests statiques des features, typographie, contrastes, largeurs, clés stables, absence de régression.</td><td><span class="st ok">OK</span></td><td><code>test-audit-improvements.py</code> ; 100+ assertions.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="nfr">
+  <h2><span class="num">B1.2</span>Exigences non fonctionnelles</h2>
+  <p>Les NFR sont les contraintes qui rendent l’app utilisable sur un téléphone : elles sont aussi importantes que les features. Elles sont formulées avec une cible vérifiable et une preuve associée.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:86px">ID</th><th style="width:150px">Dimension</th><th>Exigence et cible</th><th>Implémentation</th><th style="width:120px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">NFR-01</td><td>Performance</td><td>Ouvrir la tuile et l’écran sans composer des centaines de lignes inutiles ; listes bornées et classements à la demande.</td><td>12 fixtures/équipe, 4 en ALL, 20 lignes à l’écran, <code>showTables</code>, <code>GameRow</code> direct, suppression des calculs de rang inutilisés.</td><td><span class="st part">PARTIEL</span> modélisé, device non mesuré</td></tr>
+        <tr><td class="id">NFR-02</td><td>Énergie</td><td>Aucun réveil permanent au repos ; zéro requête réseau hors fenêtre live.</td><td>Gate <code>liveM</code>, horloge 1 min, horloge lente 1 h, sources 6 h/12 h/24 h, pas de polling de compte à rebours.</td><td><span class="st ok">OK</span> gate testé</td></tr>
+        <tr><td class="id">NFR-03</td><td>Réseau et données</td><td>Budget de requêtes borné, timeouts cohérents, caches valides, pas de téléchargement massif.</td><td>Modèle ≈ 1 149 req/24 h typique, ≈ 3 292 req/24 h en secours ; timeouts 20–900 s ; caches TTL ; taille max 2 Mio.</td><td><span class="st part">PARTIEL</span> modèle calculé</td></tr>
+        <tr><td class="id">NFR-04</td><td>Sécurité</td><td>Pas d’injection, pas de secret, entrées non fiables maîtrisées.</td><td><code>sh()</code>, validation d’hôte, HTTPS, redirections interdites, pas d’IP LAN, pas de token.</td><td><span class="st ok">OK</span> test injection</td></tr>
+        <tr><td class="id">NFR-05</td><td>Vie privée</td><td>Données locales compréhensibles, effaçables, non divulguées.</td><td>Caches publics, aucun compte, bouton d’effacement, diagnostic local, notice de données.</td><td><span class="st ok">OK</span> documenté</td></tr>
+        <tr><td class="id">NFR-06</td><td>Accessibilité</td><td>WCAG 2.2 AA autant que le runtime le permet ; contraste, cibles, libellés, pas de couleur seule.</td><td>Haut contraste, mode daltonien, plancher 12, zones nommées, libellés, tailles.</td><td><span class="st part">PARTIEL</span> TalkBack et 48 dp à finir</td></tr>
+        <tr><td class="id">NFR-07</td><td>Fiabilité</td><td>Dégradation, reprise et fraîcheur visibles ; jamais de fausse donnée silencieuse.</td><td>Santé des sources, bannière hors ligne, âge, retry, repli cache, états vides explicites.</td><td><span class="st ok">OK</span> tests pannes</td></tr>
+        <tr><td class="id">NFR-08</td><td>Maintenabilité</td><td>Code testable, documenté, versionné, livrable en un fichier.</td><td>Extracteur de scripts, tests, README, audits, version, licence.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">NFR-09</td><td>Testabilité</td><td>Chaque source et chaque vue a un test reproductible.</td><td>11 harnais, fixtures, faux curl, garde-fous, previews.</td><td><span class="st ok">OK</span> hors device</td></tr>
+        <tr><td class="id">NFR-10</td><td>Conformité</td><td>Licences, attribution et conditions claires.</td><td>MIT pour le code ; ESPN non affilié ; données/logos propriété de leurs ayants droit.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">NFR-11</td><td>Compatibilité</td><td>Omalauncher 0.12.0, Android 14, OWL 16, curl/jq/perl ; app python/nodejs.</td><td><code>requires</code> déclarés, pas de dépendance cachée, chemins de cache stables.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">NFR-12</td><td>Qualité des données</td><td>Pas de mélange de modèles xG, pas de valeur post-match dans un affichage pré-match, provenance et échantillon visibles.</td><td>Understat prioritaire, Football-Data en secours, source affichée, fenêtres glissantes, pas de fusion des modèles.</td><td><span class="st part">PARTIEL</span> règles documentées</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="cas">
+  <h2><span class="num">B1.3</span>Cas d’utilisation principaux</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:80px">ID</th><th style="width:180px">Cas</th><th>Scénario</th><th>Résultat attendu</th><th style="width:180px">Couverture</th></tr></thead>
+      <tbody>
+        <tr><td class="id">UC-01</td><td>Premier lancement</td><td>L’utilisateur ouvre le widget sans équipe.</td><td>Écran de bienvenue, recherche, sélection de 1 à 5 équipes, validation, rafraîchissement.</td><td>CFG-01, CFG-03, CFG-05</td></tr>
+        <tr><td class="id">UC-02</td><td>Jour de match</td><td>Un match de mes équipes approche.</td><td>Hero avec compte à rebours, rappel avant match, rappel au coup d’envoi, score live, alerte de but.</td><td>MAT-07, NOT-01, NOT-02, NOT-05</td></tr>
+        <tr><td class="id">UC-03</td><td>Consulter les résultats</td><td>L’utilisateur ouvre la vue Mes matchs.</td><td>Résultats récents, forme V/N/D, prochains matchs, classement, filtre par équipe.</td><td>MAT-01, MAT-08, MAT-09, MAT-10</td></tr>
+        <tr><td class="id">UC-04</td><td>Surveiller les rivaux</td><td>L’utilisateur ouvre l’onglet Rivaux.</td><td>Matchs des concurrents, prochains matchs, navigation par journée, rivaux explicites.</td><td>MAT-02, CFG-02</td></tr>
+        <tr><td class="id">UC-05</td><td>Suivre une coupe</td><td>Une équipe est en C1 ou en coupe nationale.</td><td>Arbre replié/déplié, tours antérieurs en liste, libellés, agrégats.</td><td>MAT-04, MAT-11, MAT-14</td></tr>
+        <tr><td class="id">UC-06</td><td>Préparer un match</td><td>L’utilisateur tape la bannière.</td><td>App Avant-match : VS, tendances, xG, stats, H2H, cotes, compos, actus, voyage.</td><td>PRE-01..PRE-08</td></tr>
+        <tr><td class="id">UC-07</td><td>Partager</td><td>L’utilisateur veut envoyer le match ou le déplacement.</td><td>Copie du match, des équipes, du travel pack, du chambrage, de l’archive.</td><td>SHR-01..SHR-09</td></tr>
+        <tr><td class="id">UC-08</td><td>Panne réseau</td><td>ESPN renvoie 429/5xx ou rien.</td><td>Dernier cache valide, bannière hors ligne, âge, retry ciblé, pas de fausse donnée.</td><td>DATA-16..DATA-21, NFR-07</td></tr>
+        <tr><td class="id">UC-09</td><td>Accessibilité</td><td>L’utilisateur active le haut contraste, le mode daltonien, une grande taille.</td><td>UI lisible, zones nommées, formes textuelles, pas de débordement.</td><td>A11Y-01..A11Y-08</td></tr>
+        <tr><td class="id">UC-10</td><td>Nettoyage</td><td>L’utilisateur veut effacer les données locales.</td><td>Confirmation en deux temps, suppression des caches, rafraîchissement.</td><td>SHR-08, SHR-09, DATA-22</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="hypothese">
+  <h2><span class="num">B1.4</span>Hypothèses et exclusions</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Hypothèses</h4>
+      <ul class="tight">
+        <li>Le launcher fournit <code>curl</code>, <code>jq</code>, <code>perl</code> et les notifications Android.</li>
+        <li>Les API ESPN publiques restent accessibles sans clé, avec un débit raisonnable.</li>
+        <li>L’utilisateur accepte un cache local et un rafraîchissement différé hors live.</li>
+        <li>Le fuseau du téléphone est correct ; les dates ESPN sont converties en heure locale.</li>
+        <li>Understat et Football-Data restent des sources d’enrichissement, pas des sources de live.</li>
+        <li>Les identifiants ESPN sont stables à l’échelle d’une saison.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>Exclusions et limites assumées</h4>
+      <ul class="tight">
+        <li>Pas de compte, pas de cloud, pas de synchronisation multi-appareils.</li>
+        <li>Pas de paris : les cotes sont indicatives et sans conseil.</li>
+        <li>Pas de vidéo, pas de billetterie, pas de commentaire audio.</li>
+        <li>Pas de couverture exhaustive du football féminin ni des ligues non ESPN.</li>
+        <li>Pas de garantie sur les données xG : ce sont des modèles, pas des vérités.</li>
+        <li>Pas de mesure batterie dans ce dossier : protocole fourni, exécution à faire.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="acceptation">
+  <h2><span class="num">B1.5</span>Critères d’acceptation</h2>
+  <p>Les critères ci-dessous sont la recette utilisateur. Ils sont formulés en <b>Given / When / Then</b> et doivent être exécutés sur appareil pour clore la branche A0.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:80px">ID</th><th>Given</th><th>When</th><th>Then</th><th style="width:110px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">AC-01</td><td>Aucune équipe sélectionnée</td><td>J’ouvre le widget</td><td>Je vois l’accueil, je peux chercher et sélectionner 1 à 5 équipes, puis valider.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-02</td><td>5 équipes sélectionnées</td><td>Je tente d’en ajouter une sixième</td><td>Le bouton indique « Maximum 5 » et la sélection reste à 5.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-03</td><td>Un match commence dans 12 h</td><td>Le trigger <code>at</code> tire</td><td>Une notification apparaît une seule fois, avec le duel, la ligue, l’heure et le délai.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-04</td><td>Le même match est déjà notifié</td><td>Le trigger retente</td><td>Aucune seconde notification ; les états sont purgés.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-05</td><td>Un match de mes équipes est en direct</td><td>Un but est marqué</td><td>Notification avec score, buteur et minute, sauf anti-spoiler, mute, pause ou heures calmes.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-06</td><td>Le téléphone est hors ligne</td><td>J’ouvre le widget</td><td>Le dernier cache valide s’affiche avec son âge, une bannière hors ligne et un retry.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-07</td><td>Le mode anti-spoiler est actif</td><td>Un match est en direct ou terminé</td><td>Les scores et formes sont masqués ; un tap révèle un match ; aucune notification de but.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-08</td><td>Une équipe est en C1</td><td>J’ouvre Europe</td><td>L’arbre s’affiche à partir des 8es, replié par défaut, avec les tours antérieurs en liste.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-09</td><td>Un match est sélectionné</td><td>Je tape la bannière</td><td>L’app Avant-match s’ouvre sur ce match avec les quatre onglets.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-10</td><td>Les données xG sont disponibles</td><td>J’ouvre l’onglet Analyse</td><td>La trajectoire sur 20 matchs, le réel vs attendu, le radar et la carte s’affichent avec la source.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-11</td><td>Le mode daltonien est actif</td><td>Je regarde les zones et les formes</td><td>Les zones sont nommées et les résultats V/N/D sont écrits, pas seulement colorés.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">AC-12</td><td>Je veux effacer mes données</td><td>Je confirme l’effacement</td><td>Les caches ESPN sont supprimés et le widget se rafraîchit sans erreur.</td><td><span class="st dev">DEVICE</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout good">
+    <p><b>Sortie de la branche A0.</b> Les 12 critères doivent être exécutés sur le téléphone de référence (Xiaomi 11T Pro, Android 14, Omalauncher 0.12.0) ou sur un appareil équivalent, avec capture d’écran et journal de notification. Tant que ce n’est pas fait, le document reste honnêtement au statut « implémenté et testé hors appareil ».</p>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2><span class="num">B2</span>Architecture et conception détaillée</h2>
+  <p class="lead">L’architecture est volontairement simple : <b>un widget OWL mono-fichier</b> qui collecte, normalise et affiche, <b>des caches locaux</b> qui servent de contrat entre les sources et l’UI, et <b>une app avant-match</b> qui lit les mêmes caches pour l’analyse. Il n’y a ni serveur applicatif, ni base de données, ni compte utilisateur.</p>
+  <div class="callout good">
+    <p><b>Principe directeur.</b> Le réseau est une dépendance fragile, pas une fondation. Toute donnée affichée vient d’un cache validé ; toute donnée live est conditionnée à une fenêtre ; toute notification est portée par un trigger persisté. Si une source tombe, l’app doit rester lisible avec le dernier état connu et dire clairement son âge.</p>
+  </div>
+</section>
+
+<section id="contexte">
+  <h2><span class="num">B2.1</span>Contexte et modèle d’exécution</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Chaîne d’exécution</h4>
+      <ol class="tight">
+        <li><b>Omalauncher</b> compile le fichier <code>.owl</code> et instancie le widget.</li>
+        <li>Les <code>source</code> sont évaluées selon leur période : <code>cmd</code> pour les scripts, <code>file</code> pour les caches, <code>clock</code> pour le temps.</li>
+        <li>Les <code>let</code> dérivent un modèle normalisé à partir des sources.</li>
+        <li>Les vues <code>tile</code> et <code>screen</code> composent l’UI à partir des <code>let</code>.</li>
+        <li>Les <code>on</code> réagissent aux changements de source ; les <code>at</code> tirent aux échéances persistées.</li>
+        <li>Les notifications Android sont émises par <code>notify()</code>.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h4>Contraintes du runtime</h4>
+      <ul class="tight">
+        <li>Les sources peuvent être <b>gelées hors écran</b> : le compte à rebours pollé est interdit pour les rappels.</li>
+        <li>Un trigger <code>at</code> rattrape son échéance au redémarrage du launcher.</li>
+        <li>Les états <code>persist</code> survivent aux redémarrages ; les autres sont de session.</li>
+        <li>Un widget est identifié par son fichier : les états persistés sont locaux au fichier.</li>
+        <li>Les scripts shell s’exécutent dans un environnement invité avec <code>curl</code>, <code>jq</code>, <code>perl</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Vue de contexte</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Élément</th><th>Rôle</th><th>Entrées</th><th>Sorties</th><th>Frontière</th></tr></thead>
+      <tbody>
+        <tr><td><b>Android / Omalauncher</b></td><td>Hôte, cycle de vie, notifications, réseau</td><td>Fichier OWL, gestes, permissions</td><td>Rendu, triggers, notifications</td><td>Hors du contrôle du widget</td></tr>
+        <tr><td><b>Widget My Matches</b></td><td>Collecte, normalisation, vues, alertes</td><td>Sources ESPN, caches, préférences</td><td>Tuile, écran, notifications, caches</td><td>Mono-fichier OWL</td></tr>
+        <tr><td><b>App Avant-match</b></td><td>Analyse détaillée d’un match</td><td>Caches ESPN, xG, sélection</td><td>UI d’analyse, copie, refresh</td><td>App OWL séparée</td></tr>
+        <tr><td><b>Scripts d’enrichissement</b></td><td>Understat, Football-Data, analyse xG</td><td>CSV/HTML publics</td><td><code>espn-fd.json</code>, <code>espn-fd-analysis.json</code></td><td>Python / Node</td></tr>
+        <tr><td><b>ESPN</b></td><td>Source maître : matchs, scores, classements, cotes, résumés</td><td>Requêtes HTTP GET</td><td>JSON</td><td>API publique, non affiliée</td></tr>
+        <tr><td><b>Understat / Football-Data</b></td><td>Enrichissement xG</td><td>Pages/CSV publics</td><td>JSON normalisé</td><td>Sources secondaires</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="modules">
+  <h2><span class="num">B2.2</span>Modules et responsabilités</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:190px">Module</th><th>Responsabilité</th><th>Interfaces</th><th>Dépendances</th><th style="width:110px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td><code>20-my-matches.owl</code></td><td>Widget principal : collecte ESPN, normalisation, vues MINE/RIV/TOP5/EUROPE, réglages, rappels, alertes, partage.</td><td>Sources OWL, états, triggers, composants UI</td><td><code>curl</code>, <code>jq</code>, <code>perl</code>, caches</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>prematch.owl</code></td><td>App avant-match : hero VS, Aperçu, Stats, Analyse, Infos, refresh.</td><td>Caches ESPN, <code>prematch-match.json</code>, xG</td><td><code>python</code>, <code>nodejs</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>fd-sync.py</code></td><td>Synchronisation Football-Data / Understat, cache brut et normalisé, alias d’équipes.</td><td>CSV/HTML, JSON</td><td>Python standard</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>fd-analysis.js</code></td><td>Calcul des séries glissantes xG/xGA/xGD/xPts, radar, scatter attaque/défense.</td><td><code>espn-fd.json</code></td><td>Node</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>encode-share-link.py</code> / <code>decode-share-link.py</code></td><td>Transport d’une sélection de match dans un lien.</td><td>JSON / URL</td><td>Python</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>tests/</code></td><td>Fixtures, faux <code>curl</code>, tests de sources, pannes, concurrence, garde-fous.</td><td>Widget, scripts extraits</td><td>Bash, Python</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>scripts/</code></td><td>Mesures, collecteur, CI, extraction de scripts, mise à jour invitée.</td><td>ADB, HTTP local</td><td>Bash, Python</td><td><span class="st part">PARTIEL</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="flux">
+  <h2><span class="num">B2.3</span>Flux de données</h2>
+  <h3>Flux nominal</h3>
+  <div class="phase">
+    <div class="ph">1 · Entrée</div><div class="pc"><b>Équipes suivies.</b> <code>myTeams</code> fournit <code>favStr</code> (abréviations), <code>favTid</code> (identifiants ESPN), <code>favNoTid</code> (abréviations sans identifiant) et <code>favLg</code> (ligues dérivées de <code>teamsDb</code> et de la ligue de chaque équipe).</div>
+    <div class="ph">2 · Collecte</div><div class="pc"><b>Sources ESPN.</b> <code>games</code>, <code>seasonAll</code>, <code>scheds</code>, <code>standings</code>, <code>teamsDb</code>, <code>extra</code>, <code>liveM</code>, <code>knock</code>, <code>nextup</code>, <code>histfull</code>, <code>heroOdds</code>. Chaque source écrit un cache validé et expose un <code>status</code>.</div>
+    <div class="ph">3 · Normalisation</div><div class="pc"><b>Modèle commun.</b> Chaque match devient <code>{id, league, tag, at, state, detail, stage, squads, tids, home, away, plays, odds, aggH, aggA}</code> ; les équipes deviennent <code>{abbr, name, score, winner, logo}</code>.</div>
+    <div class="ph">4 · Fusion</div><div class="pc"><b>Anti-trous et déduplication.</b> Le frais gagne sur le cache, le cache comble les identifiants absents, <code>unique_by(.id)</code>, purge des matchs passés et des « à venir » déjà commencés.</div>
+    <div class="ph">5 · Périmètre</div><div class="pc"><b><code>all</code> puis <code>allMine</code>.</b> <code>all</code> est la base globale ; <code>allMine</code> applique le prédicat d’appartenance (tid ou abréviation, club/sélection) et sert aux vues, rappels, formes, H2H et archives.</div>
+    <div class="ph">6 · Vues</div><div class="pc"><b>UI.</b> <code>base</code> applique le filtre d’équipe et de jour ; <code>heroMatch</code>, <code>upShow</code>, <code>pastTake</code>, <code>tables</code>, <code>cupStages</code>, <code>Bracket</code> composent la tuile et l’écran.</div>
+    <div class="ph">7 · Alertes</div><div class="pc"><b>Triggers.</b> Les échéances <code>h12At</code>, <code>kickAt</code>, <code>digestAt</code>, <code>prewarmAt</code> sont armées par les données ; les alertes live sont déclenchées par <code>on liveM</code>.</div>
+    <div class="ph">8 · Analyse</div><div class="pc"><b>App avant-match.</b> <code>prematch.owl</code> lit <code>prematch-match.json</code>, <code>espn-games.json</code>, <code>espn-extra.json</code>, <code>espn-nextup.json</code>, <code>espn-history.json</code>, <code>espn-standings.json</code>, <code>espn-odds/current.json</code>, <code>espn-fd.json</code>, <code>espn-fd-analysis.json</code>.</div>
+  </div>
+
+  <h3>Flux live</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Étape</th><th>Déclencheur</th><th>Traitement</th><th>Garde-fou</th></tr></thead>
+      <tbody>
+        <tr><td>Fenêtre live</td><td><code>liveWin</code></td><td>Vrai si un match est <code>in</code> ou <code>pre</code> à moins de 3 h / plus 2 min, dans <code>games</code>, <code>extra</code> ou l’index live.</td><td>Hors fenêtre, la source <code>liveM</code> ne fait aucun appel réseau.</td></tr>
+        <tr><td>Collecte live</td><td><code>liveM</code> toutes les 1 min</td><td>Scoreboard ciblé, plays, buts, cartons, mi-temps, score.</td><td>Timeout 90 s, pas de jitter pour ne pas retarder le direct.</td></tr>
+        <tr><td>But</td><td>Score en hausse</td><td>Détection du buteur et de la minute, maximum deux buts par tick.</td><td>Silencieux au premier snapshot, si le score baisse (VAR), en anti-spoiler, mute, pause ou heures calmes.</td></tr>
+        <tr><td>Carton rouge</td><td>Nouveau play <code>red</code></td><td>Notification joueur + minute.</td><td>Déduplication par <code>m</code>/<code>t</code>/<code>who</code>.</td></tr>
+        <tr><td>Mi-temps</td><td><code>detail</code> = HT / Half</td><td>Notification score.</td><td>Pas de doublon avec le snapshot précédent.</td></tr>
+        <tr><td>Fin de match</td><td><code>on games</code> passage <code>post</code></td><td>Notification score final, rattrapage toutes les 15 min.</td><td>Pas de notification si déjà notifié, anti-spoiler, mute, pause, heures calmes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="sources">
+  <h2><span class="num">B2.4</span>Sources, périodes et caches</h2>
+  <p>Le widget déclare <b>20 sources</b> : 13 sources actives, 7 lectures de cache ou d’horloge. Le tableau ci-dessous donne la période, le timeout et le rôle. Les périodes sont des budgets, pas des garanties : hors écran, le runtime peut geler les sources ; les triggers <code>at</code> sont là pour les échéances.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:110px">Source</th><th style="width:90px">Type</th><th style="width:90px">Période</th><th style="width:80px">Timeout</th><th>Rôle</th><th>Cache / repli</th><th style="width:90px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">games</td><td>cmd</td><td>15 min</td><td>240 s</td><td>Scoreboards ESPN, fenêtre ±90 jours, cache mensuel, signature de suivi.</td><td><code>~/.cache/espn-games.json</code> + <code>espn-games-months/</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">seasonAll</td><td>cmd</td><td>12 h</td><td>900 s</td><td>Saison complète, complète les matchs absents de <code>games</code>.</td><td>Cache saison + <code>.meta</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">scheds</td><td>cmd</td><td>24 h</td><td>900 s</td><td>Journées et ancres de calendrier pour les estimations.</td><td>Rounds/anchors</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">standings</td><td>cmd</td><td>6 h</td><td>300 s</td><td>Classements Top 5, Europe et ligues suivies.</td><td><code>espn-standings.json</code> + <code>.meta</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">teamsDb</td><td>cmd</td><td>168 h</td><td>900 s</td><td>Catalogue d’équipes, identifiants, ligues, recherche.</td><td><code>espn-teams.json</code> + <code>.meta</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">extra</td><td>cmd</td><td>1 h</td><td>360 s</td><td>Calendrier élargi des ligues suivies, fixtures.</td><td><code>espn-extra.json</code> + <code>.meta</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">now</td><td>clock</td><td>1 min</td><td>—</td><td>Horloge principale pour les états, comptes à rebours et fraîcheur.</td><td>—</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">liveIdx</td><td>file</td><td>—</td><td>—</td><td>Index live local pour démarrer même pendant le chargement des sources.</td><td><code>espn-live-index.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">liveM</td><td>cmd</td><td>1 min</td><td>90 s</td><td>Direct conditionnel : score, minute, plays, buts, cartons, HT.</td><td>Gate <code>liveWin</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">knock</td><td>cmd</td><td>12 h</td><td>120 s</td><td>Arbre des compétitions à élimination.</td><td><code>espn-knock.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">cupAll</td><td>file</td><td>—</td><td>—</td><td>Lecture du cache des prochains matchs pour l’arbre.</td><td><code>espn-nextup.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">nextup</td><td>cmd</td><td>12 h</td><td>360 s</td><td>Prochains matchs des rivaux et des équipes.</td><td><code>espn-nextup.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">histfull</td><td>cmd</td><td>24 h</td><td>300 s</td><td>Historique complet pour forme, H2H et cinq prochains.</td><td><code>espn-history.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">slow</td><td>clock</td><td>1 h</td><td>—</td><td>Horloge lente pour les cutoffs et le calendrier.</td><td>—</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">spr</td><td>file</td><td>—</td><td>—</td><td>Sprite d’écussons pour les listes.</td><td><code>espn-logos/sprite.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">bannerLogos</td><td>cmd</td><td>1 h</td><td>60 s</td><td>Écussons 160 px de la bannière.</td><td><code>espn-logos/banner/</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">prefetch</td><td>cmd</td><td>1 h</td><td>120 s</td><td>Préchargement des cotes/H2H du prochain match.</td><td><code>espn-odds/</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">heroOdds</td><td>cmd</td><td>1 h</td><td>20 s</td><td>Cotes et H2H du hero, cache instantané.</td><td><code>espn-odds/current.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">oddsNow</td><td>file</td><td>—</td><td>—</td><td>Lecture immédiate des cotes sans clignotement.</td><td><code>espn-odds/current.json</code></td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">h2hNow</td><td>file</td><td>—</td><td>—</td><td>Lecture immédiate du H2H du match.</td><td><code>espn-odds/&lt;ligue&gt;-&lt;id&gt;.json</code></td><td><span class="st ok">OK</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Sources d’enrichissement</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Source</th><th>Données</th><th>Fréquence</th><th>Cache</th><th>Règle</th><th>Statut</th></tr></thead>
+      <tbody>
+        <tr><td>Understat</td><td>xG, xGA, xPts, 20 matchs</td><td>12 h</td><td><code>~/.cache/understat/</code></td><td>Source préférée de la trajectoire ; cinq grands championnats.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td>Football-Data</td><td>xG, xGA, xPts, tirs, cartons, arbitre</td><td>2 fois/jour</td><td><code>~/.cache/fd/</code> + <code>espn-fd.json</code></td><td>Secours Ligue 2 / équipe absente d’Understat ; jamais mélangé au modèle Understat.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td>ClubElo</td><td>Elo, probabilités, force ajustée</td><td>1 fois/jour</td><td><code>~/.cache/clubelo/</code></td><td>Rating strictement avant le coup d’envoi ; non bloquant.</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td>Open-Meteo / OSM</td><td>Météo, distance, voyage</td><td>à la demande</td><td>cache daté</td><td>Contexte, pas de score.</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td>API-Football</td><td>Compos confirmées, blessures</td><td>quota à définir</td><td>cache daté</td><td>Phase ultérieure, jamais avant ESPN pour le live.</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="donnees">
+  <h2><span class="num">B2.5</span>Modèle de données et contrats</h2>
+  <h3>Match normalisé</h3>
+  <pre><code>match = {
+  id:       "fra.1:123456",        // ligue:event, clé stable
+  league:   "fra.1",               // identifiant ESPN
+  tag:      "L1",                  // libellé court localisé
+  at:       1762048800,            // Unix seconds, UTC
+  state:    "pre" | "in" | "post", // état ESPN
+  detail:   "2-1" | "45'" | "FT",  // détail ESPN
+  stage:    "round-of-16",         // phase de coupe
+  squads:   ["LYON", "PSG"],       // abréviations
+  tids:     ["167", "160"],        // identifiants ESPN
+  home:     { abbr, name, score, winner, logo },
+  away:     { abbr, name, score, winner, logo },
+  odds:     { h, d, a, ho, do, ao, tot, tov, tun, tuv, sph, sphv, spa, spav },
+  plays:    [ { t, m, team, goal, red, yellow, pen, own, who, assist } ],
+  aggH:     2, aggA: 1,            // agrégat aller/retour si disponible
+  fetchedAt: 1762048800
+}</code></pre>
+  <h3>Contrat d’équipe</h3>
+  <pre><code>team = {
+  abbr:   "LYON",
+  name:   "Olympique Lyonnais",
+  short:  "Lyon",
+  tid:    "167",
+  kind:   "c" | "n",   // club ou sélection
+  league: "fra.1",
+  logo:   "soccer/500/167.png",
+  key:    "167:c"      // clé stable de sélection
+}</code></pre>
+  <h3>Contrat de cache</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Élément</th><th>Contrat</th><th>Validation</th><th>Échec</th></tr></thead>
+      <tbody>
+        <tr><td>Corps JSON</td><td>Tableau ou objet conforme au type attendu</td><td><code>jq -e 'type == "array"'</code> ou <code>has("events")</code></td><td>Pas de <code>.ok</code>, pas d’écriture du cache, repli sur l’ancien</td></tr>
+        <tr><td><code>.meta</code></td><td><code>{v, at, ttl, exp}</code></td><td><code>v</code> attendu, <code>exp &gt; now</code></td><td>Cache expiré refusé, refetch</td></tr>
+        <tr><td>Écriture</td><td>Temp privé puis <code>mv</code> atomique</td><td>Fichier non vide et JSON valide</td><td>Temp supprimé, verrou purgé</td></tr>
+        <tr><td>Verrou</td><td><code>mkdir .&lt;fichier&gt;.lock</code></td><td>Verrou de moins de 15 min</td><td>Verrou périmé purgé</td></tr>
+        <tr><td>Signature</td><td><code>sha256(WANT|WANTID|WANTNOTID|WANTLG)</code></td><td>Cache mensuel par signature</td><td>Cache recalculé</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="etats">
+  <h2><span class="num">B2.6</span>Modèle d’état</h2>
+  <p>Le widget déclare <b>58 états</b>. La distinction <code>persist</code> / session est essentielle : un état persisté survit au redémarrage du launcher et porte les préférences ou les échéances ; un état de session porte l’UI immédiate.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:170px">Catégorie</th><th>États</th><th>Persistés ?</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>Équipes et identité</td><td><code>myTeams</code>, <code>team</code>, <code>draft</code>, <code>query</code>, <code>rivalsCsv</code>, <code>muteTeams</code></td><td>Oui sauf <code>draft</code>, <code>query</code></td><td>Sélection, filtre, rivaux, alertes par club.</td></tr>
+        <tr><td>Affichage</td><td><code>uiSize</code>, <code>lang</code>, <code>spoiler</code>, <code>hcMode</code>, <code>cbMode</code>, <code>teamColors</code>, <code>lowData</code>, <code>showOdds</code>, <code>showForm</code>, <code>matchdayMode</code>, <code>compactMode</code>, <code>todayOnly</code>, <code>daySel</code>, <code>view</code>, <code>topLg</code>, <code>euroLg</code>, <code>showTables</code></td><td>Mixte</td><td>Préférences et navigation.</td></tr>
+        <tr><td>Rappels</td><td><code>leadH</code>, <code>quietOn</code>, <code>digestOn</code>, <code>digestAt</code>, <code>weeklyOn</code>, <code>prewarmOn</code>, <code>prewarmAt</code>, <code>pauseUntil</code></td><td>Oui</td><td>Délai, heures calmes, digests, préchauffage, pause.</td></tr>
+        <tr><td>Échéances</td><td><code>h12Id</code>, <code>h12At</code>, <code>kickId</code>, <code>kickAt</code>, <code>nextDone</code>, <code>kickDone</code></td><td>Oui</td><td>Armement, déclenchement, déduplication.</td></tr>
+        <tr><td>Session / UI</td><td><code>showTeams</code>, <code>showSettings</code>, <code>spinning</code>, <code>spinUntil</code>, <code>spinAt</code>, <code>elapsed</code>, <code>lastOk</code>, <code>showDetail</code>, <code>previewTab</code>, <code>selJ</code>, <code>showAllFixtures</code>, <code>bracketOpen</code>, <code>clearAsk</code>, <code>diagDone</code>, <code>importRaw</code>, <code>importOk</code></td><td>Non</td><td>Interactions et transitions.</td></tr>
+        <tr><td>Mémoire de données</td><td><code>revealed</code>, <code>secClosed</code>, <code>lastDur</code>, <code>lastAt</code>, <code>uiSchema</code></td><td>Oui</td><td>Révélation, sections repliées, durée du dernier refresh, migration.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout warn">
+    <p><b>Règle d’or des triggers.</b> Après le feu, <code>h12Id</code>/<code>h12At</code> et <code>kickId</code>/<code>kickAt</code> sont remis à zéro. Sans cette purge, le trigger re-tire à chaque démarrage du launcher et produit des notifications fantômes. Le marquage « fait » (<code>nextDone</code>/<code>kickDone</code>) est écrit <b>avant</b> la purge, pour éviter les boucles.</p>
+  </div>
+</section>
+
+<section id="triggers">
+  <h2><span class="num">B2.7</span>Triggers et pipeline de notification</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:130px">Trigger</th><th>Source</th><th>Rôle</th><th>Garde-fou</th><th>Nettoyage</th></tr></thead>
+      <tbody>
+        <tr><td class="id">on games first</td><td><code>games</code></td><td>Arme <code>h12Id/h12At</code> sur le prochain match non rappelé et <code>kickId/kickAt</code> sur le prochain coup d’envoi.</td><td><code>soon12</code> / <code>kickSoon</code> indépendants ; pas de chaînage h12 → kick.</td><td>Réarmement à chaque battement.</td></tr>
+        <tr><td class="id">at h12At</td><td>échéance persistée</td><td>Rappel avant match.</td><td>Match <code>pre</code>, <code>at &gt; now</code>, id non déjà notifié, texte non vide.</td><td><code>h12Id=""</code>, <code>h12At=0</code> ; <code>nextDone</code> mis à jour.</td></tr>
+        <tr><td class="id">at kickAt</td><td>échéance persistée</td><td>Rappel coup d’envoi.</td><td>Match non <code>post</code>, <code>at &gt; now − 900</code>, texte non vide.</td><td><code>kickId=""</code>, <code>kickAt=0</code> ; <code>kickDone</code> mis à jour.</td></tr>
+        <tr><td class="id">at digestAt</td><td>échéance persistée</td><td>Digest quotidien / hebdomadaire.</td><td>Liste non vide, heure locale recalculée.</td><td><code>digestAt</code> réarmé au lendemain / lundi.</td></tr>
+        <tr><td class="id">at prewarmAt</td><td>échéance persistée</td><td>Préchauffage 06:00.</td><td>Pas de notification, seulement préchargement.</td><td><code>prewarmAt</code> réarmé.</td></tr>
+        <tr><td class="id">on liveM</td><td><code>liveM</code></td><td>Buts, cartons, mi-temps.</td><td>Score en hausse, nouveau play, anti-spoiler, mute, pause, heures calmes.</td><td>Déduplication par play / snapshot.</td></tr>
+        <tr><td class="id">on games</td><td><code>games</code></td><td>Fin de match.</td><td>Passage à <code>post</code>, match suivi, pas déjà notifié.</td><td>Pas de re-notification.</td></tr>
+        <tr><td class="id">at spinAt</td><td>compte à rebours UI</td><td>Animation du spinner et durée du refresh.</td><td>Conditionné à <code>spinning</code>.</td><td><code>spinAt=0</code> à la fin.</td></tr>
+        <tr><td class="id">on showTeams</td><td>ouverture du sélecteur</td><td>Initialise <code>draft</code> et <code>query</code>.</td><td>Respecte la sélection courante.</td><td>—</td></tr>
+        <tr><td class="id">on teamsDb</td><td><code>teamsDb</code></td><td>Rafraîchit la recherche et les ligues dérivées.</td><td>Catalogue non vide.</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pipeline de notification</h3>
+  <div class="phase">
+    <div class="ph">1 · Candidat</div><div class="pc">Un événement produit un candidat : match à venir, coup d’envoi, but, carton, HT, FT, digest. Le candidat porte toujours un identifiant stable et un texte non vide.</div>
+    <div class="ph">2 · Filtres</div><div class="pc"><b>Anti-spoiler</b> (<code>spoiler</code>), <b>heures calmes</b> (<code>quietOn</code> et 22–07), <b>pause</b> (<code>pauseUntil</code>), <b>mute club</b> (<code>muteTeams</code>), <b>état</b> (<code>pre</code>/<code>in</code>/<code>post</code>) et <b>fraîcheur</b> (match non périmé).</div>
+    <div class="ph">3 · Déduplication</div><div class="pc"><code>nextDone</code> et <code>kickDone</code> pour les rappels ; comparaison de plays et de snapshots pour le live ; <code>revealed</code> pour l’anti-spoiler. Plafond 30 par liste.</div>
+    <div class="ph">4 · Émission</div><div class="pc"><code>notify(titre, texte)</code> : titre court (duel, « Ça commence », « Aujourd’hui »), texte avec ligue, heure, score, buteur ou minute. Les écussons restent sur la tuile/l’écran, pas dans le voile Android.</div>
+    <div class="ph">5 · Trace</div><div class="pc">Marquage « fait » avant purge, écriture persistée, remise à zéro de l’échéance. En cas de report, le prochain battement réarme sur le nouvel <code>.at</code>.</div>
+  </div>
+</section>
+
+<section id="ui">
+  <h2><span class="num">B2.8</span>Architecture d’interface</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Tuile</h4>
+      <ul class="tight">
+        <li>6×4 par défaut, minimum 5×4 ; tuile adaptative 8/12/60 lignes.</li>
+        <li>Hero du prochain match, compte à rebours, badge live, cotes, forme.</li>
+        <li>Liste bornée avec compteur <code>+N</code> ; le tap ouvre l’écran complet.</li>
+        <li>Bandeau de rappel permanent si un match est proche ou en direct.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>Écran</h4>
+      <ul class="tight">
+        <li>Onglets MINE / RIV / TOP5 / EUROPE, filtre équipe, calendrier 7 jours.</li>
+        <li>Hero, résultats récents, à venir, classements, arbre de coupe.</li>
+        <li>Réglages en vue dédiée : Général, Affichage, Rappels, Partage, Données, À propos.</li>
+        <li>États vides, chargement, erreur, dégradé et hors ligne explicites.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Composants OWL</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Composant</th><th>Rôle</th><th>Points d’attention</th></tr></thead>
+      <tbody>
+        <tr><td><code>Crest</code></td><td>Écusson avec repli initiales et <code>label</code>.</td><td>Cache 48/160 px, mode basse data.</td></tr>
+        <tr><td><code>FormStrip</code> / <code>FormChip</code></td><td>Forme V/N/D sur 5 matchs, ordre ancien → récent.</td><td>Mode daltonien, masquage anti-spoiler.</td></tr>
+        <tr><td><code>GameRow</code> / <code>LiveGame</code></td><td>Ligne de match, score, minute, tag, journée, AET/PEN.</td><td>Largeurs dynamiques, dates relatives, live.</td></tr>
+        <tr><td><code>MatchBanner</code></td><td>Hero du prochain match, écussons, cotes, H2H, forme.</td><td>Compte à rebours, ouverture de l’app avant-match.</td></tr>
+        <tr><td><code>TableBlock</code> / <code>TableRow</code></td><td>Classement, zones, forme, logos.</td><td>Affichage à la demande, clés stables <code>abbr:rank</code>.</td></tr>
+        <tr><td><code>Bracket</code></td><td>Arbre Canvas des coupes à partir des 8es.</td><td>Replié par défaut, tours antérieurs en liste, libellés.</td></tr>
+        <tr><td><code>SetupBlock</code></td><td>Recherche et sélection 1–5 équipes.</td><td>Brouillon, plafond, états de chargement/erreur.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>App Avant-match — onglets</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:110px">Onglet</th><th>Contenu</th><th>Source</th><th>Garde-fou</th></tr></thead>
+      <tbody>
+        <tr><td><b>Aperçu</b></td><td>Hero VS, forme, tendances points/buts/clean sheets/BTTS/+2,5, xG/xGA/xPts, contexte rang/PPG, cinq prochains.</td><td>ESPN, Understat, Football-Data</td><td>Pas de projection trompeuse, pas de barre à zéro, données vides masquées.</td></tr>
+        <tr><td><b>Stats</b></td><td>Classement complet, repères, buts/clean sheets, H2H, leaders, blessures.</td><td>ESPN standings, summary, history</td><td>Logos via classement ou cache équipes, initiales en dernier recours.</td></tr>
+        <tr><td><b>Analyse</b></td><td>Trajectoire xG 20 matchs, réel vs attendu, croisements, badge de signal, radar, carte attaque/défense, guide de lecture.</td><td><code>espn-fd.json</code>, <code>espn-fd-analysis.json</code></td><td>Pas d’animation, source affichée, échantillon, pas de mélange de modèles.</td></tr>
+        <tr><td><b>Infos</b></td><td>Cotes 1/N/2, sans marge, mouvement, total/handicap, compos, actus, voyage.</td><td>ESPN summary/odds</td><td>Cotes indicatives, compos seulement si publiées, actus filtrées sur les deux équipes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="caches">
+  <h2><span class="num">B2.9</span>Robustesse, caches et reprise</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:220px">Mécanisme</th><th>Problème résolu</th><th>Implémentation</th><th>Preuve</th></tr></thead>
+      <tbody>
+        <tr><td>Cache anti-trous</td><td>Un mois ESPN échoue en silence et jette des matchs entiers.</td><td>Fusion frais par-dessus le dernier bon résultat, <code>unique_by(.id)</code>, purge des matchs périmés.</td><td><code>test-games.sh</code> ; F32.</td></tr>
+        <tr><td>Métadonnées <code>.meta</code></td><td>Un cache ancien ou d’un autre schéma est utilisé à tort.</td><td><code>{v,at,ttl,exp}</code>, validation à la lecture, migration des caches sans méta.</td><td><code>test-cache-meta.sh</code> ; I12.</td></tr>
+        <tr><td>Écriture atomique</td><td>Un arrêt brutal laisse un JSON tronqué.</td><td>Temp privé + <code>mv</code>, validation JSON avant remplacement.</td><td><code>test-cache-concurrency.sh</code> ; I13.</td></tr>
+        <tr><td>Verrou par fichier</td><td>Deux refresh concurrents se marchent dessus.</td><td><code>mkdir .&lt;fichier&gt;.lock</code>, purge après 15 min.</td><td><code>test-cache-concurrency.sh</code>.</td></tr>
+        <tr><td>Backoff / jitter</td><td>ESPN limite ou renvoie 5xx ; toutes les sources tapent ensemble.</td><td><code>--retry</code>, <code>Retry-After</code>, jitter 0–2 s par source.</td><td><code>test-degraded.sh</code> ; I14.</td></tr>
+        <tr><td>Gate live</td><td>Le direct poll toutes les minutes même sans match.</td><td><code>liveWin</code> ; hors fenêtre, commande minimale sans réseau.</td><td>Test du gate ; I15.</td></tr>
+        <tr><td>Repli cache</td><td>Une source tombe et l’UI affiche « aucun match ».</td><td>Dernier cache valide, âge affiché, bannière hors ligne, retry.</td><td><code>test-degraded.sh</code> ; I08.</td></tr>
+        <tr><td>Déduplication</td><td>Le même match apparaît dans <code>games</code>, <code>extra</code> et <code>seasonAll</code>.</td><td><code>unique_by(.id)</code>, fusion par identifiant, clés stables.</td><td>F17, I26 ; fixtures.</td></tr>
+        <tr><td>Fraîcheur visible</td><td>L’utilisateur ne sait pas si la donnée est vieille.</td><td><code>lastAt</code>, <code>lastDur</code>, âge, avertissement live &gt; 15 min.</td><td>AT18 ; preview.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Emplacements de cache</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Chemin</th><th>Contenu</th><th>Producteur</th><th>Consommateur</th></tr></thead>
+      <tbody>
+        <tr><td><code>~/.cache/espn-games.json</code></td><td>Matchs fusionnés, fenêtre ±90 jours</td><td><code>games</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-games-months/</code></td><td>Cache mensuel par signature</td><td><code>games</code></td><td><code>games</code></td></tr>
+        <tr><td><code>~/.cache/espn-extra.json</code></td><td>Calendrier élargi</td><td><code>extra</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-nextup.json</code></td><td>Prochains matchs</td><td><code>nextup</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-history.json</code></td><td>Historique complet</td><td><code>histfull</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-standings.json</code></td><td>Classements</td><td><code>standings</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-teams.json</code></td><td>Catalogue d’équipes</td><td><code>teamsDb</code></td><td>Widget</td></tr>
+        <tr><td><code>~/.cache/espn-live-index.json</code></td><td>Index live</td><td><code>liveM</code></td><td><code>liveIdx</code></td></tr>
+        <tr><td><code>~/.cache/espn-odds/</code></td><td>Cotes et H2H par match</td><td><code>heroOdds</code>, <code>prefetch</code></td><td>Widget, app</td></tr>
+        <tr><td><code>~/.cache/espn-logos/</code></td><td>Sprite et écussons 48/160 px</td><td><code>games</code>, <code>bannerLogos</code></td><td>Widget</td></tr>
+        <tr><td><code>~/.cache/espn-fd.json</code></td><td>xG Football-Data normalisé</td><td><code>fd-sync.py</code></td><td>App</td></tr>
+        <tr><td><code>~/.cache/espn-fd-analysis.json</code></td><td>Séries glissantes, radar, scatter</td><td><code>fd-analysis.js</code></td><td>App</td></tr>
+        <tr><td><code>~/.cache/prematch-match.json</code></td><td>Match sélectionné</td><td>Widget</td><td>App avant-match</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="securite">
+  <h2><span class="num">B2.10</span>Sécurité et vie privée</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Menaces et parades</h4>
+      <ul class="tight">
+        <li><b>Injection shell</b> via un nom d’équipe ou une configuration importée : <code>sh()</code> et validation des caractères interdits.</li>
+        <li><b>SSRF / redirection</b> : HTTPS, <code>--max-redirs 0</code>, hôte validé pour les scripts de mesure.</li>
+        <li><b>Réponse énorme</b> : <code>--max-filesize 2097152</code>, timeouts courts.</li>
+        <li><b>Cache empoisonné</b> : validation JSON avant <code>.ok</code>, repli sur l’ancien cache.</li>
+        <li><b>Fuite de données</b> : aucun compte, aucun token, aucun envoi de données personnelles.</li>
+        <li><b>IP LAN</b> : retirée des scripts, <code>OMA_BASE</code> ou fichier local validé.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>Vie privée</h4>
+      <ul class="tight">
+        <li>Les caches sont locaux et publics : matchs, scores, logos, cotes.</li>
+        <li>Aucune donnée de localisation, aucun identifiant utilisateur.</li>
+        <li>Le diagnostic copié contient la version et la santé des sources, pas de secret.</li>
+        <li>Effacement en deux temps de <code>~/.cache/espn-*</code>.</li>
+        <li>Attribution ESPN et licence MIT pour le code ; données/logos non couverts par la MIT.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2><span class="num">B2.11</span>Décisions de conception</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:86px">ID</th><th style="width:210px">Décision</th><th>Contexte et rationale</th><th>Alternatives rejetées</th><th>Conséquence</th></tr></thead>
+      <tbody>
+        <tr><td class="id">DES-01</td><td>Widget OWL mono-fichier</td><td>La distribution Omalauncher attend un <code>.owl</code> autonome ; les états persistés sont liés au fichier.</td><td>Backend séparé, base de données, service systemd.</td><td>Simple à installer, mais le fichier est long et les scripts doivent être extraits pour la revue.</td></tr>
+        <tr><td class="id">DES-02</td><td>ESPN maître, xG en enrichissement</td><td>ESPN fournit le live, les fixtures, les classements et les cotes ; Understat/Football-Data ne fournissent que le xG.</td><td>API-Football comme maître, scraping multi-sites.</td><td>Pas de mélange de modèles ; le live reste fiable ; le xG est optionnel.</td></tr>
+        <tr><td class="id">DES-03</td><td>Triggers <code>at</code> pour les rappels</td><td>Les sources sont gelées hors écran ; un compte à rebours pollé ne tire pas.</td><td><code>when</code> + polling, cron + <code>owl-send</code>.</td><td>Rappels fiables écran éteint ; nécessite une purge rigoureuse après le feu.</td></tr>
+        <tr><td class="id">DES-04</td><td>Déduplication persistée</td><td>Un trigger peut double-tirer au redémarrage ; un match peut être reporté.</td><td>Déduplication en mémoire seulement.</td><td>Une seule notification par match et par type ; listes plafonnées à 30.</td></tr>
+        <tr><td class="id">DES-05</td><td>Caches avec métadonnées</td><td>Les schémas ESPN changent et les caches anciens peuvent être invalides.</td><td>Cache brut sans version, refetch systématique.</td><td>Moins de refetch, mais un sidecar <code>.meta</code> à maintenir.</td></tr>
+        <tr><td class="id">DES-06</td><td>Gate live conditionnel</td><td>Le polling permanent du direct est le principal coût batterie mesuré en v5.7.</td><td>Polling toutes les minutes en permanence.</td><td>Zéro requête hors fenêtre ; le passage dans la fenêtre change la commande et déclenche un run.</td></tr>
+        <tr><td class="id">DES-07</td><td>Cache mensuel + fusion anti-trous</td><td>Les mois passés sont immuables ; une requête mensuelle peut échouer en silence.</td><td>Requête unique sur toute la fenêtre, pas de cache.</td><td>Moins de requêtes, mais une logique de fusion et de purge à tester.</td></tr>
+        <tr><td class="id">DES-08</td><td>Listes bornées et tables à la demande</td><td>L’écran composait trop de nœuds et s’ouvrait lentement.</td><td>Tout rendre par défaut, lazy non validé.</td><td>Ouverture plus légère ; l’utilisateur charge la suite avec « plus ».</td></tr>
+        <tr><td class="id">DES-09</td><td>i18n par dictionnaire</td><td>FR/EN, initialisation depuis Android, formats locaux.</td><td>Chaînes codées en dur, traduction automatique.</td><td>Dictionnaire volumineux mais explicite ; libellés ESPN inconnus partiellement traduits.</td></tr>
+        <tr><td class="id">DES-10</td><td>Accessibilité par options</td><td>Le runtime ne permet pas tout ; l’utilisateur choisit contraste, daltonien, taille.</td><td>Un seul thème imposé.</td><td>Plus de combinaisons à tester, mais l’app reste utilisable.</td></tr>
+        <tr><td class="id">DES-11</td><td>App avant-match séparée</td><td>La fiche inline alourdissait le widget ; une app dédiée permet une hiérarchie claire.</td><td>Tout garder dans le widget principal.</td><td>Meilleure lisibilité ; dépend de la synchronisation des caches.</td></tr>
+        <tr><td class="id">DES-12</td><td>Partage par presse-papiers et scripts</td><td>Pas de serveur, pas de compte ; le partage doit rester local.</td><td>URL hébergée, envoi push.</td><td>Simple et privé ; le lien de partage est un encodage local.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Alternatives rejetées</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Option</th><th>Pourquoi elle était tentante</th><th>Pourquoi elle est rejetée</th></tr></thead>
+      <tbody>
+        <tr><td>Widget séparé pour les rappels</td><td>Isolation, plus simple à tester.</td><td><code>myTeams</code> est persisté par fichier : un second widget ne peut pas lire la sélection sans redemander les équipes.</td></tr>
+        <tr><td>Cron Linux + <code>owl-send</code></td><td>Contrôle total du timing.</td><td>Dépend d’un Linux et d’un cron qui tournent ; fragile sur mobile, et redondant avec les triggers natifs.</td></tr>
+        <tr><td>Polling permanent du live</td><td>Simplicité, score toujours frais.</td><td>Mesuré à ~4 950 requêtes/h en v5.7 ; incompatible avec la batterie.</td></tr>
+        <tr><td>Scraping HTML des sites</td><td>Plus de données, pas de quota.</td><td>Fragile, juridiquement incertain, coûteux à maintenir ; ESPN public suffit.</td></tr>
+        <tr><td>Compte et synchronisation cloud</td><td>Multi-appareils, historique.</td><td>Vie privée, complexité, coût ; hors périmètre.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="verification">
+  <h2><span class="num">A</span>Branche montante — vérification et validation</h2>
+  <p class="lead">La stratégie de test est organisée en quatre étages : <b>statique</b> (compilation, syntaxe, garde-fous), <b>intégration hors ligne</b> (fixtures, faux <code>curl</code>, caches, pannes), <b>système</b> (previews, données live, notifications) et <b>acceptation</b> (scénarios utilisateur sur appareil). Chaque étage a une preuve reproductible et une limite explicite.</p>
+  <div class="grid3">
+    <div class="panel"><h4>A3 · Statique</h4><p class="small"><code>owl-check</code>, <code>bash -n</code> sur les scripts extraits, garde-fous Python, assertions de présence, de chaînes, de timeouts et de structures.</p></div>
+    <div class="panel"><h4>A2 · Intégration</h4><p class="small">Fixtures ESPN, faux <code>curl</code>, tests de sources, de cache, de périmètre de ligues, de pannes 429/5xx/offline/tronqué, de concurrence.</p></div>
+    <div class="panel"><h4>A1 / A0 · Système et recette</h4><p class="small">Preview tuile et écran, données live, notifications Android, batterie, accessibilité, scénarios 1 et 5 équipes.</p></div>
+  </div>
+</section>
+
+<section id="tests">
+  <h2><span class="num">A.1</span>Inventaire des tests</h2>
+  <p>Le dépôt contient <b>11 harnais</b> et un jeu de fixtures. Les tests n’appellent pas le réseau réel : le faux <code>curl</code> sert des réponses ESPN minimales et les scénarios de panne.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:220px">Harnais</th><th>Ce qu’il vérifie</th><th>Preuves clés</th><th style="width:100px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td><code>tests/run.sh</code></td><td>Point d’entrée : <code>owl-check</code> si disponible, <code>bash -n</code> sur 11 scripts, puis tests games, ligues, cache, H2H, prefetch, garde-fous.</td><td>11/11 scripts valides ; suite verte.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-games.sh</code></td><td>Liste complète des ligues, liste dynamique, réponse invalide, reprise, cache, signature, <code>sh()</code>, gate live, écussons atomiques.</td><td>LYON/ARS trouvés ; pas de <code>.ok</code> sur réponse invalide ; injection bloquée.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-league-scope.sh</code></td><td>Périmètre dynamique de <code>extra</code>, <code>nextup</code>, <code>histfull</code> ; club néerlandais remonté ; <code>foo.1</code> ignoré.</td><td>Pas de liste blanche de ligues.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-cache-meta.sh</code></td><td>Schéma, expiration, repli, migration des anciens caches, adoption d’un cache valide sans méta.</td><td>Pas de refetch inutile ; cache expiré refusé.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-h2h.sh</code></td><td>Extraction H2H, cache instantané, calcul des résultats, fixture <code>summary-h2h.json</code>.</td><td>H2H cohérent, pas de faux positif.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-prefetch.sh</code></td><td>Préchargement des cotes/H2H, argument de match, cache.</td><td>Prefetch sans requête utilisateur.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-audit-improvements.py</code></td><td>Garde-fous I01–I33, F01–F20, N01/N04/N07, HF/DN/AT/CU, structures de réglages, timeouts, tailles, clés stables.</td><td>Plus de 100 assertions ; aucune régression de chaîne.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-sources.sh</code></td><td><code>scheds</code>, <code>teamsDb</code>, <code>extra</code>, <code>knock</code>, <code>nextup</code>, <code>histfull</code> + fixtures ; repli cache.</td><td>Chaque source secondaire a un test.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-degraded.sh</code></td><td>429, 500, 503, offline, réponse tronquée, réponse trop grosse, repli cache.</td><td>Pas de crash, pas de faux cache.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>test-cache-concurrency.sh</code></td><td>Deux rafraîchissements concurrents ; JSON et méta valides ; pas de <code>.tmp</code> résiduel.</td><td>Écriture atomique prouvée.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td><code>tests/bin/curl</code> + <code>fixtures/</code></td><td>Faux <code>curl</code> ESPN, réponses minimales, modes de panne, logos.</td><td>Aucun appel réseau réel.</td><td><span class="st ok">OK</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Plan de tests système et acceptation</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">ID</th><th style="width:110px">Niveau</th><th>Scénario</th><th>Méthode</th><th style="width:110px">Résultat</th><th>Limite / preuve</th></tr></thead>
+      <tbody>
+        <tr><td class="id">T01</td><td>Unitaire</td><td>Compilation OWL</td><td><code>owl-check 20-my-matches.owl</code></td><td><span class="st ok">PASS</span></td><td>Compile ; preview 7×12 ; avertissements de paquets de données non bloquants.</td></tr>
+        <tr><td class="id">T02</td><td>Unitaire</td><td>Syntaxe des scripts extraits</td><td><code>bash -n</code> sur les 11 scripts</td><td><span class="st ok">PASS</span></td><td>11/11.</td></tr>
+        <tr><td class="id">T03</td><td>Intégration</td><td>Liste complète des ligues</td><td>Fixture <code>fra.1</code> + faux <code>curl</code></td><td><span class="st ok">PASS</span></td><td>LYON trouvé.</td></tr>
+        <tr><td class="id">T04</td><td>Intégration</td><td>Liste dynamique</td><td>Fixtures <code>fra.1</code> / <code>eng.1</code></td><td><span class="st ok">PASS</span></td><td>LYON et ARS trouvés.</td></tr>
+        <tr><td class="id">T05</td><td>Intégration</td><td>Réponse ESPN invalide</td><td><code>MOCK_INVALID=1</code></td><td><span class="st ok">PASS</span></td><td>Pas de <code>.ok</code>, pas de poison.</td></tr>
+        <tr><td class="id">T06</td><td>Intégration</td><td>Reprise après cache invalide</td><td>Fixture + cache vide</td><td><span class="st ok">PASS</span></td><td>Récupération.</td></tr>
+        <tr><td class="id">T07</td><td>Intégration</td><td>Signature de cache</td><td><code>WANTLG</code> change</td><td><span class="st ok">PASS</span></td><td><code>SIG</code> change.</td></tr>
+        <tr><td class="id">T08</td><td>Sécurité</td><td>Injection par apostrophe</td><td><code>TEST_FAVSTR=LYON'; touch …</code></td><td><span class="st ok">PASS</span></td><td>Aucun fichier créé.</td></tr>
+        <tr><td class="id">T09</td><td>Intégration</td><td>Gate live sans live</td><td>Index vide + faux <code>curl</code></td><td><span class="st ok">PASS</span></td><td>Aucun appel réseau.</td></tr>
+        <tr><td class="id">T10</td><td>Système</td><td>429 / 5xx / Retry-After</td><td><code>test-degraded.sh</code></td><td><span class="st ok">PASS</span></td><td>Repli cache ; pas de crash.</td></tr>
+        <tr><td class="id">T11</td><td>Système</td><td>Hors ligne / cache froid</td><td><code>test-degraded.sh</code></td><td><span class="st ok">PASS</span></td><td>Message d’erreur, pas de fausse donnée.</td></tr>
+        <tr><td class="id">T12</td><td>Système</td><td>JSON énorme / tronqué</td><td><code>test-degraded.sh</code></td><td><span class="st ok">PASS</span></td><td>Rejet, repli.</td></tr>
+        <tr><td class="id">T13</td><td>Système</td><td>Cache concurrent / arrêt brutal</td><td><code>test-cache-concurrency.sh</code></td><td><span class="st ok">PASS</span></td><td>Pas de <code>.tmp</code> résiduel.</td></tr>
+        <tr><td class="id">T14</td><td>Système</td><td>Rendu 5×4, 6×4, 7×12</td><td><code>owl-check</code> + inspection</td><td><span class="st part">PARTIEL</span></td><td>7×12 seulement ; 3×3 volontairement refusé.</td></tr>
+        <tr><td class="id">T15</td><td>Système</td><td>Accessibilité TalkBack</td><td>Appareil</td><td><span class="st dev">DEVICE</span></td><td>Non exécuté.</td></tr>
+        <tr><td class="id">T16</td><td>Système</td><td>Rappels 12 h / coup d’envoi</td><td>Appareil + <code>owl-send</code></td><td><span class="st dev">DEVICE</span></td><td>Non exécuté.</td></tr>
+        <tr><td class="id">T17</td><td>Système</td><td>Performance device</td><td><code>scripts/measure.sh</code></td><td><span class="st dev">DEVICE</span></td><td>ADB absent ; v5.22.8 non mesuré.</td></tr>
+        <tr><td class="id">T18</td><td>Système</td><td>Batterie écran éteint</td><td><code>measure.sh --screen-off --battery</code></td><td><span class="st dev">DEVICE</span></td><td>Non exécuté.</td></tr>
+        <tr><td class="id">T19</td><td>Acceptation</td><td>Parcours 1 et 5 équipes</td><td>Manuel</td><td><span class="st dev">DEVICE</span></td><td>À faire.</td></tr>
+        <tr><td class="id">T20</td><td>Acceptation</td><td>Changement de langue et de taille</td><td>Manuel</td><td><span class="st dev">DEVICE</span></td><td>Preview FR seulement.</td></tr>
+        <tr><td class="id">T21</td><td>Acceptation</td><td>Offline puis retour réseau</td><td>Manuel</td><td><span class="st dev">DEVICE</span></td><td>À faire.</td></tr>
+        <tr><td class="id">T22</td><td>Acceptation</td><td>Non-régression fonctionnelle</td><td>Checklist du registre</td><td><span class="st part">PARTIEL</span></td><td>Couvert hors appareil, pas en recette.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <p><b>Ce que les tests ne prouvent pas.</b> Ils ne prouvent ni le rendu exact sur un écran physique, ni le comportement des notifications Android, ni la consommation réelle, ni l’accessibilité TalkBack. Ces preuves sont dans la colonne <span class="st dev">DEVICE</span> et doivent être produites avant de déclarer la recette terminée.</p>
+  </div>
+</section>
+
+<section id="ci">
+  <h2><span class="num">A.2</span>CI et commandes de vérification</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Commandes locales</h4>
+      <pre><code>cd ~/.config/omalauncher/widgets/omalauncher-my-match
+
+# Suite rapide (~3 min)
+make test
+# ou
+./tests/run.sh
+
+# Suite complète (~10 min)
+make test-all
+# ou
+./tests/run-all.sh
+
+# Compilation et preview
+cd ~/.config/omalauncher/widgets
+owl-check 20-my-matches.owl
+owl-check prematch.owl</code></pre>
+    </div>
+    <div class="panel">
+      <h4>CI portable</h4>
+      <pre><code># Compilation Python + tests
+./scripts/ci.sh
+
+# Workflow GitHub Actions (modèle)
+docs/ci-workflow.yml
+
+# Extraction des scripts pour revue
+./scripts/dump-widget-scripts.sh</code></pre>
+      <p class="small">Le workflow GitHub Actions est fourni comme modèle : il doit être copié dans <code>.github/workflows/ci.yml</code> avec un token disposant du scope <code>workflow</code>.</p>
+    </div>
+  </div>
+  <h3>Critères de CI</h3>
+  <ul class="tight">
+    <li><code>owl-check</code> sort à 0 et produit une preview tuile + écran.</li>
+    <li>Les 11 scripts extraits passent <code>bash -n</code>.</li>
+    <li>Les tests de fixtures, de ligues, de cache, de H2H, de prefetch et de garde-fous passent.</li>
+    <li>Les tests de pannes, de concurrence et de sources secondaires passent en mode <code>test-all</code>.</li>
+    <li>Aucun appel réseau réel n’est effectué par la suite.</li>
+    <li>Aucun secret, aucune IP LAN, aucun token dans le dépôt.</li>
+  </ul>
+</section>
+
+<section id="device">
+  <h2><span class="num">A.3</span>Mesures et validation device</h2>
+  <p>Le dossier contient un protocole reproductible pour mesurer l’app sur téléphone. Les chiffres v5.7/v5.8 sont réels ; le modèle v5.10.0 est calculé depuis le code ; la version v5.22.8 n’a pas encore été mesurée.</p>
+
+  <h3>Mesures réelles v5.7 / v5.8</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Métrique</th><th class="c">v5.7</th><th class="c">v5.8</th><th class="c">Écart</th><th>Lecture</th></tr></thead>
+      <tbody>
+        <tr><td><code>curl</code> — burst initial 90 s</td><td class="c">222</td><td class="c">221</td><td class="c">−0,5 %</td><td>Le burst initial reste dominé par les ligues suivies.</td></tr>
+        <tr><td><code>jq</code> — burst initial 90 s</td><td class="c">733</td><td class="c">462</td><td class="c">−37 %</td><td>Moins de transformations inutiles.</td></tr>
+        <tr><td><code>curl</code> — régime stable 120 s</td><td class="c">165</td><td class="c">0</td><td class="c">−100 %</td><td>Le gate live supprime le polling permanent.</td></tr>
+        <tr><td><code>jq</code> — régime stable 120 s</td><td class="c">323</td><td class="c">8</td><td class="c">−97,5 %</td><td>Lecture d’index sans requête réseau.</td></tr>
+        <tr><td><code>curl</code> / min stable</td><td class="c">82,5</td><td class="c">0</td><td class="c">−100 %</td><td>Le gain principal pour la batterie.</td></tr>
+        <tr><td><code>curl</code> / h stable (extrapolé)</td><td class="c">~4 950</td><td class="c">0</td><td class="c">−100 %</td><td>À comparer au modèle v5.10.0.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Modèle de requêtes v5.10.0</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Profil</th><th class="c">1er chargement</th><th class="c">Requêtes / 24 h</th><th>Hypothèses</th></tr></thead>
+      <tbody>
+        <tr><td>Secours (L = 28 ligues)</td><td class="c">≈ 700</td><td class="c">≈ 3 292</td><td>Aucune ligue déductible, <code>games</code> couvre 28 ligues, 4 mois de cache.</td></tr>
+        <tr><td>Typique (L = 6 ligues)</td><td class="c">≈ 250</td><td class="c">≈ 1 149</td><td>5 équipes dans 6 ligues, caches chauds, hors fenêtre live.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">Ces chiffres sont un modèle statique dérivé des périodes et des scripts, pas une mesure device. Les pires cas théoriques (réseau totalement bloqué) dépassent parfois les timeouts source ; ils doivent être surveillés au premier chargement à froid.</p>
+
+  <h3>Protocole de notification</h3>
+  <ol class="tight">
+    <li>Vérifier que la permission de notification Android du launcher est accordée.</li>
+    <li>Placer la page 2 du launcher <b>non affichée</b> pour éviter un ré-armement concurrent.</li>
+    <li>Armer un vrai match à venir, puis <code>owl-send 20-my-matches.owl set h12At &lt;epoch + 25s&gt;</code>.</li>
+    <li>Attendre ~30 s : la notification doit apparaître.</li>
+    <li>Refaire le même <code>set</code> : aucune seconde notification (déduplication).</li>
+    <li>Tester un match terminé pour vérifier l’absence de notification et la purge des états.</li>
+    <li>Remettre <code>h12At=0</code> et <code>kickAt=0</code>, puis réafficher la page 2 pour vérifier le ré-armement.</li>
+  </ol>
+
+  <div class="callout warn">
+    <p><b>État honnête.</b> Les mesures device v5.22.8, les notifications réelles, TalkBack et la décharge batterie n’ont pas été exécutés dans ce dossier. Le protocole est prêt ; l’exécution reste la dernière preuve manquante de la branche A0.</p>
+  </div>
+</section>
+
+<section id="rtm">
+  <h2><span class="num">A.4</span>Matrice de traçabilité</h2>
+  <p>La matrice relie le besoin, les features, la conception et la vérification. Elle sert de checklist de non-régression : une ligne sans test est un risque, une ligne sans statut est une dette.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">Exigence</th><th>Besoin / capacité</th><th style="width:180px">Features</th><th style="width:160px">Conception</th><th style="width:180px">Vérification</th><th style="width:110px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">REQ-01</td><td>Suivre 1 à 5 équipes</td><td>CFG-01..CFG-04</td><td>DES-01, DES-09</td><td>Fixtures, tests statiques, device</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">REQ-02</td><td>Voir le prochain match et le live</td><td>MAT-07, MAT-08, MAT-13</td><td>DES-06</td><td>Preview, gate live, fixtures</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">REQ-03</td><td>Recevoir les rappels avant match et au coup d’envoi</td><td>NOT-01..NOT-04</td><td>DES-03, DES-04</td><td>Protocole device, logique statique</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">REQ-04</td><td>Recevoir les alertes live</td><td>NOT-05..NOT-08</td><td>DES-03, DES-06</td><td>Logique statique, device</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">REQ-05</td><td>Contrôler le bruit</td><td>NOT-09..NOT-12, NOT-18</td><td>DES-04, DES-10</td><td>Garde-fous, device</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">REQ-06</td><td>Consulter classements, rivaux, coupes</td><td>MAT-02..MAT-04, MAT-10, MAT-11</td><td>DES-07, DES-08</td><td>Preview, tests CDF/UCL, fixtures</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-07</td><td>Analyser un match</td><td>PRE-01..PRE-08</td><td>DES-11</td><td>Tests FD, preview, device</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td class="id">REQ-08</td><td>Comprendre la qualité des chances</td><td>PRE-03, PRE-05, DATA-13, DATA-14</td><td>DES-02, DES-11</td><td>Doc trajectoire, tests FD</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-09</td><td>Partager et exporter</td><td>SHR-01..SHR-09</td><td>DES-12</td><td>Garde-fous, scripts</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-10</td><td>Rester lisible sans réseau</td><td>DATA-16..DATA-21</td><td>DES-05, DES-07</td><td>Tests pannes, cache, concurrence</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-11</td><td>Ne pas vider la batterie</td><td>DATA-07, OPS-08, NFR-02</td><td>DES-06</td><td>Gate live, mesures v5.7/v5.8, modèle</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">REQ-12</td><td>Être accessible</td><td>A11Y-01..A11Y-08</td><td>DES-10</td><td>Garde-fous, device TalkBack</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">REQ-13</td><td>Être sûr et privé</td><td>DATA-18, DATA-22, OPS-09</td><td>DES-01, DES-12</td><td>Tests injection, revue, notice</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-14</td><td>Être maintenable et testable</td><td>OPS-01..OPS-11</td><td>DES-01, DES-05</td><td>CI, extracteur, tests</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">REQ-15</td><td>Respecter les licences</td><td>DATA-22, OPS-07</td><td>DES-02</td><td>LICENSE, notice de données</td><td><span class="st ok">OK</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="limites">
+  <h2><span class="num">A.5</span>Limites connues</h2>
+  <p>Un dossier de cycle en V n’est crédible que s’il dit ce qu’il ne prouve pas. Les limites ci-dessous sont classées par impact et associées à une mitigation ou à une action.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:220px">Limite</th><th>Impact</th><th>Mitigation / action</th><th style="width:100px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td>Mesures device v5.22.8 absentes</td><td>On ne connaît pas la consommation réelle de la version courante.</td><td>Exécuter <code>scripts/measure.sh</code> et le protocole de décharge ; comparer au modèle v5.10.0.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td>Notifications Android non exécutées</td><td>Le chemin critique « rappel » n’est pas prouvé sur appareil.</td><td>Protocole <code>owl-send</code> + page non affichée ; vérifier la permission.</td><td><span class="st dev">DEVICE</span></td></tr>
+        <tr><td>TalkBack et cibles 48 dp partiels</td><td>Accessibilité non conforme à 100 %.</td><td>I20, AT07, AT10 ; audit TalkBack ; agrandir les cibles restantes.</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td>Listes <code>lazy</code> non implémentées (I18)</td><td>Écran long encore coûteux à composer.</td><td>Refactor d’écran avec <code>Column{lazy:true}</code> et validation device.</td><td><span class="st prop">BACKLOG</span></td></tr>
+        <tr><td>Agrégats aller/retour incomplets</td><td>Certains scores cumulés de coupe peuvent manquer.</td><td>Fixture ESPN dédié au contrat série ; I17.</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td>i18n des libellés ESPN inconnus</td><td>Quelques tags restent en anglais.</td><td>Dictionnaire de correspondance étendu ; I18N-02..04.</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td>Modèles xG différents</td><td>Understat et Football-Data ne sont pas comparables.</td><td>Source affichée, pas de fusion, fallback explicite.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td>Fenêtres glissantes chevauchantes</td><td>Les points de la trajectoire ne sont pas indépendants.</td><td>Guide de lecture, badge de signal, pas de verdict automatique.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td>ClubElo, météo, API-Football</td><td>Fonctions proposées non disponibles.</td><td>Roadmap §<a href="#backlog">backlog</a> ; intégration non bloquante.</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td>Couverture football féminin / ligues non ESPN</td><td>Périmètre volontairement limité.</td><td>Extension future si une source fiable est disponible.</td><td><span class="st prop">HORS PÉRIMÈTRE</span></td></tr>
+        <tr><td>Pas de conseil de pari</td><td>Les cotes ne sont pas une prédiction.</td><td>Mention « cotes indicatives, aucune mise » ; pas de recommandation.</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td>Dépendance à ESPN</td><td>Un changement d’API peut casser la collecte.</td><td>Validation de schéma, cache, tests de fixtures, veille.</td><td><span class="st part">SURVEILLÉ</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="risques">
+  <h2><span class="num">A.6</span>Registre des risques</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">ID</th><th>Risque</th><th style="width:80px">Prob.</th><th style="width:80px">Impact</th><th>Mitigation</th><th style="width:110px">Propriétaire</th></tr></thead>
+      <tbody>
+        <tr><td class="id">R-01</td><td>ESPN change le schéma ou l’endpoint</td><td>Moyenne</td><td>Élevé</td><td>Validation JSON, fixtures, cache, tests de sources, version de schéma.</td><td>Data</td></tr>
+        <tr><td class="id">R-02</td><td>Rate limit / 429 / 5xx</td><td>Moyenne</td><td>Moyen</td><td>Backoff, Retry-After, jitter, cache, réduction du périmètre.</td><td>SRE</td></tr>
+        <tr><td class="id">R-03</td><td>Cache corrompu ou concurrent</td><td>Faible</td><td>Élevé</td><td>Écriture atomique, verrou, validation, test de concurrence.</td><td>Data</td></tr>
+        <tr><td class="id">R-04</td><td>Permission de notification refusée</td><td>Moyenne</td><td>Moyen</td><td>Bandeau permanent dans la tuile/écran, message explicite.</td><td>Produit</td></tr>
+        <tr><td class="id">R-05</td><td>Régression batterie</td><td>Faible</td><td>Élevé</td><td>Gate live, budgets, mesures, revue des périodes.</td><td>Perf</td></tr>
+        <tr><td class="id">R-06</td><td>Mauvais mapping d’équipe xG</td><td>Moyenne</td><td>Moyen</td><td>Alias, noms normalisés, non-mappé exclu, jamais de devinette.</td><td>Data</td></tr>
+        <tr><td class="id">R-07</td><td>Fuseau / heure d’été</td><td>Faible</td><td>Moyen</td><td>UTC dans les données, conversion locale à l’affichage, tests de dates.</td><td>Produit</td></tr>
+        <tr><td class="id">R-08</td><td>Widget trop long / maintenabilité</td><td>Moyenne</td><td>Moyen</td><td>Extracteur, tests, docs, découpage logique.</td><td>Tech</td></tr>
+        <tr><td class="id">R-09</td><td>Changement de runtime OWL</td><td>Faible</td><td>Élevé</td><td><code>meta.owl</code>, tests de compilation, veille upstream.</td><td>Tech</td></tr>
+        <tr><td class="id">R-10</td><td>Données live en retard</td><td>Moyenne</td><td>Faible</td><td>Âge affiché, avertissement &gt; 15 min, retry, pas de fausse fraîcheur.</td><td>Produit</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="exploitation">
+  <h2><span class="num">EXPL</span>Exploitation et maintenance</h2>
+  <div class="grid2">
+    <div class="panel">
+      <h4>Checklist de release</h4>
+      <ol class="tight">
+        <li><code>owl-check 20-my-matches.owl</code> et <code>owl-check prematch.owl</code> sans erreur.</li>
+        <li><code>make test</code> puis <code>make test-all</code> verts.</li>
+        <li>Preview tuile 7×12 et écran inspectés.</li>
+        <li>Version <code>meta.version</code> et changelog mis à jour.</li>
+        <li>Attribution ESPN et notice de données à jour.</li>
+        <li>Effacement des caches testé.</li>
+        <li>Scénarios device AC-01..AC-12 exécutés.</li>
+        <li>Commit et push avec message conventionnel.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h4>Maintenance</h4>
+      <ul class="tight">
+        <li><b>Surveillance</b> : ligne de santé, codes d’erreur, diagnostic copiable.</li>
+        <li><b>Mise à jour</b> : remplacer le <code>.owl</code>, relancer <code>owl-check</code>, vérifier les caches.</li>
+        <li><b>Sauvegarde</b> : copier le JSON des équipes (SHR-02) et les réglages persistés.</li>
+        <li><b>Nettoyage</b> : caches <code>espn-*</code> via réglages ou <code>rm -rf</code>.</li>
+        <li><b>Attribution</b> : conserver ESPN, Understat, Football-Data et la licence MIT.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Versionnement</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Élément</th><th>Règle</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Widget</td><td><code>meta.version</code> sémantique, changelog en tête de doc.</td><td><code>5.22.8</code></td></tr>
+        <tr><td>App avant-match</td><td>Version séparée, alignée sur les features de l’app.</td><td><code>1.0.22</code></td></tr>
+        <tr><td>Schéma de cache</td><td><code>.meta.v</code> incrémenté en cas de changement de contrat.</td><td><code>v=1</code></td></tr>
+        <tr><td>OWL</td><td><code>meta.owl</code> minimum requis par les fonctions utilisées.</td><td><code>16</code></td></tr>
+        <tr><td>Données</td><td>Chaque champ dérivé porte source, date et échantillon.</td><td><code>{value, source, as_of, sample}</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Attribution et licence</h3>
+  <div class="callout">
+    <p><b>Code :</b> MIT, copyright © 2026 Tasour. <b>Données :</b> ESPN, Understat, Football-Data et leurs ayants droit ; le widget n’est ni affilié, ni sponsorisé, ni approuvé par ESPN. <b>Logos et marques :</b> propriété de leurs détenteurs, non couverts par la MIT. <b>Vie privée :</b> aucun compte, aucune donnée personnelle envoyée ; seuls des caches publics sont conservés sous <code>~/.cache/espn-*</code>, <code>~/.cache/understat/</code> et <code>~/.cache/fd/</code>.</p>
+  </div>
+</section>
+
+<section id="backlog">
+  <h2><span class="num">ROAD</span>Backlog et roadmap</h2>
+  <p>Le backlog est séparé en trois catégories : <b>dette de validation</b> (preuves manquantes), <b>dette technique</b> (refactors) et <b>nouvelles features</b> (propositions). Les propositions ne sont pas des promesses : elles sont classées par valeur, effort et risque de données.</p>
+
+  <h3>Dette de validation</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:80px">ID</th><th>Action</th><th>Pourquoi</th><th style="width:100px">Effort</th><th style="width:100px">Priorité</th></tr></thead>
+      <tbody>
+        <tr><td class="id">I33</td><td>Mesures device v5.22.8 (CPU, réseau, batterie, décharge)</td><td>Prouver la consommation réelle et la non-régression.</td><td>M</td><td><span class="st part">HAUTE</span></td></tr>
+        <tr><td class="id">T16</td><td>Notifications réelles : rappel, coup d’envoi, but, carton, HT/FT</td><td>Prouver le chemin critique sur appareil.</td><td>M</td><td><span class="st part">HAUTE</span></td></tr>
+        <tr><td class="id">T15</td><td>Audit TalkBack et cibles 48 dp</td><td>Fermer l’accessibilité.</td><td>M</td><td><span class="st part">HAUTE</span></td></tr>
+        <tr><td class="id">T19</td><td>Parcours 1 / 5 équipes, offline puis retour réseau</td><td>Recette utilisateur.</td><td>S</td><td><span class="st part">HAUTE</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Dette technique</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:80px">ID</th><th>Action</th><th>Bénéfice</th><th style="width:100px">Effort</th><th style="width:100px">Priorité</th></tr></thead>
+      <tbody>
+        <tr><td class="id">I18</td><td>Listes <code>lazy</code> dans l’écran</td><td>Ouvrir plus vite, moins de nœuds.</td><td>M</td><td><span class="st part">MOYENNE</span></td></tr>
+        <tr><td class="id">I17</td><td>Agrégats aller/retour complets</td><td>Fiabiliser les coupes.</td><td>M</td><td><span class="st part">MOYENNE</span></td></tr>
+        <tr><td class="id">I18N</td><td>Traduction des libellés ESPN inconnus</td><td>Cohérence FR/EN.</td><td>S</td><td><span class="st part">MOYENNE</span></td></tr>
+        <tr><td class="id">A11Y</td><td>Généraliser les cibles 48 dp</td><td>Confort et conformité.</td><td>S/M</td><td><span class="st part">MOYENNE</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Nouvelles features proposées</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:80px">ID</th><th>Feature</th><th>Valeur</th><th style="width:80px">Effort</th><th style="width:100px">Risque data</th><th style="width:100px">Statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">N02</td><td>Alerte compos ~1 h avant</td><td>Préparer le match avec les onze probables.</td><td>M</td><td>Moyen</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N03</td><td>Matchday mode avancé (timeline, compte à rebours)</td><td>Recentrer la tuile sur le match du jour.</td><td>M</td><td>Faible</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">N05</td><td>Rappels intelligents (pas de notif si ouvert récemment)</td><td>Moins de bruit.</td><td>M</td><td>Faible</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N08</td><td>Classement live as-it-stands</td><td>Voir la position pendant le direct.</td><td>M/L</td><td>Moyen</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N09</td><td>Panneau stats live (possession, tirs, xG, cartons)</td><td>Comprendre le match en direct.</td><td>M</td><td>Moyen</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N10</td><td>Timeline buts/cartons/remplacements</td><td>Lecture chronologique.</td><td>M</td><td>Faible</td><td><span class="st part">PARTIEL</span> fiche</td></tr>
+        <tr><td class="id">N11</td><td>Radar blessures/suspensions</td><td>Contexte effectif.</td><td>M</td><td>Moyen</td><td><span class="st ok">OK</span> partiel</td></tr>
+        <tr><td class="id">N12</td><td>Fil d’actus ESPN de mes équipes</td><td>Rester informé.</td><td>S/M</td><td>Moyen</td><td><span class="st part">PARTIEL</span> fiche</td></tr>
+        <tr><td class="id">N13</td><td>Joueur suivi (stats, buts, notif)</td><td>Personnalisation forte.</td><td>M/L</td><td>Élevé</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N14</td><td>Coupes nationales + football féminin</td><td>Couverture élargie.</td><td>M</td><td>Moyen</td><td><span class="st part">PARTIEL</span> coupes</td></tr>
+        <tr><td class="id">N16</td><td>Page équipe (toutes compétitions, forme, buteurs)</td><td>Vue synthétique.</td><td>L</td><td>Moyen</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N17</td><td>Bandeau calendrier 10 jours</td><td>Planifier.</td><td>S/M</td><td>Faible</td><td><span class="st part">PARTIEL</span> 7 jours</td></tr>
+        <tr><td class="id">N18</td><td>Partage/export carte match, lien, import/export JSON</td><td>Partage social.</td><td>S</td><td>Faible</td><td><span class="st ok">OK</span> partiel</td></tr>
+        <tr><td class="id">N19</td><td>Thème/accent par équipe</td><td>Personnalisation visuelle.</td><td>S</td><td>Faible</td><td><span class="st ok">OK</span> couleurs</td></tr>
+        <tr><td class="id">N20</td><td>Budget data + retry ciblé par source</td><td>Maîtrise réseau.</td><td>S/M</td><td>Faible</td><td><span class="st ok">OK</span> partiel</td></tr>
+        <tr><td class="id">N21</td><td>Langues ES/DE/IT/PT + dynamic type</td><td>Internationalisation.</td><td>M</td><td>Faible</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">N23</td><td>Préchargement programmé 06:00</td><td>Données prêtes au réveil.</td><td>S</td><td>Faible</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">N24</td><td>Fusion anti-doublons + reports/annulations complets</td><td>Fiabilité des fixtures.</td><td>M</td><td>Moyen</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">D-15</td><td>ClubElo (force, probabilités, upset)</td><td>Analyse indépendante du classement.</td><td>M</td><td>Moyen</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">D-16</td><td>Météo / voyage (Open-Meteo, OSM)</td><td>Contexte déplacement.</td><td>S/M</td><td>Faible</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">D-17</td><td>API-Football (compos confirmées, blessures)</td><td>Qualité avant-match.</td><td>L</td><td>Élevé</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="annexes">
+  <h2><span class="num">ANN</span>Annexes</h2>
+
+  <h3 id="glossaire">Glossaire</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:160px">Terme</th><th>Définition</th></tr></thead>
+      <tbody>
+        <tr><td>OWL</td><td>Langage déclaratif d’Omalauncher pour les widgets, apps, panneaux et barres de touches.</td></tr>
+        <tr><td><code>source</code></td><td>Déclaration d’une donnée : <code>cmd</code> (script), <code>file</code> (cache), <code>clock</code> (temps), avec période et timeout.</td></tr>
+        <tr><td><code>let</code></td><td>Valeur dérivée, recalculée quand ses dépendances changent.</td></tr>
+        <tr><td><code>state</code></td><td>État mutable ; <code>persist</code> le conserve entre les redémarrages.</td></tr>
+        <tr><td><code>on</code></td><td>Handler réactif déclenché par un changement de source ou un événement.</td></tr>
+        <tr><td><code>at</code></td><td>Trigger d’échéance persistée ; rattrape son heure au démarrage.</td></tr>
+        <tr><td><code>owl-check</code></td><td>Compilateur et générateur de previews d’Omalauncher.</td></tr>
+        <tr><td>RTM</td><td>Requirements Traceability Matrix : exigence → conception → test → statut.</td></tr>
+        <tr><td>xG / xGA / xGD</td><td>Buts attendus pour / contre / différence attendue.</td></tr>
+        <tr><td>H2H</td><td>Head-to-head, confrontations directes.</td></tr>
+        <tr><td>PPG</td><td>Points par match.</td></tr>
+        <tr><td>BTTS</td><td>Both teams to score, les deux équipes marquent.</td></tr>
+        <tr><td>AET / PEN</td><td>Après prolongation / tirs au but.</td></tr>
+        <tr><td>Gate</td><td>Condition qui empêche une source de s’exécuter hors fenêtre utile.</td></tr>
+        <tr><td>Anti-trous</td><td>Fusion qui comble les identifiants absents avec le dernier bon cache.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="fichiers">Cartographie des fichiers</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:260px">Fichier / dossier</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>widget/my-match.optimized.owl</code></td><td>Widget principal v5.22.8 (copie du fichier installé <code>20-my-matches.owl</code>).</td></tr>
+        <tr><td><code>widget/my-match.owl</code></td><td>Version historique v5.7, conservée pour comparaison.</td></tr>
+        <tr><td><code>widget/prematch.owl</code></td><td>App Avant-match 1.0.22.</td></tr>
+        <tr><td><code>scripts/fd-sync.py</code></td><td>Synchronisation Understat / Football-Data.</td></tr>
+        <tr><td><code>scripts/fd-analysis.js</code></td><td>Calcul des séries xG, radar, scatter.</td></tr>
+        <tr><td><code>scripts/encode-share-link.py</code>, <code>decode-share-link.py</code></td><td>Encodage/décodage d’un lien de partage.</td></tr>
+        <tr><td><code>scripts/measure*.sh</code>, <code>collect-server.py</code></td><td>Mesures device et collecte locale.</td></tr>
+        <tr><td><code>scripts/ci.sh</code>, <code>dump-widget-scripts.sh</code></td><td>CI portable et extraction des scripts.</td></tr>
+        <tr><td><code>tests/</code></td><td>Fixtures, faux <code>curl</code>, tests shell et Python.</td></tr>
+        <tr><td><code>docs/</code></td><td>Audits, cycle en V, notice de données, mesures, propositions.</td></tr>
+        <tr><td><code>measurements/</code></td><td>Résultats de mesure (les fichiers device bruts restent locaux).</td></tr>
+        <tr><td><code>README.md</code></td><td>Contexte, objectif, méthode, statut, sécurité, licence.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="commandes">Aide-mémoire des commandes</h3>
+  <pre><code># Vérifier le widget installé
+cd ~/.config/omalauncher/widgets
+owl-check 20-my-matches.owl
+owl-check prematch.owl
+
+# Piloter un widget qui tourne
+owl-send 20-my-matches.owl set h12At 1762048800
+owl-send 20-my-matches.owl set kickAt 0
+owl-send 20-my-matches.owl refresh
+
+# Tests du dépôt
+cd ~/.config/omalauncher/widgets/omalauncher-my-match
+make test
+make test-all
+./scripts/ci.sh
+
+# Extraire les scripts pour revue
+./scripts/dump-widget-scripts.sh
+
+# Mesures device (ADB requis)
+./scripts/measure.sh --screen-off --battery
+./scripts/measure-remote.sh</code></pre>
+
+  <h3 id="sources-url">Sources et références</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:220px">Source</th><th>Usage</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>ESPN</td><td>Matchs, scores, classements, cotes, résumés</td><td><a href="https://site.api.espn.com/apis/site/v2/sports/soccer/">site.api.espn.com</a></td></tr>
+        <tr><td>Understat</td><td>xG sur 20 matchs, cinq grands championnats</td><td><a href="https://understat.com/">understat.com</a></td></tr>
+        <tr><td>Football-Data</td><td>xG, tirs, cartons, arbitre, secours Ligue 2</td><td><a href="https://www.football-data.co.uk/data.php">football-data.co.uk</a></td></tr>
+        <tr><td>ClubElo</td><td>Elo, probabilités (proposé)</td><td><a href="http://clubelo.com/API">clubelo.com/API</a></td></tr>
+        <tr><td>API-Football</td><td>Compos, blessures (proposé)</td><td><a href="https://www.api-football.com/pricing">api-football.com</a></td></tr>
+        <tr><td>Open-Meteo</td><td>Météo (proposé)</td><td><a href="https://open-meteo.com/">open-meteo.com</a></td></tr>
+        <tr><td>StatsBomb Open Data</td><td>Référence xG / événements</td><td><a href="https://github.com/statsbomb/open-data">github.com/statsbomb/open-data</a></td></tr>
+        <tr><td>TheSportsDB</td><td>Référence équipes (non utilisé)</td><td><a href="https://www.thesportsdb.com/free_sports_api">thesportsdb.com</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="historique">Historique des versions</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:90px">Version</th><th>Apport principal</th><th style="width:120px">Preuve</th></tr></thead>
+      <tbody>
+        <tr><td class="id">5.7</td><td>Base historique, polling permanent, 3×3.</td><td>Mesures v5.7</td></tr>
+        <tr><td class="id">5.8</td><td>Réécriture iso-fonctionnelle, réduction jq, gate live.</td><td>Mesures v5.8</td></tr>
+        <tr><td class="id">5.9.1</td><td>Correctifs cache, <code>SIG</code>, <code>sh()</code>.</td><td>Tests</td></tr>
+        <tr><td class="id">5.9.8</td><td>Cotes instantanées, cache <code>current.json</code>, 5 formes.</td><td>Audit 360°</td></tr>
+        <tr><td class="id">5.10.0</td><td>Lot I01–I10 : curl durci, santé, CI, i18n.</td><td>Tests + mesures</td></tr>
+        <tr><td class="id">5.14.x</td><td>Réglages dédiés, accessibilité, live alerts, personnalisation.</td><td>Garde-fous</td></tr>
+        <tr><td class="id">5.15.x</td><td>Coupes nationales, arbres, données, voyage, finitions.</td><td>Tests CDF/UCL</td></tr>
+        <tr><td class="id">5.16.x</td><td>Page avant-match, onglets, cotes, stats, H2H.</td><td>Audits</td></tr>
+        <tr><td class="id">5.18.x</td><td>App avant-match dédiée, performance, compte à rebours.</td><td>Audit perf</td></tr>
+        <tr><td class="id">5.19.x</td><td>Listes bornées, classements repliés, écran plus léger.</td><td>Audit perf</td></tr>
+        <tr><td class="id">5.20.x</td><td>Arbre de tournoi Canvas, tours antérieurs.</td><td>Tests bracket</td></tr>
+        <tr><td class="id">5.21.x</td><td>Lisibilité, arbres complets, repli.</td><td>Tests</td></tr>
+        <tr><td class="id">5.22.x</td><td>Classement complet, couleurs de logos, xG Football-Data, graphes avancés, trajectoire 20 matchs.</td><td>Tests FD, docs</td></tr>
+        <tr><td class="id">5.22.8</td><td>Version courante : trajectoire xG, app 1.0.22.</td><td>Ce document</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="crosswalk">Correspondance avec les anciens identifiants</h3>
+  <h4>Matrice d’audit F01–F32</h4>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">Ancien</th><th>Fonction</th><th>Nouvel identifiant</th></tr></thead>
+      <tbody>
+        <tr><td class="id">F01</td><td>Coque, titre, responsive</td><td>CFG-06, MAT-07, OPS-01</td></tr>
+        <tr><td class="id">F02</td><td>Sélection 1–5 équipes</td><td>CFG-01</td></tr>
+        <tr><td class="id">F03</td><td>Identité et filtrage</td><td>CFG-02</td></tr>
+        <tr><td class="id">F04</td><td>Onglets principaux</td><td>MAT-01..MAT-04</td></tr>
+        <tr><td class="id">F05</td><td>Filtres secondaires</td><td>MAT-02..MAT-05</td></tr>
+        <tr><td class="id">F06</td><td>Hero match</td><td>MAT-07</td></tr>
+        <tr><td class="id">F07</td><td>Cotes 1/N/2</td><td>MAT-07, PRE-06</td></tr>
+        <tr><td class="id">F08</td><td>Live et fraîcheur</td><td>MAT-13</td></tr>
+        <tr><td class="id">F09</td><td>À venir</td><td>MAT-09</td></tr>
+        <tr><td class="id">F10</td><td>Résultats et forme</td><td>MAT-08, A11Y-06</td></tr>
+        <tr><td class="id">F11</td><td>Journées</td><td>MAT-02..MAT-04</td></tr>
+        <tr><td class="id">F12</td><td>Classements</td><td>MAT-10</td></tr>
+        <tr><td class="id">F13</td><td>Historique de saison</td><td>DATA-10</td></tr>
+        <tr><td class="id">F14</td><td>Rivaux</td><td>MAT-02</td></tr>
+        <tr><td class="id">F15</td><td>Top 5</td><td>MAT-03</td></tr>
+        <tr><td class="id">F16</td><td>Europe</td><td>MAT-04</td></tr>
+        <tr><td class="id">F17</td><td>Arbre</td><td>MAT-11</td></tr>
+        <tr><td class="id">F18</td><td>Rappel 12 h</td><td>NOT-01</td></tr>
+        <tr><td class="id">F19</td><td>Rappel coup d’envoi</td><td>NOT-02</td></tr>
+        <tr><td class="id">F20</td><td>Refresh manuel</td><td>PRE-07, OPS-08</td></tr>
+        <tr><td class="id">F21</td><td>Langue FR/EN</td><td>CFG-05</td></tr>
+        <tr><td class="id">F22</td><td>Tailles S/M/L/XL</td><td>CFG-06, A11Y-04</td></tr>
+        <tr><td class="id">F23</td><td>Édition des équipes</td><td>CFG-03</td></tr>
+        <tr><td class="id">F24</td><td>Logos et sprite</td><td>DATA-12</td></tr>
+        <tr><td class="id">F25</td><td>Badges et zones</td><td>MAT-10, A11Y-02</td></tr>
+        <tr><td class="id">F26</td><td>Persistance</td><td>CFG-07</td></tr>
+        <tr><td class="id">F27</td><td>Vide/chargement/erreur</td><td>DATA-19, MAT-01</td></tr>
+        <tr><td class="id">F28</td><td>Sections repliables</td><td>MAT-11</td></tr>
+        <tr><td class="id">F29</td><td>Thème et adaptation</td><td>A11Y-01, A11Y-03</td></tr>
+        <tr><td class="id">F30</td><td>Dates et i18n</td><td>A11Y-06</td></tr>
+        <tr><td class="id">F31</td><td>Fermeture</td><td>UI écran</td></tr>
+        <tr><td class="id">F32</td><td>Cache anti-trous</td><td>DATA-21</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Propositions N01–N24</h4>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">Ancien</th><th>Feature</th><th>Nouvel identifiant / statut</th></tr></thead>
+      <tbody>
+        <tr><td class="id">N01</td><td>Goal Flash</td><td>NOT-05</td></tr>
+        <tr><td class="id">N02</td><td>Alerte compos</td><td>Backlog PRE</td></tr>
+        <tr><td class="id">N03</td><td>Matchday mode</td><td>MAT-06</td></tr>
+        <tr><td class="id">N04</td><td>Anti-spoiler</td><td>NOT-12</td></tr>
+        <tr><td class="id">N05</td><td>Rappels intelligents</td><td>NOT-01, NOT-09</td></tr>
+        <tr><td class="id">N06</td><td>Digests</td><td>NOT-13, NOT-14</td></tr>
+        <tr><td class="id">N07</td><td>H2H</td><td>MAT-07, PRE-04</td></tr>
+        <tr><td class="id">N08</td><td>Classement live</td><td>Backlog DATA</td></tr>
+        <tr><td class="id">N09</td><td>Stats live</td><td>Backlog PRE</td></tr>
+        <tr><td class="id">N10</td><td>Timeline</td><td>MAT-12 (partiel)</td></tr>
+        <tr><td class="id">N11</td><td>Blessures</td><td>PRE-04</td></tr>
+        <tr><td class="id">N12</td><td>Actus</td><td>MAT-12, PRE-06</td></tr>
+        <tr><td class="id">N13</td><td>Joueur suivi</td><td>Backlog</td></tr>
+        <tr><td class="id">N14</td><td>Coupes / féminin</td><td>MAT-11 (partiel)</td></tr>
+        <tr><td class="id">N15</td><td>Rivaux explicites</td><td>MAT-02</td></tr>
+        <tr><td class="id">N16</td><td>Page équipe</td><td>Backlog</td></tr>
+        <tr><td class="id">N17</td><td>Calendrier 10 jours</td><td>MAT-05 (7 jours)</td></tr>
+        <tr><td class="id">N18</td><td>Partage/export</td><td>SHR-01..SHR-09</td></tr>
+        <tr><td class="id">N19</td><td>Thème équipe</td><td>A11Y-03</td></tr>
+        <tr><td class="id">N20</td><td>Budget/retry</td><td>DATA-18, DATA-19</td></tr>
+        <tr><td class="id">N21</td><td>Langues / dynamic type</td><td>CFG-05 (partiel)</td></tr>
+        <tr><td class="id">N22</td><td>Daltonien</td><td>A11Y-02</td></tr>
+        <tr><td class="id">N23</td><td>Préchauffage</td><td>NOT-16</td></tr>
+        <tr><td class="id">N24</td><td>Déduplication / reports</td><td>MAT-14, NOT-03</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Améliorations I01–I33</h4>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:70px">Ancien</th><th>Amélioration</th><th>Nouvel identifiant</th><th style="width:90px">État</th></tr></thead>
+      <tbody>
+        <tr><td class="id">I01</td><td>curl durci</td><td>DATA-18</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I02</td><td>IP LAN retirée</td><td>OPS-09</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I03</td><td>Typographie</td><td>A11Y-06</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I04</td><td><code>showTables</code> persisté</td><td>MAT-10, CFG-07</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I05</td><td>Tuile bornée</td><td>MAT-09</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I06</td><td>Périmètre classements</td><td>DATA-04</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I07</td><td>Timeouts alignés</td><td>DATA-18</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I08</td><td>Santé des sources</td><td>DATA-19</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I09</td><td>Spinner conditionnel</td><td>OPS-08</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I10</td><td>CI et tests</td><td>OPS-04</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I11</td><td>Ligues dynamiques</td><td>DATA-06, DATA-09, DATA-10</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I12</td><td>Métadonnées de cache</td><td>DATA-16</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I13</td><td>Écussons atomiques</td><td>DATA-12, DATA-17</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I14</td><td>Retry/backoff</td><td>DATA-18</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I15</td><td>Gate live</td><td>DATA-07</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I16</td><td>Rounds ESPN</td><td>MAT-08, MAT-14</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I17</td><td>Reports/annulations</td><td>MAT-14</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">I18</td><td>Listes lazy</td><td>Backlog OPS</td><td><span class="st prop">PROPOSÉ</span></td></tr>
+        <tr><td class="id">I19</td><td>Tables à la demande</td><td>MAT-10</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I20</td><td>Libellés accessibles</td><td>A11Y-05</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">I21</td><td>Zones nommées</td><td>A11Y-02, MAT-10</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I22</td><td>Plancher typo</td><td>A11Y-04</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I23</td><td>Largeurs dynamiques</td><td>A11Y-04</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I24</td><td>Minimum 5×4</td><td>CFG-06</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I25</td><td>Base dérivée</td><td>DATA-21</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I26</td><td>Clés stables</td><td>MAT-10</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I27</td><td>Tests de sources</td><td>OPS-03</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I28</td><td>Tests de pannes</td><td>OPS-03</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I29</td><td>Tests de concurrence</td><td>OPS-03</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I30</td><td>Extracteur de scripts</td><td>OPS-10</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I31</td><td>Langue / persistance</td><td>CFG-05, CFG-07</td><td><span class="st part">PARTIEL</span></td></tr>
+        <tr><td class="id">I32</td><td>Licence / notice</td><td>DATA-22, OPS-07</td><td><span class="st ok">OK</span></td></tr>
+        <tr><td class="id">I33</td><td>Mesures</td><td>OPS-06</td><td><span class="st part">PARTIEL</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="foot">
+  <p><b>My Matches — cycle en V complet</b> · widget v5.22.8 · app Avant-match 1.0.22 · document généré le 2 novembre 2026 à partir du widget installé, du dépôt <code>omalauncher-my-match</code>, des audits et des tests. Les statuts <span class="st dev">DEVICE</span>, <span class="st part">PARTIEL</span> et <span class="st prop">PROPOSÉ</span> sont volontairement conservés : ils distinguent ce qui est implémenté de ce qui est prouvé.</p>
+  <p>Code MIT · données ESPN / Understat / Football-Data · aucune affiliation · aucune donnée personnelle envoyée.</p>
+</div>
+
+</main>
+</div>
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('featureSearch');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('.feature-row'));
+  var count = document.getElementById('featureCount');
+
+  function applyFilter() {
+    var q = (input && input.value ? input.value : '').trim().toLowerCase();
+    var visible = 0;
+    rows.forEach(function (row) {
+      var hay = ((row.getAttribute('data-text') || '') + ' ' + (row.textContent || '')).toLowerCase();
+      var show = !q || hay.indexOf(q) !== -1;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (count) {
+      count.textContent = visible + ' capacité' + (visible > 1 ? 's' : '') + ' affichée' + (visible > 1 ? 's' : '') + '.';
+    }
+  }
+
+  if (input) {
+    input.addEventListener('input', applyFilter);
+    applyFilter();
+  }
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var map = new Map();
+  links.forEach(function (a) {
+    var id = (a.getAttribute('href') || '').replace('#', '');
+    var el = document.getElementById(id);
+    if (el) map.set(el, a);
+  });
+
+  if ('IntersectionObserver' in window && map.size > 0) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var a = map.get(entry.target);
+          if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-18% 0px -72% 0px', threshold: 0 });
+    map.forEach(function (a, el) { obs.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

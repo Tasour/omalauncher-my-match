@@ -151,7 +151,7 @@ Cela ferme PROD-04 et donne une action de confidentialité visible (PRIV-02).
 - **Fait — I32** `LICENSE` MIT, `docs/data-notice.md` (source ESPN, absence
   d'affiliation, données locales, effacement), README mis à jour.
 - **Partiel — I33** Preuves hors appareil (owl-check, `tests/run-all.sh`, modèle
-  de requêtes) et protocole complet dans `docs/measurements-v5.10.0.md` ;
+  de requêtes) et protocole complet dans `../measurements/v5.10.0.md` ;
   décharge/ADB non exécutées (aucun appareil attaché).
 
 ## Protocole de validation

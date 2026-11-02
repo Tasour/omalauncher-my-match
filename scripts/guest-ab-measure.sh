@@ -24,7 +24,7 @@ echo "target=$f"
 cp "$f" /tmp/my-match.current.owl 2>/dev/null || true
 
 fetch() { curl -fsSL --connect-timeout 5 --url "$1" -o "$2"; }
-fetch "$BASE/widget/my-match.owl" /tmp/my-match.v57.owl ||
+fetch "$BASE/archive/widget/my-match.v5.7.owl" /tmp/my-match.v57.owl ||
   fetch "$GH57" /tmp/my-match.v57.owl ||
   { echo "v57 download failed"; exit 1; }
 fetch "$GH58" /tmp/my-match.v58.owl ||

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Encode un fichier .owl en lien de partage Omalauncher (raw DEFLATE + base64url).
-Usage: ./encode-share-link.py widget/my-match.owl
+Usage: ./encode-share-link.py widget/my-match.optimized.owl
 """
 import sys, zlib, base64, argparse
 

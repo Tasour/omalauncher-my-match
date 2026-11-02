@@ -45,9 +45,10 @@ def main():
                if private_ip.search(path.read_text(encoding="utf-8", errors="ignore"))]
     check("I02 LAN IP removed", not ip_hits, ", ".join(ip_hits))
 
-    host_scripts = [ROOT / "scripts" / name for name in (
-        "fix-v59.sh", "guest-ab-measure.sh", "guest-ab-wrapper.sh", "guest-update-widget.sh")]
-    host_widgets = [ROOT / "widget" / name for name in (
+    host_scripts = [ROOT / "archive" / "scripts" / "fix-v59.sh"] + [
+        ROOT / "scripts" / name for name in (
+            "guest-ab-measure.sh", "guest-ab-wrapper.sh", "guest-update-widget.sh")]
+    host_widgets = [ROOT / "archive" / "widget" / name for name in (
         "ab-measure.owl", "ab-wrapper.owl", "fix-v59.owl")]
     host_aware = host_scripts + host_widgets
     validation = "grep -Ex '^https?://[A-Za-z0-9._:-]+$'"
@@ -178,7 +179,7 @@ def main():
     # I32/I33 - legal notice and measurement report exist.
     check("I32 license and data notice",
           (ROOT / "LICENSE").exists() and (ROOT / "docs" / "data-notice.md").exists())
-    check("I33 measurement report", (ROOT / "docs" / "measurements-v5.10.0.md").exists())
+    check("I33 measurement report", (ROOT / "docs" / "measurements" / "v5.10.0.md").exists())
 
     # PROD-04/PRIV-02: attribution and local-data controls in the settings UI.
     check("I32 about and privacy UI",
